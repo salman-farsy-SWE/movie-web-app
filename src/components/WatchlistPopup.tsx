@@ -76,7 +76,7 @@ w-[10px] ms-[10px] bg-checked border border-checked-stroke rounded-none
                 </div>
             </div>
 
-            <button className="absolute bottom-0 left-0 right-0 flex items-center justify-center xl:h-[31px] md:h-[29px] sm:h-[27px] h-[23px] hover:bg-watchlist transition-colors duration-75 border-t border-white sm:pb-[2px] pb-[1px] sm:text-xs text-[11px] font-normal font-inter sm:rounded-b-[5px] rounded-none">
+            <button className="absolute bottom-0 left-0 right-0 flex items-center justify-center xl:h-[31px] md:h-[29px] sm:h-[27px] h-[23px] hover:bg-watchlist transition-colors duration-75 border-t border-white pb-[1px] sm:text-xs text-[11px] font-normal font-inter sm:rounded-b-[5px] rounded-none">
                 Create New List
             </button>
 

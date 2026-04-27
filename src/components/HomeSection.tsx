@@ -89,6 +89,7 @@ export function HomeSection({ id, title, items }: HomeSectionProps) {
 
                         emblaApi.scrollTo(prevIndex);
                     }}
+                    className={"xl:top-[59px] lg:top-[51px] md:top-[53px] sm:top-[51px] top-[40px]"}
                 />
             </div>
         </section>

@@ -5,6 +5,7 @@ import { Plus, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { WatchlistPopup } from "@/components/WatchlistPopup";
 import { BsCcSquare, BsCcSquareFill } from "react-icons/bs";
+import { AddButton } from "./AddButton";
 
 interface MovieCardProps {
   title: string;
@@ -49,8 +50,8 @@ export function MovieCard({ title, genre, image, trailer }: MovieCardProps) {
         v.muted = true;
         setMuted(true);
         v.load();
-        v.play().catch(() => {});
-      }, 500);
+        v.play().catch(() => { });
+      }, 300);
 
       return () => clearTimeout(t);
     }
@@ -106,6 +107,8 @@ export function MovieCard({ title, genre, image, trailer }: MovieCardProps) {
     };
 
     const onClick = (e: MouseEvent) => {
+      if (!openRef.current) return;
+
       if (
         popupRef.current &&
         !popupRef.current.contains(e.target as Node) &&
@@ -181,17 +184,15 @@ export function MovieCard({ title, genre, image, trailer }: MovieCardProps) {
             src={image}
             alt={title}
             fill
-            className={`object-cover transition-opacity duration-300 lg:rounded-[7px] rounded-[5px] ${
-              showVideo ? "opacity-0" : "opacity-100"
-            }`}
+            className={`object-cover transition-opacity duration-300 lg:rounded-[7px] rounded-[5px] ${showVideo ? "opacity-0" : "opacity-100"
+              }`}
           />
         )}
 
         {trailer && (
           <div
-            className={`absolute inset-0 transition-opacity duration-300 ${
-              showVideo && !hasEnded ? "opacity-100" : "opacity-0 pointer-events-none"
-            }`}
+            className={`absolute inset-0 transition-opacity duration-300 ${showVideo && !hasEnded ? "opacity-100" : "opacity-0 pointer-events-none"
+              }`}
           >
             <video
               ref={videoRef}
@@ -262,17 +263,15 @@ export function MovieCard({ title, genre, image, trailer }: MovieCardProps) {
         )}
       </div>
 
-      <button
-        type="button"
+      <AddButton
         ref={btnRef}
         onClick={(e) => {
           e.stopPropagation();
-          if (!open) setOpen(true);
+          setOpen((prev) => !prev);
         }}
-        className="absolute right-0 flex lg:h-[25px] lg:w-[25px] md:h-[23px] md:w-[23px] sm:h-[21px] sm:w-[21px] h-[18px] w-[18px] items-center justify-center lg:rounded-[3px] md:rounded-[2px] rounded-[1px] bg-light-plus-btn dark:bg-plus-btn hover:bg-light-plus-btn/95 dark:hover:bg-plus-btn/95 transition-colors lg:mt-[8px] md:mt-[6px] sm:mt-[5px] mt-[4px]"
-      >
-        <Plus className="lg:h-[18px] lg:w-[18px] md:h-[17px] md:w-[17px] sm:h-[16px] sm:w-[16px] h-[15px] w-[15px] text-white" />
-      </button>
+        className="absolute right-0 lg:h-[25px] lg:w-[25px] md:h-[23px] md:w-[23px] sm:h-[21px] sm:w-[21px] h-[18px] w-[18px] bg-light-plus-btn dark:bg-plus-btn hover:bg-light-plus-btn/95 dark:hover:bg-plus-btn/95 lg:mt-[8px] md:mt-[6px] sm:mt-[5px] mt-[4px]"
+        iconClassName="lg:h-[18px] lg:w-[18px] md:h-[17px] md:w-[17px] sm:h-[16px] sm:w-[16px] h-[15px] w-[15px]"
+      />
 
       <p className="lg:mt-[6px] md:mt-[4px] sm:mt-[7px] mt-[5px] text-center font-inter sm:font-medium xl:text-[15px] md:text-sm sm:text-[13px] text-[12px] leading-none text-light-genre-font dark:text-genre-font">
         {genre}

@@ -4,19 +4,19 @@ import Image from "next/image";
 
 export function SearchBox() {
   return (
-    <section className="w-[1289px] min-h-[398px] pb-11 flex flex-col items-center gap-[19px] rounded-[9px] bg-white">
-      <div className="relative w-[1214px] h-fit border-b-2 border-black mt-[66px] flex items-center justify-center">
-        <div className="absolute -top-[22px] w-full h-full flex items-center justify-between gap-2">
-          <Input placeholder="Search" className="text-[22px] font-normal font-inter text-black placeholder:text-light-search-font bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none" />
-          <Search className="h-8 w-8 text-black mr-[14px]" strokeWidth={1.5} />
+    <section className="xl:w-[1289px] lg:w-[1060px] md:w-[880px] w-[100vw] h-fit xl:pb-6 lg:pb-5 md:pb-4 sm:pb-2 pb-3 flex flex-col items-center lg:rounded-[9px] md:rounded-[7px] bg-white dark:bg-search-box overflow-x-auto">
+      <div className="relative xl:w-[1214px] lg:w-[990px] md:w-[820px] w-[90vw] h-fit border-b-2 border-black/75 dark:border-white/75 xl:mt-[66px] lg:mt-[60px] md:mt-[50px] mt-[45px] flex items-center justify-center">
+        <div className="absolute xl:-top-[24px] lg:-top-[22px] md:-top-[18px] -top-[16px] w-full h-full flex items-center justify-between">
+          <Input autoFocus placeholder="Search" className="xl:text-[22px] lg:text-[20px] md:text-lg text-base font-normal font-inter text-black dark:text-white tracking-wide placeholder:text-light-search-font bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none" />
+          <Search className="xl:h-8 xl:w-8 lg:h-7 lg:w-7 md:h-6 md:w-6 h-5 w-5 text-black/75 dark:text-white/75 mr-[14px]" strokeWidth={1.5} />
         </div>
       </div>
-      <div className="relative w-[1214px] h-fit max-h-[400px] overflow-y-auto px-3 custom-scrollbar">
-        <div className="grid grid-cols-3 gap-x-10 gap-y-6 w-full">
+      <div className="relative xl:w-[1214px] xl:h-[300px] lg:w-[990px] lg:h-[265px] md:w-[820px] md:h-[230px] sm:w-[760px] sm:h-[220px] w-[590px] h-[180px] overflow-y-auto xl:px-3 sm:px-5 px-3 xl:pt-[14px] lg:pt-[14px] sm:pt-[12px] pt-[8px] xl:pb-11 lg:pb-2 sm:pb-3 pb-2 custom-scrollbar">
+        <div className="grid grid-cols-3 xl:gap-x-10 xl:gap-y-6 lg:gap-x-8 lg:gap-y-4 md:gap-x-6 md:gap-y-3 sm:gap-x-8 sm:gap-y-4 gap-x-4 gap-y-[10px] w-full">
 
           {[...Array(21)].map((_, i) => (
-            <div key={i} className="flex items-start gap-3">
-              <div className="relative w-[54px] h-[75px]">
+            <div key={i} className="flex items-start xl:gap-3 lg:gap-[10px] md:gap-[8px] gap-[6px]">
+              <div className="relative xl:w-[54px] xl:h-[75px] lg:w-[49px] lg:h-[70px] md:w-[45px] md:h-[63px] sm:w-[40px] sm:h-[55px] w-[36px] h-[51px]">
                 <Image
                   src="/assets/card-sand.jpg"
                   alt="Search Box Image"
@@ -26,11 +26,11 @@ export function SearchBox() {
                 />
               </div>
 
-              <div className="flex flex-col font-inter mt-[2px]">
-                <h2 className="text-lg text-black">
+              <div className="flex flex-col font-inter lg:mt-[2px] md:mt-[4px] sm:mt-[2px] mt-[3px]">
+                <h2 className="xl:text-lg lg:text-base sm:text-[13px] text-[10px] text-black dark:text-white">
                   Avengers Endgame (2010)
                 </h2>
-                <p className="text-base text-light-search-genres-font">
+                <p className="xl:text-base lg:text-sm sm:text-xs text-[10px] text-light-search-genres-font dark:text-search-genres-font">
                   Horror/Fantasy
                 </p>
               </div>

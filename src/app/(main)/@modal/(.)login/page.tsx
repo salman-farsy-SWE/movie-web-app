@@ -10,13 +10,26 @@ export default function LoginModal() {
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const originalOverflowX = document.body.style.overflowX;
+    const originalOverflowY = document.body.style.overflowY;
+
+    document.body.style.overflowX = "hidden";
+    document.body.style.overflowY = "scroll";
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        router.back();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.body.style.overflow = originalOverflow;
+      document.body.style.overflowX = originalOverflowX;
+      document.body.style.overflowY = originalOverflowY;
+      window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [router]);
 
   return (
     <div

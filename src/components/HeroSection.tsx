@@ -6,6 +6,7 @@ import { Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import useEmblaCarousel from "embla-carousel-react";
 import { HeroContent } from "@/data/mock-home";
+import { GenreBadge } from "./GenreBadge";
 
 export function HeroSection({
   heroContents
@@ -55,12 +56,7 @@ export function HeroSection({
                   <span>{data.year}</span>
                   <div className="flex items-center justify-center xl:ml-[18px] lg:ml-4 md:ml-[12px] sm:ml-[10px] ml-[8px] lg:gap-[9px] md:gap-2 gap-[6px]">
                     {data.genres.map((genre) => (
-                      <span
-                        key={genre}
-                        className="inline-flex items-center justify-center xl:h-7 lg:h-[27px] md:h-[26px] sm:h-[24px] h-[18px] xl:min-w-[86px] lg:min-w-[82px] md:min-w-[76px] sm:min-w-[68px] min-w-[50px] lg:px-2 px-1 w-auto lg:rounded-[10px] md:rounded-lg rounded-md bg-genre/50 backdrop-blur-md shadow-md xl:text-[16px] lg:text-[15px] md:text-sm sm:text-[12px] text-[11px] leading-none"
-                      >
-                        {genre}
-                      </span>
+                      <GenreBadge key={genre} genre={genre} className="bg-genre/50" />
                     ))}
                   </div>
                 </div>

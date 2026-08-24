@@ -24,7 +24,7 @@ export interface MovieSection {
 export const heroContents: HeroContent[] = [{
   title: "Interstellar",
   description:
-    "They started the war. He will finish it. They started the war. He will finish it. They started the war. He will finish it.",
+    "They started the war. He will finish it. They started the war. He will finish it. They started the war. He will finish it. fdfkjfjfkslf sdfnsjldf skfsfskjfsk fsfjskdfjsfkj skfjsdfjskfjsd fjsdfjsdfjskfjsd fjsdfjsdfjskfjsd",
   year: "2014",
   rating: "8.5",
   genres: ["Action", "Adventure"],

@@ -1,7 +1,5 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { PersonCard } from "./PersonCard";
 
 type Person = {
@@ -62,7 +60,7 @@ export function PersonsGrid({ basePath }: PersonsGridProps) {
     });
 
     return (
-        <div className="grid grid-cols-6 gap-x-[96px] gap-y-[60px] mt-[24px]">
+        <div className="grid xl:grid-cols-6 lg:grid-cols-5 md:grid-cols-4 grid-cols-3 xl:gap-x-[96px] lg:gap-x-[86px] md:gap-x-[70px] sm:gap-x-[60px] gap-x-[50px] lg:gap-y-[60px] md:gap-y-[50px] sm:gap-y-[35px] gap-y-[30px] xl:mt-[30px] md:mt-[27px] sm:mt-[25px] mt-[23px] xl:px-0 lg:px-2 px-1">
             {gridData.map((person) => (
                 <PersonCard basePath={basePath} key={person.id} person={person} />
             ))}

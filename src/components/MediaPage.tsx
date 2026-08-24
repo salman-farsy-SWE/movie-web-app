@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { SortDropdown } from "@/components/SortDropdown";
 import { FilterPanel } from "@/components/FilterPanel";
+import { FilterButton } from "@/components/FilterButton";
 import { PostersGrid } from "@/components/PostersGrid";
 import { Pagination } from "@/components/Pagination";
 import { useClickOutsideClose } from "@/hooks/useClickOutsideClose";
@@ -13,8 +13,9 @@ import { PersonsGrid } from "./PersonsGrid";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import BasePathContext from "@/contexts/BasePathContext";
+import { slugify } from "@/lib/utils";
 
-type MediaType = "movie" | "tv" | "genre" | "trending" | "top-rated";
+type MediaType = "movie" | "tv" | "genre" | "trending" | "top-rated" | "search";
 
 interface MediaPageProps {
     param?: string;
@@ -62,11 +63,11 @@ export function MediaPage({ param, type, showSearch, param2, children, hidePagin
             case "tv":
                 return "/tv-shows";
             case "genre":
-                return `/genres/${param?.toLowerCase().replace(/\s+/g, "-")}`;
+                return `/genres/${slugify(param || "")}`;
             case "trending":
-                return `/trending/${param?.toLowerCase().replace(/\s+/g, "-")}`;
+                return `/trending/${slugify(param || "")}`;
             case "top-rated":
-                return `/top-rated/${param?.toLowerCase().replace(/\s+/g, "-")}`;
+                return `/top-rated/${slugify(param || "")}`;
             default:
                 return "/";
         }
@@ -74,9 +75,9 @@ export function MediaPage({ param, type, showSearch, param2, children, hidePagin
 
     return (
         <section className="container-1440 mt-[72px]">
-            <div className="flex justify-between items-center mt-[110px]">
+            <div className="flex justify-between items-center xl:mt-[110px] lg:mt-[100px] md:mt-[90px] sm:mt-[83px] mt-[78px] xl:px-0 px-2">
                 {
-                    (isPersonDetails || isPosterDetails) ? (
+                    (isPersonDetails || isPosterDetails || type === "search") ? (
                         <div
                             onClick={() => {
                                 if (window.history.length > 1) {
@@ -87,9 +88,9 @@ export function MediaPage({ param, type, showSearch, param2, children, hidePagin
                             }}
                             className="group flex items-center gap-[4px] cursor-pointer select-none transition-colors duration-75"
                         >
-                            <ChevronLeft className="w-[28px] h-[28px] text-black/85 group-hover:text-black" />
+                            <ChevronLeft className="w-[28px] h-[28px] text-black group-hover:text-black/75" />
 
-                            <h1 className="font-akshar text-[28px] font-medium text-black/85 group-hover:text-black">
+                            <h1 className="font-akshar xl:text-[28px] lg:text-[27px] text-[25px] font-medium text-black group-hover:text-black/75">
                                 {isPersonDetails
                                     ? "Person Details"
                                     : isMovie
@@ -98,7 +99,7 @@ export function MediaPage({ param, type, showSearch, param2, children, hidePagin
                             </h1>
                         </div>
                     ) : (
-                        <h1 className="font-akshar text-[28px] font-medium text-black/85">
+                        <h1 className="font-akshar xl:text-[28px] lg:text-[27px] md:text-[25px] sm:text-[23px] text-[21px] font-medium text-black capitalize">
                             {type === "tv"
                                 ? "TV Shows"
                                 : type === "movie"
@@ -106,33 +107,29 @@ export function MediaPage({ param, type, showSearch, param2, children, hidePagin
                                     : type === "genre"
                                         ? param
                                         : type === "trending"
-                                            ? "Trending " + param
+                                            ? "Trending " + param?.replace(/-/g, " ") 
                                             : type === "top-rated"
                                                 ? "Top Rated " + param
-                                                : ""}
+                                                : type === "search"
+                                                    ? "Search - 24 Results Found" : ""}
                         </h1>
                     )
                 }
 
-                <div className="flex gap-[18px]">
+                <div className="flex items-center justify-center xl:gap-[18px] lg:gap-[16px] sm:gap-[14px] gap-[12px]">
                     {(isPersonDetails || isPosterDetails) ? (
                         <SearchBar />
                     ) : (
                         <>
                             {showSearch ? <SearchBar /> : <SortDropdown />}
 
-                            <Button
-                                onClick={() => setFilterOpen((prev) => !prev)}
-                                className="filter-btn w-[113px] h-[37px] flex items-center justify-center text-dark font-inter font-medium text-sm bg-light-dropdown hover:bg-light-dropdown/95 rounded-none"
-                            >
-                                Filter
-                            </Button>
+                            <FilterButton onClick={() => setFilterOpen((prev) => !prev)} />
                         </>
                     )}
                 </div>
             </div>
 
-            {hasParam || hasParam2 ? (
+            {(hasParam || (hasParam && hasParam2)) ? (
                 <Breadcrumb subRoute={param} type={type} subRoute2={param2} />
             ) : null}
 

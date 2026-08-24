@@ -1,8 +1,8 @@
 import { PosterDetails } from "@/components/PosterDetails";
 import { MediaPage } from "@/components/MediaPage";
 import { PeopleYouMayKnow } from "@/components/PeopleYouMayKnow";
-import { PersonDetails } from "@/components/PersonDetails";
 import { YouMayLike } from "@/components/YouMayLike";
+import { slugify } from "@/lib/utils";
 
 export default async function PosterDetailsPage({
     params,
@@ -11,13 +11,9 @@ export default async function PosterDetailsPage({
 }) {
     const { id, posterId } = await params;
 
-    const formattedParam = id
-        .replace(/-/g, " ")
-        .replace(/\b\w/g, (c) => c.toUpperCase());
+    const formattedParam = slugify(id);
 
-    const formattedParam2 = posterId
-        .replace(/-/g, " ")
-        .replace(/\b\w/g, (c) => c.toUpperCase());
+    const formattedParam2 = slugify(posterId);
 
     return (
         <MediaPage

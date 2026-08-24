@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { Plus, Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { WatchlistPopup } from "@/components/WatchlistPopup";
 import { BsCcSquare, BsCcSquareFill } from "react-icons/bs";
 import { AddButton } from "./AddButton";
@@ -28,9 +29,11 @@ export function MovieCard({ title, genre, image, trailer }: MovieCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
+  const articleRef = useRef<HTMLElement>(null);
   const openRef = useRef(open);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   const dragThreshold = 5;
+  const [popupPos, setPopupPos] = useState<{ bottom: number; left: number } | null>(null);
 
   useEffect(() => {
     const v = videoRef.current;
@@ -51,13 +54,17 @@ export function MovieCard({ title, genre, image, trailer }: MovieCardProps) {
         setMuted(true);
         v.load();
         v.play().catch(() => { });
-      }, 300);
+      }, 400);
 
       return () => clearTimeout(t);
     }
 
-    setShowVideo(false);
+    // Use a microtask to avoid synchronous setState in effect body
+    const id = requestAnimationFrame(() => {
+      setShowVideo(false);
+    });
     v.pause();
+    return () => cancelAnimationFrame(id);
   }, [hovered, hasEnded]);
 
   useEffect(() => {
@@ -79,6 +86,24 @@ export function MovieCard({ title, genre, image, trailer }: MovieCardProps) {
 
   useEffect(() => {
     openRef.current = open;
+  }, [open]);
+
+  useEffect(() => {
+    if (!open || !articleRef.current || !btnRef.current) { setPopupPos(null); return; }
+    const update = () => {
+      if (!btnRef.current) return;
+      const btnRect = btnRef.current.getBoundingClientRect();
+      const h = window.innerHeight;
+      setPopupPos({ bottom: h - btnRect.top + 6, left: btnRect.right });
+    };
+    const raf = requestAnimationFrame(update);
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+    };
   }, [open]);
 
   useEffect(() => {
@@ -161,14 +186,18 @@ export function MovieCard({ title, genre, image, trailer }: MovieCardProps) {
   };
 
   return (
-    <article className="relative w-fit py-1">
-      {open && (
+    <article ref={articleRef} className="relative w-fit py-1">
+      {open && popupPos && createPortal(
         <div
           ref={popupRef}
-          className="absolute xl:right-[6px] xl:top-[4px] md:right-[5px] md:top-[5px] sm:right-[4.5px] sm:top-[5px] right-[5px] top-[-7px] z-50 animate-in fade-in zoom-in-95 duration-150"
+          className="fixed z-50"
+          style={{ bottom: popupPos.bottom, left: popupPos.left, transform: "translateX(-100%)" }}
         >
-          <WatchlistPopup />
-        </div>
+          <div className="animate-in fade-in zoom-in-95 duration-150">
+            <WatchlistPopup />
+          </div>
+        </div>,
+        document.body
       )}
 
       <div
@@ -211,7 +240,7 @@ export function MovieCard({ title, genre, image, trailer }: MovieCardProps) {
                 e.stopPropagation();
                 setMuted((p) => !p);
               }}
-              className="absolute right-2 sm:top-[10px] top-[8px] z-10 flex md:h-8 md:w-8 sm:h-[30px] sm:w-[30px] h-[28px] w-[28px] items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm"
+              className="absolute right-[10px] sm:top-[10px] top-[8px] z-10 flex md:h-8 md:w-8 sm:h-[30px] sm:w-[30px] h-[28px] w-[28px] items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm"
             >
               {muted ? (
                 <VolumeX className="md:h-4 md:w-4 sm:h-[14px] sm:w-[14px] h-[13px] w-[13px]" />
@@ -226,7 +255,7 @@ export function MovieCard({ title, genre, image, trailer }: MovieCardProps) {
                 e.stopPropagation();
                 setSubtitles((p) => !p);
               }}
-              className="absolute right-2 md:top-[47px] sm:top-[45px] top-[41px] z-10 flex md:h-8 md:w-8 sm:h-[30px] sm:w-[30px] h-[28px] w-[28px] items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm"
+              className="absolute right-[10px] md:top-[49px] sm:top-[45px] top-[41px] z-10 flex md:h-8 md:w-8 sm:h-[30px] sm:w-[30px] h-[28px] w-[28px] items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm"
             >
               {subtitles ? (
                 <BsCcSquareFill className="md:h-4 md:w-4 sm:h-[14px] sm:w-[14px] h-[13px] w-[13px]" />
@@ -269,14 +298,14 @@ export function MovieCard({ title, genre, image, trailer }: MovieCardProps) {
           e.stopPropagation();
           setOpen((prev) => !prev);
         }}
-        className="absolute right-0 lg:h-[25px] lg:w-[25px] md:h-[23px] md:w-[23px] sm:h-[21px] sm:w-[21px] h-[18px] w-[18px] bg-light-plus-btn dark:bg-plus-btn hover:bg-light-plus-btn/95 dark:hover:bg-plus-btn/95 lg:mt-[8px] md:mt-[6px] sm:mt-[5px] mt-[4px]"
+        className="absolute right-0 lg:h-[25px] lg:w-[25px] md:h-[23px] md:w-[23px] sm:h-[21px] sm:w-[21px] h-[18px] w-[18px] bg-light-plus-btn dark:bg-plus-btn hover:bg-light-plus-btn/95 dark:hover:bg-plus-btn/95 lg:mt-[9px] md:mt-[8px] mt-[6px]"
         iconClassName="lg:h-[18px] lg:w-[18px] md:h-[17px] md:w-[17px] sm:h-[16px] sm:w-[16px] h-[15px] w-[15px]"
       />
 
-      <p className="lg:mt-[6px] md:mt-[4px] sm:mt-[7px] mt-[5px] text-center font-inter sm:font-medium xl:text-[15px] md:text-sm sm:text-[13px] text-[12px] leading-none text-light-genre-font dark:text-genre-font">
+      <p className="lg:mt-[8px] md:mt-[6px] sm:mt-[9px] mt-[7px] text-center font-inter sm:font-medium xl:text-[15px] md:text-sm sm:text-[13px] text-[12px] leading-none text-light-genre-font dark:text-genre-font">
         {genre}
       </p>
-      <h3 className="xl:mt-[4px] lg:mt-[3px] md:mt-[2px] sm:mt-[5px] mt-[3px] text-center font-inter md:font-semibold sm:font-medium lg:text-[17px] md:text-[16px] sm:text-[15px] text-[14px] leading-none text-black dark:text-white">
+      <h3 className="xl:mt-[7px] lg:mt-[5px] md:mt-[4px] mt-[7px] text-center font-inter md:font-semibold sm:font-medium lg:text-[17px] md:text-[16px] sm:text-[15px] text-[14px] leading-none text-black dark:text-white">
         {title}
       </h3>
     </article>

@@ -14,12 +14,12 @@ export const AddButton = forwardRef<HTMLButtonElement, AddButtonProps>(
         ref={ref}
         type="button"
         className={cn(
-          "flex items-center justify-center lg:rounded-[3px] md:rounded-[2px] rounded-[1px] transition-colors duration-75",
+          "flex items-center justify-center lg:rounded-[3px] rounded-[2px] p-[2px] transition-colors duration-75",
           className
         )}
         {...props}
       >
-        <Plus className={cn(" text-white", iconClassName)} />
+        <Plus className={cn(" text-white font-bold", iconClassName)} />
       </button>
     );
   }

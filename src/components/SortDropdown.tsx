@@ -25,15 +25,15 @@ export function SortDropdown() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div className="w-[126px] h-[37px] flex justify-center items-center bg-light-dropdown hover:bg-light-dropdown/95 cursor-pointer">
-          <div className="w-[114px] h-[25px] flex items-center justify-center gap-[10px] text-sm">
-            <BiFilterAlt className="w-[15px] h-[15px] text-black" />
+        <div className="xl:w-[126px] xl:h-[37px] lg:w-[122px] lg:h-[35px] sm:w-[110px] sm:h-[33px] w-[100px] h-[31px] flex justify-center items-center bg-light-dropdown hover:bg-light-dropdown/95 cursor-pointer">
+          <div className="xl:w-[114px] xl:h-[25px] lg:w-[111px] lg:h-[23px] sm:w-[99px] sm:h-[21px] w-[88px] h-[20px] flex items-center justify-center lg:gap-[10px] gap-[8px] xl:text-sm lg:text-[13px] sm:text-[12px] text-[11px] p-[2px]">
+            <BiFilterAlt className="xl:w-[15px] xl:h-[15px] lg:w-[14px] lg:h-[14px] sm:w-[13px] sm:h-[13px] w-[12px] h-[12px] text-black" />
 
             <div className="flex items-center gap-[2px] text-dark font-inter">
               Sort by
               <ChevronDown
                 className={cn(
-                  "w-[19px] h-[19px] stroke-[1.6] transition-transform duration-150",
+                  "xl:w-[19px] xl:h-[19px] lg:w-[17px] lg:h-[17px] sm:w-[15px] sm:h-[15px] w-[13px] h-[13px] lg:stroke-[1.6] stroke-[1.3] transition-transform duration-150",
                   open && "rotate-180"
                 )}
               />
@@ -47,17 +47,17 @@ export function SortDropdown() {
         side="bottom"
         sideOffset={0}
         alignOffset={0}
-        className="p-0 border-none bg-transparent w-[126px]
+        className="p-0 border-none bg-transparent xl:w-[125.5px] lg:w-[122px] sm:w-[110px] w-[100px]
         data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95
         data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 duration-150"
       >
-        <div className="w-[126px] h-fit bg-light-dropdown border-t-2 border-dropdown-underline shadow-[1px_1.5px_3px_rgba(0,0,0,0.25)] pt-[8px] pb-[10px]">
-          <div className="flex flex-col gap-[2px] font-poppins text-sm font-normal text-black/70">
+        <div className="h-fit bg-light-dropdown border-t-2 border-dropdown-underline shadow-[1px_1.5px_3px_rgba(0,0,0,0.25)] xl:pt-[8px] lg:pt-[7px] sm:pt-[5px] pt-[3px] xl:pb-[10px] lg:pb-[9px] sm:pb-[7px] pb-[5px]">
+          <div className="flex flex-col gap-[2px] font-poppins xl:text-sm lg:text-[13px] sm:text-[12px] text-[11px] font-normal text-black/85">
             {sortBy.map((item) => (
               <div
                 key={item}
                 onClick={() => setOpen(false)}
-                className="w-[126px] h-[27px] pl-[20px] flex items-center hover:bg-light-dropdown-hover transition-all duration-150 ease-in-out cursor-pointer hover:text-black"
+                className="flex items-center xl:h-[27px] lg:h-[26px] sm:h-[24px] h-[22px] xl:pl-[20px] lg:pl-[19px] sm:pl-[18px] pl-[16px] hover:bg-light-dropdown-hover transition-all duration-150 ease-in-out cursor-pointer hover:text-black"
               >
                 {item}
               </div>

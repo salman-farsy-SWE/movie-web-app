@@ -27,7 +27,7 @@
 
 @layer components {
   .nav-btn-underline {
-    @apply border-b-2 border-transparent pb-[5px] leading-none transition-colors;
+    @apply xl:border-b-[3px] border-b-2 border-transparent xl:pb-[6px] lg:pb-[5px] md:pb-[6px] leading-none transition-colors;
   }
 }
 
@@ -41,7 +41,7 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: #c0c0c0;
+    background-color: #8e8e8e;
     border-radius: 9999px;
   }
 

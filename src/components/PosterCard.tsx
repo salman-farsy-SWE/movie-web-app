@@ -3,9 +3,8 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { MdBookmarkAdd, MdBookmarkAdded } from "react-icons/md";
-import { Plus } from "lucide-react";
 import { WatchlistPopup } from "@/components/WatchlistPopup";
-import { cn } from "@/lib/utils";
+import { slugify } from "@/lib/utils";
 import { AddButton } from "./AddButton";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -31,10 +30,15 @@ export function PosterCard({
     const pathname = usePathname();
 
     const isPersonsList = pathname === "/trending/persons";
+    const isSearchList = pathname === "/search";
 
     const isPersonDetails =
         pathname.startsWith("/trending/persons/") &&
         !isPersonsList;
+
+    const isSearchDetails =
+        pathname.startsWith("/search/") &&
+        !isSearchList;
 
     useEffect(() => {
         openRef.current = open;
@@ -94,30 +98,30 @@ export function PosterCard({
             {open && (
                 <div
                     ref={popupRef}
-                    className="absolute right-1 bottom-[36px] z-50 animate-in fade-in zoom-in-95 duration-150"
+                    className="absolute right-0 xl:bottom-[30px] lg:bottom-[29px] md:bottom-[27px] sm:bottom-[25px] bottom-[21px] z-50 animate-in fade-in zoom-in-95 duration-150"
                 >
                     <WatchlistPopup />
                 </div>
             )}
 
-            <div className="relative w-[220px] h-[310px]">
+            <div className="relative xl:w-[220px] xl:h-[310px] lg:w-[210px] lg:h-[300px] md:w-[200px] md:h-[290px] sm:w-[185px] sm:h-[265px] w-[175px] h-[250px]">
                 <Image src={image} alt={title} fill className="object-cover" />
 
                 <div
                     onClick={() => setSaved((prev) => !prev)}
-                    className="absolute -top-1 right-[5px] cursor-pointer transition-all duration-200 active:scale-90 z-20"
+                    className="absolute xl:-top-1 lg:-top-[5px] -top-[5.5px] xl:right-[5px] sm:right-[4px] right-[3px] cursor-pointer transition-all duration-200 active:scale-90 z-20"
                 >
                     {saved ? (
-                        <MdBookmarkAdded className="w-[37px] h-[41px] text-white drop-shadow-[1.5px_1.5px_2px_rgba(0,0,0,0.4)]" />
+                        <MdBookmarkAdded className="xl:w-[37px] xl:h-[41px] lg:w-[36px] lg:h-[40px] sm:w-[35px] sm:h-[39px] w-[34px] h-[38px] text-white drop-shadow-[1.5px_1.5px_2px_rgba(0,0,0,0.4)]" />
                     ) : (
-                        <MdBookmarkAdd className="w-[37px] h-[41px] text-white2/70 drop-shadow-[1.5px_1.5px_2px_rgba(0,0,0,0.4)]" />
+                        <MdBookmarkAdd className="xl:w-[37px] xl:h-[41px] lg:w-[36px] lg:h-[40px] sm:w-[35px] sm:h-[39px] w-[34px] h-[38px] text-white2/70 drop-shadow-[1.5px_1.5px_2px_rgba(0,0,0,0.4)]" />
                     )}
                 </div>
 
-                <Link href={`${isPersonDetails ? "/movies" : basePath}/${title.toLowerCase().replace(/\s+/g, "-")}`} className="absolute inset-0 bg-black opacity-0 hover:opacity-20 z-10 transition-[opacity] duration-200" />
+                <Link href={`${isPersonDetails || isSearchDetails ? "/movies" : basePath}/${slugify(title)}`} className="absolute inset-0 bg-black opacity-0 hover:opacity-20 z-10 transition-[opacity] duration-200" />
 
-                <Link href={`${isPersonDetails ? "/movies" : basePath}/${title.toLowerCase().replace(/\s+/g, "-")}`} className="absolute inset-0 flex items-end justify-center pb-[14px] cursor-pointer">
-                    <div className="font-inter font-medium text-[16px] z-30 text-white hover:drop-shadow-[1.5px_1.5px_7px_rgba(0,0,0,0.5)] text-center select-none">
+                <Link href={`${isPersonDetails || isSearchDetails ? "/movies" : basePath}/${slugify(title)}`} className="absolute inset-0 flex items-end justify-center xl:pb-[14px] lg:pb-[13px] sm:pb-[12px] pb-[10px] cursor-pointer">
+                    <div className="font-inter font-medium xl:text-[16px] lg:text-[15px] md:text-[14px] sm:text-[13px] text-[12px] z-30 text-white hover:drop-shadow-[1.5px_1.5px_7px_rgba(0,0,0,0.5)] text-center select-none">
                         {title}
                     </div>
                 </Link>
@@ -129,8 +133,8 @@ export function PosterCard({
                     e.stopPropagation();
                     setOpen((prev) => !prev);
                 }}
-                className="lg:h-[25px] lg:w-[25px] md:h-[23px] md:w-[23px] sm:h-[21px] sm:w-[21px] h-[18px] w-[18px] bg-light-plus-btn dark:bg-plus-btn hover:bg-light-plus-btn/95 dark:hover:bg-plus-btn/95 lg:mt-[8px] md:mt-[6px] sm:mt-[5px] mt-[4px]"
-                iconClassName="lg:h-[18px] lg:w-[18px] md:h-[17px] md:w-[17px] sm:h-[16px] sm:w-[16px] h-[15px] w-[15px]"
+                className="lg:h-[25px] lg:w-[25px] md:h-[23px] md:w-[23px] sm:h-[21px] sm:w-[21px] h-[18px] w-[18px] bg-light-plus-btn dark:bg-plus-btn hover:bg-light-plus-btn/95 dark:hover:bg-plus-btn/95 lg:mt-[9px] sm:mt-[8px] mt-[6px]"
+                iconClassName="lg:h-[20px] lg:w-[20px] md:h-[18px] md:w-[18px] sm:h-[16px] sm:w-[16px] h-[14px] w-[14px]"
             />
         </div>
     );

@@ -7,7 +7,7 @@ export default function Home() {
     <main className="flex flex-col items-center">
       <HeroSection {... {heroContents} } />
 
-        <div className="container-1440 flex flex-col md:gap-[32px] sm:gap-[28px] gap-[26px] md:mt-[32px] sm:mt-[28px] mt-[26px]">
+        <div className="container-1440 flex flex-col lg:gap-[50px] md:gap-[46px] sm:gap-[42px] gap-[36px] lg:mt-[40px] md:mt-[36px] sm:mt-[32px] mt-[28px]">
           {movieSections.map((section) => (
             <HomeSection
               key={section.id}

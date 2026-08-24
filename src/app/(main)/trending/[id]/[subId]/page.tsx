@@ -3,6 +3,7 @@ import { PeopleYouMayKnow } from "@/components/PeopleYouMayKnow";
 import { PersonDetails } from "@/components/PersonDetails";
 import { PosterDetails } from "@/components/PosterDetails";
 import { YouMayLike } from "@/components/YouMayLike";
+import { slugify } from "@/lib/utils";
 
 export default async function PersonDetailsPage({
   params,
@@ -11,13 +12,8 @@ export default async function PersonDetailsPage({
 }) {
   const { id, subId } = await params;
 
-  const formattedParam = id
-    .replace(/-/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-
-  const formattedParam2 = subId
-    .replace(/-/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  const formattedParam = slugify(id);
+  const formattedParam2 = slugify(subId);
 
   if (id === "persons") {
 

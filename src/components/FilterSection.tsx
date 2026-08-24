@@ -15,10 +15,10 @@ export function FilterSection({
 }) {
   return (
     <div className="flex flex-col">
-      <h2 className="font-inter font-medium text-[18px] text-black">{title}</h2>
+      <h2 className="font-inter font-medium xl:text-[18px] lg:text-[17px] sm:text-[16px] text-[15px] text-black">{title}</h2>
 
       {(items?.length || children) && (
-        <div className="mt-[8px] pl-[9px] flex flex-wrap gap-x-[13px] gap-y-[7px]">
+        <div className="xl:mt-[8px] lg:mt-[7px] sm:mt-[6px] mt-[4px] xl:pl-[9px] lg:pl-[8px] sm:pl-[7px] pl-[6px] flex flex-wrap lg:gap-x-[15px] md:gap-x-[14px] gap-x-[12px] lg:gap-y-[9px] gap-y-[7px]">
           {items?.map((item) =>
             renderItem ? (
               renderItem(item)

@@ -1,4 +1,5 @@
 import { MediaPage } from "@/components/MediaPage";
+import { slugify } from "@/lib/utils";
 
 export default async function GenresPage({
   params,
@@ -7,9 +8,7 @@ export default async function GenresPage({
 }) {
   const { id } = await params;
 
-  const formattedParam = id
-    .replace(/-/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  const formattedParam = slugify(id);
 
   return <MediaPage param={formattedParam} type="genre" />;
 }

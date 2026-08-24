@@ -40,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body
-        className={`${poppins.variable} ${inter.variable} ${akshar.variable} ${monda.variable} overflow-x-hidden bg-white dark:bg-dark text-foreground antialiased`}
+        className={`${poppins.variable} ${inter.variable} ${akshar.variable} ${monda.variable} flow-root overflow-x-hidden bg-white dark:bg-dark text-foreground antialiased`}
       >
         <ThemeWrapper>
           {children}

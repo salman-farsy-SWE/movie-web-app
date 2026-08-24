@@ -8,8 +8,6 @@ export default function LoginModal() {
   const router = useRouter();
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-
     const originalOverflowX = document.body.style.overflowX;
     const originalOverflowY = document.body.style.overflowY;
 
@@ -33,7 +31,7 @@ export default function LoginModal() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-light-screen-shadow/60 backdrop-blur-sm"
+      className="fixed xl:-top-[330px] lg:-top-[350px] md:-top-[380px] sm:-top-[350px] -top-[400px] inset-0 z-50 flex items-center justify-center bg-light-screen-shadow/60 backdrop-blur-sm"
       onClick={() => router.back()}
     >
       <div

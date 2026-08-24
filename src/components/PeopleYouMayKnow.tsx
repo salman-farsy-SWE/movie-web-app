@@ -1,10 +1,8 @@
 "use client";
 
 import useEmblaCarousel from "embla-carousel-react";
-import { useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import { SectionControls } from "@/components/SectionControls";
-import Image from "next/image";
-import Link from "next/link";
 import { PersonCard } from "./PersonCard";
 
 type Person = {
@@ -35,32 +33,42 @@ export function PeopleYouMayKnow({ title }: { title: string }) {
         containScroll: "trimSnaps",
     });
 
-    const [canScrollLeft, setCanScrollLeft] = useState(false);
-    const [canScrollRight, setCanScrollRight] = useState(false);
+    const subscribe = useCallback(
+        (callback: () => void) => {
+            if (!emblaApi) return () => {};
 
-    const update = () => {
-        if (!emblaApi) return;
-        setCanScrollLeft(emblaApi.canScrollPrev());
-        setCanScrollRight(emblaApi.canScrollNext());
-    };
+            emblaApi.on("select", callback);
+            emblaApi.on("reInit", callback);
 
-    useEffect(() => {
-        if (!emblaApi) return;
+            return () => {
+                emblaApi.off("select", callback);
+                emblaApi.off("reInit", callback);
+            };
+        },
+        [emblaApi]
+    );
 
-        update();
-        emblaApi.on("select", update);
-        emblaApi.on("reInit", update);
-    }, [emblaApi]);
+    const canScrollLeft = useSyncExternalStore(
+        subscribe,
+        () => (emblaApi ? emblaApi.canScrollPrev() : false),
+        () => false
+    );
+
+    const canScrollRight = useSyncExternalStore(
+        subscribe,
+        () => (emblaApi ? emblaApi.canScrollNext() : false),
+        () => false
+    );
 
     return (
-        <div className="mt-[40px]">
-            <h2 className="font-akshar font-medium text-[28px] text-black">
+        <div className="xl:mt-[40px] lg:mt-[38px] md:mt-[34px] sm:mt-[32px] mt-[30px] xl:px-6 lg:px-8 md:px-10 sm:px-12 px-14">
+            <h2 className="font-akshar font-medium xl:text-[28px] lg:text-[27px] md:text-[26px] sm:text-[25px] text-[23px] text-black">
                 {title}
             </h2>
 
-            <div className="relative mt-[15px]">
+            <div className="relative xl:mt-[15px] lg:mt-[14px] md:mt-[13px] sm:mt-[12px] mt-[10px]">
                 <div ref={emblaRef} className="overflow-hidden">
-                    <div className="flex gap-[96px]">
+                    <div className="flex xl:gap-[96px] lg:gap-[86px] md:gap-[76px] sm:gap-[66px] gap-[56px]">
                         {persons.map((p, i) => (
                             <PersonCard
                                 key={`${p.id}-${i}`}
@@ -85,7 +93,7 @@ export function PeopleYouMayKnow({ title }: { title: string }) {
                         const current = emblaApi.selectedScrollSnap();
                         emblaApi.scrollTo(current + 2);
                     }}
-                    className="xl:top-[48px] lg:top-[51px] md:top-[53px] sm:top-[51px] top-[40px]"
+                    className="xl:top-[49px] lg:top-[44px] md:top-[43px] sm:top-[39px] top-[40px]"
                 />
             </div>
         </div>

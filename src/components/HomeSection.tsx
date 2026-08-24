@@ -1,7 +1,7 @@
 "use client";
 
 import useEmblaCarousel from "embla-carousel-react";
-import { useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import { MovieCard } from "@/components/MovieCard";
 import { SectionControls } from "@/components/SectionControls";
 
@@ -23,28 +23,32 @@ export function HomeSection({ id, title, items }: HomeSectionProps) {
         containScroll: "trimSnaps",
     });
 
-    const [canScrollLeft, setCanScrollLeft] = useState(false);
-    const [canScrollRight, setCanScrollRight] = useState(false);
+    const subscribe = useCallback(
+        (callback: () => void) => {
+            if (!emblaApi) return () => {};
 
-    const updateButtons = () => {
-        if (!emblaApi) return;
+            emblaApi.on("select", callback);
+            emblaApi.on("reInit", callback);
 
-        setCanScrollLeft(emblaApi.canScrollPrev());
-        setCanScrollRight(emblaApi.canScrollNext());
-    };
+            return () => {
+                emblaApi.off("select", callback);
+                emblaApi.off("reInit", callback);
+            };
+        },
+        [emblaApi]
+    );
 
-    useEffect(() => {
-        if (!emblaApi) return;
+    const canScrollLeft = useSyncExternalStore(
+        subscribe,
+        () => (emblaApi ? emblaApi.canScrollPrev() : false),
+        () => false
+    );
 
-        updateButtons();
-        emblaApi.on("select", updateButtons);
-        emblaApi.on("reInit", updateButtons);
-
-        return () => {
-            emblaApi.off("select", updateButtons);
-            emblaApi.off("reInit", updateButtons);
-        };
-    }, [emblaApi]);
+    const canScrollRight = useSyncExternalStore(
+        subscribe,
+        () => (emblaApi ? emblaApi.canScrollNext() : false),
+        () => false
+    );
 
     return (
         <section className="xl:px-0 lg:px-5 md:px-7 px-9">
@@ -52,7 +56,7 @@ export function HomeSection({ id, title, items }: HomeSectionProps) {
                 {title}
             </h2>
 
-            <div className="relative xl:mt-[15px] lg:mt-[13px] md:mt-[11px] sm:mt-[9px] mt-[7px]">
+            <div className="relative xl:mt-[17px] lg:mt-[15px] md:mt-[13px] sm:mt-[11px] mt-[9px]">
                 <div ref={emblaRef} className="overflow-hidden active:cursor-grabbing">
                     <div className="flex xl:gap-[15px] sm:gap-[13px] gap-[11px]">
                         {items.map((movie, index) => (

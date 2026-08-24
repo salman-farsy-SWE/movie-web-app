@@ -13,7 +13,6 @@ export function SearchOverlay() {
     const originalOverflowY = document.body.style.overflowY;
 
     if (open) {
-      window.scrollTo(0, 0);
       document.body.style.overflowX = "hidden";
       document.body.style.overflowY = "scroll";
     }
@@ -29,7 +28,7 @@ export function SearchOverlay() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center xl:pt-11 lg:pt-9 md:pt-7 pt-5 bg-light-screen-shadow/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center xl:pt-11 lg:pt-[40px] md:pt-[36px] sm:pt-[34px] pt-[28px] bg-light-screen-shadow/60 backdrop-blur-sm"
       onClick={() => setOpen(false)}
     >
       <div onClick={(e) => e.stopPropagation()}>

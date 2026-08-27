@@ -64,14 +64,14 @@ export function UserCollectionPage({
                         }}
                         className="group flex items-center gap-[4px] cursor-pointer select-none transition-colors duration-75"
                     >
-                        <ChevronLeft className="w-[28px] h-[28px] text-black group-hover:text-black/75" />
+                        <ChevronLeft className="w-[28px] h-[28px] text-black dark:text-white  group-hover:text-black/75 dark:group-hover:text-white/90" />
 
-                        <h1 className="font-akshar text-[28px] font-medium text-black group-hover:text-black/75 capitalize">
+                        <h1 className="font-akshar text-[28px] font-medium text-black dark:text-white group-hover:text-black/75 dark:group-hover:text-white/90 capitalize">
                             My List - {param2}
                         </h1>
                     </div>
                 ) : (
-                    <h1 className="font-akshar xl:text-[28px] lg:text-[27px] md:text-[25px] sm:text-[23px] text-[21px] font-medium text-black capitalize">
+                    <h1 className="font-akshar xl:text-[28px] lg:text-[27px] md:text-[25px] sm:text-[23px] text-[21px] font-medium text-black dark:text-white capitalize">
                         {type === "favorite"
                             ? "favorite item"
                             : type === "watchlist"
@@ -87,7 +87,7 @@ export function UserCollectionPage({
 
                 {!isProfile && (
                     <div className="flex lg:items-center items-end lg:justify-normal justify-center lg:flex-row flex-col">
-                        <div className="xl:mr-[30px] lg:mr-[25px] lg:mt-0 md:mt-6 sm:mt-5 mt-[18px] lg:order-1 order-2">
+                        <div className="xl:mr-[30px] lg:mr-[25px] lg:mt-0 md:mt-6 mt-4 lg:order-1 order-2">
                             <SearchBar />
                         </div>
 

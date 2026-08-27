@@ -38,7 +38,7 @@ export function Navbar() {
     setPrevPathname(pathname);
   }
   const currentPathname = pathname === "/login" ? prevPathname : pathname;
-  const { setOpen } = useSearch();
+  const { open: searchOpen, setOpen } = useSearch();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -62,6 +62,18 @@ export function Navbar() {
 
   // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time hydration flag, no cascading risk
   useEffect(() => setMounted(true), []);
+
+  /* eslint-disable react-hooks/set-state-in-effect -- syncing UI menus when search overlay opens */
+  useEffect(() => {
+    if (searchOpen) {
+      setSidebarOpen(false);
+      setProfileOpen(false);
+      setGenresOpen(false);
+      setTrendingOpen(false);
+      setTopRatedOpen(false);
+    }
+  }, [searchOpen]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     const handleScroll = () => {
@@ -110,6 +122,7 @@ export function Navbar() {
   };
 
   const isTransparent = currentPathname === "/";
+  const isLightNav = !isTransparent || isPastHero;
 
   return (
     <header
@@ -119,19 +132,19 @@ export function Navbar() {
         "fixed top-0 left-0 right-0 z-40 w-full border-b transition-all duration-300 ease-in-out",
         isTransparent
           ? isPastHero
-            ? "bg-light-nav shadow-lg shadow-black/25 border-transparent"
+            ? "bg-light-nav dark:bg-dark-nav shadow-lg shadow-black/25 dark:shadow-white/5 border-transparent"
             : scrolled
               ? "bg-white/10 dark:bg-black/25 backdrop-blur-md border-white/10"
               : "bg-transparent border-white/0"
           : scrolled
-            ? "bg-light-nav shadow-lg shadow-black/25 border-transparent"
-            : "bg-light-nav border-transparent"
+            ? "bg-light-nav dark:bg-dark-nav shadow-lg shadow-black/25 dark:shadow-white/5 border-transparent"
+            : "bg-light-nav dark:bg-dark-nav border-transparent"
       )}
     >
       <nav className="flex xl:h-[72px] lg:h-[62px] sm:h-[56px] h-[54px] w-full items-center justify-between">
         <Link href={"/"} className="font-poppins xl:text-3xl lg:text-[28px] md:text-[26px] sm:text-[24px] text-[20px] lg:font-semibold font-medium leading-none md:ml-[30px] sm:ml-[20px] ml-[15px]">
           <span className="text-white">Movie</span>
-          <span className={cn("text-trails-red dark:text-trails-red xl:ml-[7px] lg:ml-[5px] ml-[3px]", (isActive("/") && !isPastHero) && "!text-white bg-trails-blue lg:px-2 md:px-[6px] px-[4px]")}>Trails</span>
+          <span className={cn("text-trails-red dark:text-blue1 xl:ml-[7px] lg:ml-[5px] ml-[3px]", (!isLightNav) && "!text-white bg-light-nav lg:px-2 md:px-[6px] px-[4px]")}>Trails</span>
         </Link>
 
         <div className="hidden md:flex items-center xl:gap-[15px] lg:gap-[13px] md:gap-[11px] xl:text-lg lg:text-base md:text-sm font-medium text-white/75 xl:mt-1 lg:mt-[6px] md:mt-[4px] xl:ml-24 lg:ml-[40px] md:ml-[20px] select-none">
@@ -272,15 +285,12 @@ lg:h-[23px] sm:w-[21px] sm:h-[21px] w-[19px] h-[19px]" />
                 variant="ghost"
                 size="icon"
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className={cn(
-                  "xl:p-[5px] sm:p-[3px] p-[4px] bg-transparent hover:bg-transparent w-fit h-fit",
-                  (mounted && theme !== "dark" && isActive("/")) && "bg-slate-900 hover:bg-slate-800"
-                )}
+                className="xl:p-[5px] sm:p-[3px] p-[4px] bg-transparent hover:bg-transparent w-fit h-fit"
               >
                 {mounted ? (theme === "dark" ? (
                   <Sun className="xl:h-[24px] xl:w-[24px] lg:h-[22px] lg:w-[22px] sm:h-[18px] sm:w-[18px] h-[16px] w-[16px] fill-white text-white" />
                 ) : (
-                  <Moon className="xl:h-[24px] xl:w-[24px] lg:h-[22px] lg:w-[22px] sm:h-[18px] sm:w-[18px] h-[16px] w-[16px] text-white" />
+                  <Moon className="xl:h-[24px] xl:w-[24px] lg:h-[22px] lg:w-[22px] sm:h-[18px] sm:w-[18px] h-[16px] w-[16px] fill-white text-white" />
                 )) : (
                   <Sun className="xl:h-[24px] xl:w-[24px] lg:h-[22px] lg:w-[22px] sm:h-[18px] sm:w-[18px] h-[16px] w-[16px] fill-white text-white" />
                 )}
@@ -326,18 +336,18 @@ lg:h-[23px] sm:w-[21px] sm:h-[21px] w-[19px] h-[19px]" />
           <SheetTitle className="sr-only">Menu</SheetTitle>
 
           <div className="flex flex-col h-full sm:mt-4 mt-[14px]">
-            <div className="font-poppins sm:text-[24px] text-[20px] font-medium leading-none sm:ml-[22px] ml-[16px] sm:mb-[18px] mb-[14px]">
+            <div className="font-poppins sm:text-[24px] text-[20px] font-medium leading-none sm:ml-[22px] ml-[16px] mb-[14px]">
               <span className="text-black dark:text-white">Movie</span>
-              <span className="text-trails-red sm:ml-[10px] ml-[6px]">Trails</span>
+              <span className="text-trails-red dark:text-blue1 sm:ml-[6px] ml-[4px]">Trails</span>
             </div>
 
-            <div className="h-[1px] w-full bg-black"/> 
+            <div className="h-[1px] w-full bg-black dark:bg-white"/> 
 
-            <nav className="flex flex-col sm:gap-8 gap-[30px] sm:text-lg text-base sm:mt-[26px] mt-[16px] sm:ml-[20px] ml-[14px] font-medium text-black/75 dark:text-white/90 relative">
+            <nav className="flex flex-col sm:gap-8 gap-[30px] sm:text-lg text-base sm:mt-[24px] mt-[18px] sm:ml-[20px] ml-[14px] font-medium text-black/75 dark:text-white/85 relative">
               {user ? (
                 <div className="relative group">
                   <div
-                    className="flex items-center sm:gap-2 gap-[3px] hover:text-black hover:dark:text-white transition-colors duration-75 cursor-pointer"
+                    className="flex items-center sm:gap-2 gap-[3px] hover:text-black dark:hover:text-white transition-colors duration-75 cursor-pointer"
                   >
                     <ChevronLeft className="sm:h-[18px] sm:w-[18px] h-[16px] w-[16px]" />
                     Profile
@@ -417,7 +427,7 @@ lg:h-[23px] sm:w-[21px] sm:h-[21px] w-[19px] h-[19px]" />
               {user && (
                 <SheetClose asChild>
                   <Button
-                    className="w-fit h-fit bg-transparent hover:bg-transparent rounded-none flex items-center sm:gap-[9px] gap-[5px] m-0 p-0 sm:pl-1 pl-[6px] sm:mt-[42px] mt-[38px] text-start sm:text-lg text-base text-light-logout-font/75 hover:text-light-logout-font dark:text-red-400 hover:dark:text-white transition-colors duration-75 cursor-pointer"
+                    className="w-fit h-fit bg-transparent hover:bg-transparent rounded-none flex items-center sm:gap-[11px] gap-[7px] m-0 p-0 sm:pl-1 pl-[6px] sm:mt-[30px] mt-[20px] text-start sm:text-lg text-base text-light-logout-font/90 hover:text-light-logout-font transition-colors duration-75 cursor-pointer"
                   >
                     <LogOut className="sm:h-[18px] sm:w-[18px] h-[16px] w-[16px]" />
                     Log out

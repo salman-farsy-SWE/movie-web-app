@@ -12,8 +12,7 @@ const genres = [
 export function GenresMenu({ onItemClick }: { onItemClick?: () => void }) {
     return (
         <div className="flex flex-col items-center justify-center">
-            <div className="flex flex-col items-center drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)]">
-
+            <div className="flex flex-col items-center drop-shadow-[0_8px_24px_rgba(0,0,0,0.22)] dark:drop-shadow-[0_10px_28px_rgba(0,0,0,0.85)]">
                 <span className="md:block hidden xl:w-[37px] xl:h-[20px] lg:w-[31px] lg:h-[16px] sm:w-[27px] sm:h-[14px] bg-light-dropdown dark:bg-dropdown [clip-path:polygon(50%_0%,0%_100%,100%_100%)] translate-x-[25px]"></span>
 
                 <div className="flex justify-center md:bg-light-dropdown bg-white dark:bg-dropdown xl:w-[520px] xl:h-[330px] lg:w-[440px] lg:h-[290px] md:w-[400px] md:h-[250px] sm:w-[460px] sm:h-[300px] w-[420px] h-[270px] lg:rounded-md rounded -translate-y-[2px]">

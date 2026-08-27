@@ -50,7 +50,7 @@ export function YouMayLike() {
 
     return (
         <div className="xl:mt-[60px] lg:mt-[55px] md:mt-[50px] sm:mt-[45px] mt-[40px] xl:px-6 lg:px-8 md:px-10 sm:px-12 px-14">
-            <h2 className="font-akshar font-medium xl:text-[28px] lg:text-[27px] md:text-[26px] sm:text-[25px] text-[23px] text-black">
+            <h2 className="font-akshar font-medium xl:text-[28px] lg:text-[27px] md:text-[26px] sm:text-[25px] text-[23px] text-black dark:text-white">
                 You May Like
             </h2>
 

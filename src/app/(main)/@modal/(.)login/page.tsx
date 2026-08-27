@@ -15,7 +15,10 @@ export default function LoginModal() {
     document.body.style.overflowY = "scroll";
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (
+        e.key === "Escape" ||
+        ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k")
+      ) {
         router.back();
       }
     };

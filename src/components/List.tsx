@@ -44,7 +44,7 @@ export function List({ basePath }: ListProps) {
     return (
         <div>
             <div className="mt-[40px] xl:ml-0 lg:ml-10 md:ml-6 sm:ml-3 ml-10">
-                <Button onClick={() => setOpen(true)} className="w-fit lg:h-[43px] md:h-[41px] sm:h-[38px] h-[36px] flex items-center justify-center lg:gap-[7px] md:gap-[6px] sm:gap-[5px] gap-[4px] bg-black text-white font-inter font-medium lg:text-[14px] md:text-[13px] sm:text-[12px] text-[11px] rounded-[25px] hover:bg-black/85 border-none transition-colors duration-75 md:px-5 sm:px-4 px-[14px]">
+                <Button onClick={() => setOpen(true)} className="w-fit lg:h-[43px] md:h-[41px] sm:h-[38px] h-[36px] flex items-center justify-center lg:gap-[7px] md:gap-[6px] sm:gap-[5px] gap-[4px] bg-black/85 hover:bg-black/75 dark:bg-dropdown dark:hover:bg-dropdown/85 text-white hover:text-white/85 font-inter font-medium lg:text-[14px] md:text-[13px] sm:text-[12px] text-[11px] rounded-[25px] border-none transition-colors duration-75 md:px-5 sm:px-4 px-[14px]">
                     Create new
                     <Plus strokeWidth={2.5} className="lg:w-[18px] lg:h-[18px] md:w-[16px] md:h-[16px] sm:w-[14px] sm:h-[14px] w-[13px] h-[13px]" />
                 </Button>
@@ -70,7 +70,7 @@ export function List({ basePath }: ListProps) {
                             </div>
 
                             <div className="flex items-center justify-between xl:mt-[7px] md:mt-[6px] mt-[5px] relative">
-                                <h3 className="font-inter font-medium xl:text-[20px] lg:text-[19px] md:text-[18px] text-[16px] text-black">
+                                <h3 className="font-inter font-medium xl:text-[20px] lg:text-[19px] md:text-[18px] text-[16px] text-black dark:text-white/85">
                                     Salman
                                 </h3>
 
@@ -83,8 +83,8 @@ export function List({ basePath }: ListProps) {
                                         e.stopPropagation();
                                         setOpenIndex((prev) => (prev === i ? null : i));
                                     }}
-                                    className="lg:w-[30px] lg:h-[30px] md:w-[28px] md:h-[28px] w-[24px] h-[24px] xl:-mr-[6px] md:-mr-[8px] -mr-[7px] hover:bg-black/10 flex items-center justify-center"
-                                    className2="lg:w-[16px] lg:h-[16px] md:w-[15px] md:h-[15px] w-[14px] h-[14px] text-black"
+                                    className="lg:w-[30px] lg:h-[30px] md:w-[28px] md:h-[28px] w-[24px] h-[24px] xl:-mr-[6px] md:-mr-[8px] -mr-[7px] hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center"
+                                    className2="lg:w-[16px] lg:h-[16px] md:w-[15px] md:h-[15px] w-[14px] h-[14px] text-black hover:text-black/75 dark:text-white/90 dark:hover:text-white/75"
                                 />
 
                                 {openIndex === i && (
@@ -97,7 +97,7 @@ export function List({ basePath }: ListProps) {
                                 )}
                             </div>
 
-                            <p className="xl:mt-[5px] md:mt-[4px] mt-[3px] w-[85%] font-inter lg:text-[14px] md:text-[13px] text-[12px] text-light-my-list-description md:leading-5 leading-[18px]">
+                            <p className="xl:mt-[5px] md:mt-[4px] mt-[3px] w-[85%] font-inter lg:text-[14px] md:text-[13px] text-[12px] text-light-mylist-description dark:text-mylist-description md:leading-5 leading-[18px]">
                                 This is my favorite playlist. I saved all of my adventure movies.
                             </p>
                         </Link>

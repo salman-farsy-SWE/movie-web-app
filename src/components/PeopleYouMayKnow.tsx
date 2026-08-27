@@ -62,7 +62,7 @@ export function PeopleYouMayKnow({ title }: { title: string }) {
 
     return (
         <div className="xl:mt-[40px] lg:mt-[38px] md:mt-[34px] sm:mt-[32px] mt-[30px] xl:px-6 lg:px-8 md:px-10 sm:px-12 px-14">
-            <h2 className="font-akshar font-medium xl:text-[28px] lg:text-[27px] md:text-[26px] sm:text-[25px] text-[23px] text-black">
+            <h2 className="font-akshar font-medium xl:text-[28px] lg:text-[27px] md:text-[26px] sm:text-[25px] text-[23px] text-black dark:text-white">
                 {title}
             </h2>
 

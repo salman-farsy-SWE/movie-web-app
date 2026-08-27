@@ -109,12 +109,12 @@ export function PosterCard({
 
                 <div
                     onClick={() => setSaved((prev) => !prev)}
-                    className="absolute xl:-top-1 lg:-top-[5px] -top-[5.5px] xl:right-[5px] sm:right-[4px] right-[3px] cursor-pointer transition-all duration-200 active:scale-90 z-20"
+                    className="absolute lg:-top-[5px] md:-top-[4px] sm:-top-[5px] -top-[6px] xl:right-[2px] lg:right-[2px] md:right-[1px] sm:right-[0px] right-[1px] cursor-pointer transition-all duration-200 active:scale-90 z-20"
                 >
                     {saved ? (
-                        <MdBookmarkAdded className="xl:w-[37px] xl:h-[41px] lg:w-[36px] lg:h-[40px] sm:w-[35px] sm:h-[39px] w-[34px] h-[38px] text-white drop-shadow-[1.5px_1.5px_2px_rgba(0,0,0,0.4)]" />
+                        <MdBookmarkAdded className="xl:w-[44px] xl:h-[48px] lg:w-[42px] lg:h-[46px] md:w-[40px] md:h-[44px] sm:w-[38px] sm:h-[42px] w-[36px] h-[40px] text-white drop-shadow-[2px_2px_2.5px_rgba(0,0,0,0.6)]" />
                     ) : (
-                        <MdBookmarkAdd className="xl:w-[37px] xl:h-[41px] lg:w-[36px] lg:h-[40px] sm:w-[35px] sm:h-[39px] w-[34px] h-[38px] text-white2/70 drop-shadow-[1.5px_1.5px_2px_rgba(0,0,0,0.4)]" />
+                        <MdBookmarkAdd className="xl:w-[44px] xl:h-[48px] lg:w-[42px] lg:h-[46px] md:w-[40px] md:h-[44px] sm:w-[38px] sm:h-[42px] w-[36px] h-[40px] text-white2/70 drop-shadow-[2px_2px_2.5px_rgba(0,0,0,0.6)]" />
                     )}
                 </div>
 

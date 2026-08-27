@@ -8,7 +8,7 @@ const topRatedItems = [
 export function TopRatedMenu({ onItemClick }: { onItemClick?: () => void }) {
     return (
         <div className="flex flex-col items-center justify-center">
-            <div className="flex flex-col items-center drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)]">
+            <div className="flex flex-col items-center drop-shadow-[0_8px_20px_rgba(0,0,0,0.2)] dark:drop-shadow-[0_10px_25px_rgba(0,0,0,0.85)]">
                 <span className="block xl:w-[37px] xl:h-[20px] lg:w-[31px] lg:h-[16px] md:w-[27px] md:h-[14px] bg-light-dropdown dark:bg-dropdown [clip-path:polygon(50%_0%,0%_100%,100%_100%)]"></span>
 
                 <div className="flex justify-center md:bg-light-dropdown bg-white dark:bg-dropdown xl:w-[240px] lg:w-[210px] md:w-[180px] sm:w-[230px] w-[210px] md:rounded-none sm:rounded rounded-[3px] -translate-y-[2px] ">

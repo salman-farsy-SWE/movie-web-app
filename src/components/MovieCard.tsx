@@ -305,7 +305,7 @@ export function MovieCard({ title, genre, image, trailer }: MovieCardProps) {
       <p className="lg:mt-[8px] md:mt-[6px] sm:mt-[9px] mt-[7px] text-center font-inter sm:font-medium xl:text-[15px] md:text-sm sm:text-[13px] text-[12px] leading-none text-light-genre-font dark:text-genre-font">
         {genre}
       </p>
-      <h3 className="xl:mt-[7px] lg:mt-[5px] md:mt-[4px] mt-[7px] text-center font-inter md:font-semibold sm:font-medium lg:text-[17px] md:text-[16px] sm:text-[15px] text-[14px] leading-none text-black dark:text-white">
+      <h3 className="xl:mt-[7px] lg:mt-[5px] md:mt-[4px] mt-[7px] text-center font-inter md:font-semibold sm:font-medium lg:text-[17px] md:text-[16px] sm:text-[15px] text-[14px] leading-none text-black dark:text-white/85">
         {title}
       </h3>
     </article>

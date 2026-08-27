@@ -11,7 +11,7 @@ const type: "rating" | "rated" | "" = "rating";
 export function WatchlistPopup() {
     return (
         <div className={cn(
-            "relative inset-0 sm:rounded-[5px] rounded-[3px] bg-watchlist/90 text-white shadow-[2px_2px_6px_rgba(107,114,128,0.25)] flex flex-col",
+            "relative inset-0 sm:rounded-[5px] rounded-[3px] bg-watchlist/90 text-white shadow-[0_6px_20px_rgba(0,0,0,0.22)] dark:shadow-[0_8px_24px_rgba(30,30,30,0.8)] flex flex-col",
 
             "xl:w-[175px] xl:min-h-[155px] lg:w-[173px] lg:min-h-[145px] md:w-[163px] md:min-h-[135px] sm:w-[155px] sm:min-h-[125px] w-[143px] min-h-[108px]",
 

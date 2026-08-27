@@ -20,7 +20,7 @@ export function FilterPanel({ open }: { open: boolean }) {
     <form
       className={cn(
         open
-          ? "filter-container opacity-100 scale-y-100 max-h-[2000px] max-w-[1440px] w-fit h-fit xl:px-[31px] lg:px-[29px] md:px-[27px] sm:px-[25px] px-[23px] xl:py-[31px] lg:py-[29px] md:py-[25px] sm:py-[23px] py-[21px] bg-light-dropdown xl:mt-[21px] lg:mt-[20px] md:mt-[18px] sm:mt-[12px] mt-[10px] xl:mb-[30px] lg:mb-[28px] md:mb-[26px] sm:mb-[22px] mb-[20px] flex flex-col items-center origin-top transition-all duration-300 ease-in-out overflow-hidden  will-change-transform"
+          ? "filter-container opacity-100 scale-y-100 max-h-[2000px] max-w-[1440px] w-fit h-fit xl:px-[31px] lg:px-[29px] md:px-[27px] sm:px-[25px] px-[23px] xl:py-[31px] lg:py-[29px] md:py-[25px] sm:py-[23px] py-[21px] bg-light-dropdown dark:bg-dropdown xl:mt-[21px] lg:mt-[20px] md:mt-[18px] sm:mt-[12px] mt-[10px] xl:mb-[30px] lg:mb-[28px] md:mb-[26px] sm:mb-[22px] mb-[20px] flex flex-col items-center origin-top transition-all duration-300 ease-in-out overflow-hidden  will-change-transform"
           : "opacity-0 scale-y-95 max-h-0 pointer-events-none"
       )}
     >
@@ -67,7 +67,7 @@ export function FilterPanel({ open }: { open: boolean }) {
 
       <Button
         type="reset"
-        className="xl:w-[113px] xl:h-[37px] lg:w-[110px] lg:h-[35px] sm:w-[95px] sm:h-[33px] w-[85px] h-[31px] flex items-center justify-center font-inter md:font-medium font-normal lg:text-base sm:text-sm text-[12px] bg-black hover:bg-black/90 text-white mt-[1px] xl:mr-[30px] lg:mr-[28px] md:mr-[20px] sm:mr-[16px] mr-[8px] self-end rounded-none"
+        className="xl:w-[113px] xl:h-[37px] lg:w-[110px] lg:h-[35px] sm:w-[95px] sm:h-[33px] w-[85px] h-[31px] flex items-center justify-center font-inter md:font-medium font-normal lg:text-base sm:text-sm text-[12px] bg-black dark:bg-reset hover:bg-black/90 dark:hover:bg-reset/90 text-white hover:text-white/90 dark:text-dark dark:hover:text-dark/90 mt-[1px] xl:mr-[30px] lg:mr-[28px] md:mr-[20px] sm:mr-[16px] mr-[8px] self-end rounded-none transition-colors duration-75"
       >
         Reset
       </Button>

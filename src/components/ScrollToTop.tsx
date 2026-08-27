@@ -38,10 +38,10 @@ export function ScrollToTop() {
         "group fixed xl:bottom-14 xl:right-14 lg:bottom-12 lg:right-12 md:bottom-11 md:right-6 sm:bottom-10 sm:right-5 bottom-9 right-3 z-40",
         "flex items-center justify-center",
         "xl:w-[68px] xl:h-[68px] lg:w-[64px] lg:h-[64px] md:w-[62px] md:h-[62px] sm:w-[58px] sm:h-[58px] w-[52px] h-[52px] rounded-full",
-        "bg-black/60 dark:bg-zinc-800/80 text-white",
+        "bg-black/60 dark:bg-white/60 text-white dark:text-black/75 dark:hover:text-white",
         "backdrop-blur-md border border-white/20 dark:border-white/10",
-        "shadow-lg shadow-black/30 hover:shadow-xl hover:shadow-black/50",
-        "hover:bg-light-nav dark:hover:bg-trails-red hover:border-transparent",
+        "shadow-lg shadow-black/30 dark:shadow-white/5 hover:shadow-xl hover:shadow-black/50",
+        "hover:bg-light-nav dark:hover:bg-dark-nav hover:border-transparent",
         "transition-all duration-300 ease-in-out cursor-pointer",
         "active:scale-90",
         isVisible

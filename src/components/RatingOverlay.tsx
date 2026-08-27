@@ -30,22 +30,22 @@ export function RatingOverlay() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center xl:pt-32 lg:pt-[120px] md:pt-36 sm:pt-40 pt-40 bg-light-screen-shadow/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center xl:pt-48 lg:pt-44 pt-56 bg-light-screen-shadow/60 backdrop-blur-sm"
       onClick={() => setOpen(false)}
     >
       <div
-        className="relative xl:w-[708px] xl:h-[401px] lg:w-[690px] lg:h-[390px] md:w-[670px] md:h-[360px] sm:h-[340px] w-screen h-[300px] bg-light-dropdown md:rounded-md rounded-none flex flex-col items-center"
+        className="relative xl:w-[708px] xl:h-[401px] lg:w-[690px] lg:h-[390px] md:w-[670px] md:h-[360px] sm:h-[340px] w-screen h-[300px] bg-light-dropdown dark:bg-dropdown md:rounded-md rounded-none flex flex-col items-center"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="absolute xl:-top-[54px] lg:-top-[50px] md:-top-[48px] sm:-top-[46px] -top-[38px] left-1/2 -translate-x-1/2 xl:w-[108px] xl:h-[108px] lg:w-[100px] lg:h-[100px] md:w-[95px] md:h-[95px] sm:w-[90px] sm:h-[90px] w-[75px] h-[75px] bg-transparent rounded-full flex items-center justify-center">
-          <IoIosStar className="w-full h-full fill-blue-600" />
+          <IoIosStar className="w-full h-full fill-blue-600 " />
         </div>
 
-        <h2 className="xl:mt-[71px] lg:mt-[67px] md:mt-[65px] sm:mt-[61px] mt-[52px] xl:text-[28px] lg:text-[27px] md:text-[26px] sm:text-[23px] text-[18px] font-inter font-medium text-black flex justify-center">
+        <h2 className="xl:mt-[71px] lg:mt-[67px] md:mt-[65px] sm:mt-[61px] mt-[52px] xl:text-[28px] lg:text-[27px] md:text-[26px] sm:text-[23px] text-[18px] font-inter font-medium text-black dark:text-white flex justify-center">
           Interstellar
         </h2>
 
-        <p className="xl:mt-[40px] lg:mt-[38px] md:mt-[36px] sm:mt-[34px] mt-[32px] md:ml-[137px] xl:text-[20px] lg:text-[19px] md:text-[18px] sm:text-[16px] text-[14px] font-inter font-medium text-light-give-a-rating-font md:self-start self-center">
+        <p className="xl:mt-[40px] lg:mt-[38px] md:mt-[36px] sm:mt-[34px] mt-[32px] md:ml-[137px] xl:text-[20px] lg:text-[19px] md:text-[18px] sm:text-[16px] text-[14px] font-inter font-medium text-light-give-arating-font dark:text-give-arating-font md:self-start self-center">
           Give a Rating
         </p>
 
@@ -62,13 +62,13 @@ export function RatingOverlay() {
 
             if (value >= index) {
               Icon = FaStar;
-              className += " text-[#CAD52A]";
+              className += " text-fill-star";
             } else if (value >= index - 0.5) {
               Icon = FaRegStarHalfStroke;
-              className += " text-[#CAD52A]";
+              className += " text-fill-star";
             } else {
               Icon = FaRegStar;
-              className += " text-light-unfill-star";
+              className += " text-light-unfill-star dark:text-unfill-star";
             }
 
             return (
@@ -98,7 +98,7 @@ export function RatingOverlay() {
         </div>
 
         <Button
-          className="xl:mt-[58px] lg:mt-[54px] sm:mt-[50px] mt-[46px] xl:w-[170px] xl:h-[53px] lg:w-[165px] lg:h-[50px] md:w-[150px] md:h-[45px] sm:w-[135px] sm:h-[40px] w-[120px] h-[37px] border-none rounded-full bg-black hover:bg-black/90 text-white lg:text-[20px] md:text-[18px] sm:text-[16px] text-[14px] font-inter font-semibold transition-colors duration-75"
+          className="xl:mt-[58px] lg:mt-[54px] sm:mt-[50px] mt-[46px] xl:w-[170px] xl:h-[53px] lg:w-[165px] lg:h-[50px] md:w-[150px] md:h-[45px] sm:w-[135px] sm:h-[40px] w-[120px] h-[37px] border-none rounded-full text-white dark:text-black bg-black dark:bg-white hover:bg-black/85 dark:hover:bg-white/85 lg:text-[20px] md:text-[18px] sm:text-[16px] text-[14px] font-inter font-semibold transition-colors duration-75"
           onClick={() => {
             console.log("Submitted rating:", rating);
             setOpen(false);

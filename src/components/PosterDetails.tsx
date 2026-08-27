@@ -15,7 +15,7 @@ import { AddButton } from "./AddButton";
 import { Rating } from "./Rating";
 import { useRating } from "@/contexts/RatingContext";
 
-export function PosterDetails({ isMovie = false }: { isMovie?: boolean }) {
+export function PosterDetails({ isMovie = true }: { isMovie?: boolean }) {
     const [saved, setSaved] = useState(false);
     const [open2, setOpen2] = useState(false);
     const btnRef = useRef<HTMLButtonElement>(null);
@@ -51,30 +51,33 @@ export function PosterDetails({ isMovie = false }: { isMovie?: boolean }) {
                     priority
                 />
 
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,#3C49C3,#7A5556)] opacity-90 backdrop-blur-md" />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,#3C49C3,#7A5556)] dark:bg-[radial-gradient(ellipse_100%_65%_at_50%_-10%,rgba(65,105,225,0.45)_0%,rgba(35,55,120,0.22)_45%,transparent_85%),linear-gradient(180deg,#1F2636_0%,#14161E_100%)] opacity-90 backdrop-blur-md" />
+
+                <div className="absolute -top-[120px] left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-blue-500/25 rounded-full blur-[100px] pointer-events-none dark:block hidden" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-4/5 h-[1.5px] bg-gradient-to-r from-transparent via-blue-400/60 to-transparent dark:block hidden pointer-events-none" />
 
                 <div className="relative z-10 container-1440 text-white font-inter">
 
                     <div
                         onClick={() => setSaved((prev) => !prev)}
-                        className="absolute xl:-top-[8px] lg:-top-[6px] md:-top-[4px] sm:-top-[2px] top-0 -right-[6px] cursor-pointer transition-all duration-200 active:scale-90 z-50 bg-white/15 hover:bg-white/10 px-[3px]"
+                        className="absolute lg:-top-[4px] md:-top-[2px] sm:-top-[1px] -top-[2px] xl:right-0 lg:right-[18px] md:right-[10px] sm:right-[8px] right-[6px] cursor-pointer transition-all duration-200 active:scale-90 z-50 bg-white/10 hover:bg-transparent hover:drop-shadow-[2px_2px_4px_rgba(0,0,0,0.5)] px-[3px] dark:hover:drop-shadow-[2px_2px_4px_rgba(80,80,80,0.5)]"
                     >
                         {saved ? (
-                            <MdBookmarkAdded className="xl:w-[61px] xl:h-[69px] lg:w-[55px] lg:h-[63px] md:w-[52px] md:h-[59px] sm:w-[47px] sm:h-[55px] w-[39px] h-[49px] text-white drop-shadow-[2px_2px_4px_rgba(0,0,0,0.5)]" />
+                            <MdBookmarkAdded className="xl:w-[61px] xl:h-[69px] lg:w-[55px] lg:h-[63px] md:w-[52px] md:h-[59px] sm:w-[47px] sm:h-[55px] w-[39px] h-[49px] text-white" />
                         ) : (
-                            <MdBookmarkAdd className="xl:w-[61px] xl:h-[69px] lg:w-[55px] lg:h-[63px] md:w-[52px] md:h-[59px] sm:w-[47px] sm:h-[55px] w-[39px] h-[49px] text-white2/70 drop-shadow-[2px_2px_4px_rgba(0,0,0,0.5)]" />
+                            <MdBookmarkAdd className="xl:w-[61px] xl:h-[69px] lg:w-[55px] lg:h-[63px] md:w-[52px] md:h-[59px] sm:w-[47px] sm:h-[55px] w-[39px] h-[49px] text-white2/70" />
                         )}
                     </div>
 
-                    <h1 className="xl:text-[30px] lg:text-[28px] md:text-[26px] sm:text-[24px] text-[22px] font-medium xl:mt-[22px] md:mt-[20px] sm:mt-[18px] mt-[16px]">
+                    <h1 className="xl:text-[30px] lg:text-[28px] md:text-[26px] sm:text-[24px] text-[22px] md:font-medium font-normal xl:mt-[22px] md:mt-[20px] sm:mt-[18px] mt-[16px]">
                         Game of Thrones
                     </h1>
 
-                    <p className="xl:text-[18px] lg:text-[17px] md:text-[16px] sm:text-[15px] text-[14px] font-medium text-white/80 xl:mt-[8px] lg:mt-[7px] md:mt-[6px] sm:mt-[5px] mt-[4px]">
+                    <p className="xl:text-[18px] lg:text-[17px] md:text-[16px] sm:text-[15px] text-[14px] md:font-medium font-normal text-white/80 xl:mt-[8px] lg:mt-[7px] md:mt-[6px] sm:mt-[5px] mt-[4px]">
                         7 Nov, 2014
                     </p>
 
-                    <p className="xl:text-[20px] lg:text-[19px] md:text-[18px] sm:text-[17px] text-[16px] font-medium text-white/80 xl:mt-[20px] lg:mt-[19px] md:mt-[18px] sm:mt-[17px] mt-[16px] xl:w-[70%] lg:w-[65%] sm:w-[75%] w-[80%]">
+                    <p className="xl:text-[20px] lg:text-[19px] md:text-[18px] sm:text-[17px] text-[16px] md:font-medium font-normal text-white/80 xl:mt-[20px] lg:mt-[19px] md:mt-[18px] sm:mt-[17px] mt-[16px] xl:w-[70%] lg:w-[65%] sm:w-[75%] w-[80%]">
                         Nine noble families wage war against each other in order to gain control over the mythical land of Westeros.
                     </p>
 
@@ -86,19 +89,19 @@ export function PosterDetails({ isMovie = false }: { isMovie?: boolean }) {
                                 <GenreBadge genre="Drama" className="bg-white/15 text-white" />
                             </div>
 
-                            <div className="flex items-center gap-[11px] xl:text-[18px] lg:text-[17px] md:text-[16px] sm:text-[15px] text-[14px] lg:font-normal font-medium">
-                                <span className="font-medium">{isMovie ? "Duration:" : "Episode Duration:"}</span>
+                            <div className="flex items-center gap-[11px] xl:text-[18px] lg:text-[17px] md:text-[16px] sm:text-[15px] text-[14px] lg:font-normal md:font-medium font-normal">
+                                <span className="md:font-medium font-normal">{isMovie ? "Duration:" : "Episode Duration:"}</span>
                                 <span className="text-white/80">2h 49m</span>
                             </div>
                         </div>
 
-                        <div className="lg:flex hidden gap-[53px] xl:text-[18px] lg:text-[17px] md:text-[16px] font-medium">
+                        <div className="lg:flex hidden xl:gap-[60px] lg:gap-[45px] xl:text-[18px] lg:text-[17px] md:text-[16px] font-medium">
 
                             <div className="flex flex-col items-start gap-[2px]">
                                 <p className="tracking-wider">YOUR RATING</p>
                                 <Button
                                     onClick={() => setOpen(true)}
-                                    className="bg-white/10 border-none hover:bg-white/5 text-[#8792F2] hover:text-[#8792F2]/70 flex items-center gap-[5px] transition-colors duration-75 xl:mt-[6px] lg:mt-[4px]"
+                                    className="bg-white/5 border-none hover:bg-white/10 text-[#8792F2] hover:text-[#8792F2]/85 flex items-center gap-[5px] transition-colors duration-75 xl:mt-[6px] lg:mt-[4px]"
                                 >
                                     <IoMdStarOutline className="xl:w-[28px] xl:h-[28px] lg:w-[26px] lg:h-[26px]" />
                                     <span className="xl:text-[20px] lg:text-[19px] font-inter">Rate</span>
@@ -144,7 +147,7 @@ export function PosterDetails({ isMovie = false }: { isMovie?: boolean }) {
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition" />
 
                                 <Link href="#" className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-150">
-                                    <div className="xl:w-[132px] xl:h-[132px] lg:w-[126px] lg:h-[126px] md:w-[116px] md:h-[116px] sm:w-[110px] sm:h-[110px] w-[100px] h-[100px] bg-[#3A48C3] rounded-full flex items-center justify-center">
+                                    <div className="xl:w-[132px] xl:h-[132px] lg:w-[126px] lg:h-[126px] md:w-[116px] md:h-[116px] sm:w-[110px] sm:h-[110px] w-[100px] h-[100px] bg-play rounded-full flex items-center justify-center">
                                         <IoTriangleSharp className="text-white xl:w-[88px] xl:h-[88px] lg:w-[86px] lg:h-[86px] md:w-[82px] md:h-[82px] sm:w-[78px] sm:h-[78px] w-[74px] h-[74px] -rotate-90 sm:mr-[18px] mr-[13px]" />
                                     </div>
                                 </Link>
@@ -153,13 +156,13 @@ export function PosterDetails({ isMovie = false }: { isMovie?: boolean }) {
                             </div>
 
                             <div className="flex md:mt-[24px] sm:mt-[22px] mt-[20px]">
-                                <Button className="xl:w-[189px] xl:h-[50px] md:w-[179px] lg:h-[48px] md:h-[46px] sm:w-[165px] sm:h-[44px] w-[150px] h-[40px] bg-[#A54B4B] hover:bg-[#A54B4B]/80 text-white xl:text-[22px] lg:text-[21px] md:text-[20px] sm:text-[18px] text-[16px] font-medium font-monda rounded-[3px]">
+                                <Button className="xl:w-[189px] xl:h-[50px] md:w-[179px] lg:h-[48px] md:h-[46px] sm:w-[165px] sm:h-[44px] w-[150px] h-[40px] bg-hero-trailer hover:bg-hero-trailer/85 text-white xl:text-[22px] lg:text-[21px] md:text-[20px] sm:text-[18px] text-[16px] md:font-medium font-normal font-monda rounded-[3px]">
                                     Official Trailer
                                 </Button>
                             </div>
                         </div>
 
-                        <div className="flex flex-col items-start lg:gap-[25px] md:gap-[23px] sm:gap-[21px] gap-[19px] xl:text-[20px] lg:text-[19px] md:text-[18px] sm:text-[16px] text-[14px] xl:ml-[30px] lg:ml-[24px] md:ml-[28px] sm:ml-[22px] ml-[20px] text-white font-medium">
+                        <div className="flex flex-col items-start lg:gap-[25px] md:gap-[23px] sm:gap-[21px] gap-[19px] xl:text-[20px] lg:text-[19px] md:text-[18px] sm:text-[16px] text-[14px] xl:ml-[30px] lg:ml-[24px] md:ml-[28px] sm:ml-[22px] ml-[20px] text-white md:font-medium font-normal">
 
                             <div className="flex items-start sm:gap-[10px] gap-[8px]">
                                 Country: <span className="text-white2">United States, United Kingdom</span>
@@ -183,14 +186,14 @@ export function PosterDetails({ isMovie = false }: { isMovie?: boolean }) {
 
                             {isMovie && (<div className="flex items-center sm:gap-[10px] gap-[8px]">
                                 <p className="flex items-center xl:gap-[6px] lg:gap-[5px] sm:gap-[4px] gap-[3px] xl:text-[18px] lg:text-[17px] md:text-[16px] sm:text-[15px]  text-[14px]">
-                                    <span className="bg-[#DFDD58] w-fit lg:h-[30px] md:h-[27px] sm:h-[25px] h-[23px] lg:px-3 md:px-[10px] sm:px-[8px] px-[6px] flex items-center justify-center text-black">Budget</span>:
+                                    <span className="bg-light-budget dark:bg-budget w-fit lg:h-[30px] md:h-[27px] sm:h-[25px] h-[23px] lg:px-3 md:px-[10px] sm:px-[8px] px-[6px] flex items-center justify-center text-black">Budget</span>:
                                 </p>
                                 <span className="text-white2">$165M</span>
                             </div>)}
 
                             {isMovie && (<div className="flex items-center sm:gap-[10px] gap-[8px]">
                                 <p className="flex items-center xl:gap-[6px] lg:gap-[5px] sm:gap-[4px] gap-[3px] xl:text-[18px] lg:text-[17px] md:text-[16px] sm:text-[15px]  text-[14px]">
-                                    <span className="bg-[#2331AE] w-fit lg:h-[30px] md:h-[27px] sm:h-[25px] h-[23px] lg:px-3 md:px-[10px] sm:px-[8px] px-[6px] flex items-center justify-center">Revenue</span>:
+                                    <span className="bg-light-revenue dark:bg-revenue w-fit lg:h-[30px] md:h-[27px] sm:h-[25px] h-[23px] lg:px-3 md:px-[10px] sm:px-[8px] px-[6px] flex items-center justify-center text-white">Revenue</span>:
                                 </p>
                                 <span className="text-white2">$700M</span>
                             </div>)}
@@ -249,12 +252,12 @@ export function PosterDetails({ isMovie = false }: { isMovie?: boolean }) {
                             e.stopPropagation();
                             setOpen2((prev) => !prev);
                         }}
-                        className="absolute lg:bottom-[34px] md:bottom-[10px] sm:bottom-[15px] bottom-[8px] right-2 xl:h-[30px] xl:w-[30px] lg:h-[28px] lg:w-[28px] md:h-[26px] md:w-[26px] sm:h-[24px] sm:w-[24px] h-[22px] w-[22px] bg-dropdown-hover dark:bg-plus-btn hover:bg-dropdown-hover/90 dark:hover:bg-plus-btn/90 flex items-center justify-center rounded-sm"
-                        iconClassName="xl:h-[21px] xl:w-[21px] lg:h-[20px] lg:w-[20px] md:h-[18px] md:w-[18px] sm:h-[16px] sm:w-[16px] h-[14px] w-[14px] text-white"
+                        className="absolute lg:bottom-[34px] md:bottom-[10px] sm:bottom-[15px] bottom-[8px] right-2 xl:h-[30px] xl:w-[30px] lg:h-[28px] lg:w-[28px] md:h-[26px] md:w-[26px] sm:h-[24px] sm:w-[24px] h-[22px] w-[22px] bg-dropdown-hover dark:bg-white/85 hover:bg-dropdown-hover/85 dark:hover:bg-white/75 flex items-center justify-center rounded-sm"
+                        iconClassName="xl:h-[21px] xl:w-[21px] lg:h-[20px] lg:w-[20px] md:h-[18px] md:w-[18px] sm:h-[16px] sm:w-[16px] h-[14px] w-[14px] dark:text-black dark:hover:text-black/85"
                     />
                 </div>
 
-                <div className="relative container-1440 lg:hidden flex justify-center md:gap-[80px] sm:gap-[70px] gap-[55px] md:text-[16px] sm:text-[14px] text-[12px] font-medium text-white md:mt-20 sm:mt-[65px] mt-[60px] md:mb-3 sm:mb-4 mb-6">
+                <div className="relative container-1440 lg:hidden flex justify-center md:gap-[80px] sm:gap-[70px] gap-[55px] md:text-[16px] sm:text-[14px] text-[12px] md:font-medium font-normal text-white md:mt-20 sm:mt-[65px] mt-[60px] md:mb-3 sm:mb-4 mb-6">
 
                     <div className="flex flex-col items-start md:gap-[2px] sm:gap-[1px] gap-[0px]">
                         <p className="tracking-wider">YOUR RATING</p>

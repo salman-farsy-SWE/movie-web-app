@@ -74,11 +74,11 @@ export default function LoginPage({ isModal = false }: { isModal?: boolean }) {
             )}
 
             <div className={cn("relative xl:w-[631px] xl:h-[459px] lg:w-[560px] lg:h-[420px] md:w-[580px] md:h-[380px] sm:w-[520px] sm:h-[360px] w-[100vw] h-[350px] flex flex-col items-center", isModal ? "bg-light-dropdown dark:bg-dropdown xl:rounded-[15px] lg:rounded-[13px] md:rounded-[11px] sm:rounded-[13px]" : "border-[3px] border-black/40 bg-white dark:bg-dropdown xl:rounded-[15px] lg:rounded-[13px] md:rounded-[11px] sm:rounded-[13px]")}>
-                {isModal && <X className="absolute xl:h-7 xl:w-7 lg:h-[26px] lg:w-[26px] md:h-[24px] md:w-[24px] sm:h-[22px] sm:w-[22px] h-[20px] w-[20px] xl:right-4 lg:right-[14px] sm:right-[14px] right-[20px] xl:top-4 lg:top-[14px] md:top-[14px] top-[12px] cursor-pointer text-black dark:text-white/85" onClick={isModal ? () => router.back() : undefined} />}
+                {isModal && <X className="absolute xl:h-7 xl:w-7 lg:h-[26px] lg:w-[26px] md:h-[24px] md:w-[24px] sm:h-[22px] sm:w-[22px] h-[20px] w-[20px] xl:right-4 lg:right-[14px] sm:right-[14px] right-[20px] xl:top-4 lg:top-[14px] md:top-[14px] top-[12px] cursor-pointer text-black hover:text-black/85 dark:text-white/85 dark:hover:text-white/75" onClick={isModal ? () => router.back() : undefined} />}
 
                 <Link href="/" className="flex justify-center font-poppins font-semibold xl:text-3xl lg:text-[28px] md:text-[26px] sm:text-[24px] text-[22px] xl:mt-9 sm:mt-8 mt-7">
                     <h1 className="text-black dark:text-white">Movie</h1>
-                    <h1 className="text-trails-red dark:text-trails-blue md:ml-1 sm:ml-[2px]">Trails</h1>
+                    <h1 className="text-trails-red dark:text-blue1 lg:ml-2 md:ml-[6px] ml-[4px]">Trails</h1>
                 </Link>
 
                 <form
@@ -120,7 +120,7 @@ export default function LoginPage({ isModal = false }: { isModal?: boolean }) {
                                 className="absolute xl:w-[18px] xl:h-[18px] lg:w-[17px] lg:h-[17px] md:w-[16px] md:h-[16px] sm:w-[14px] sm:h-[14px] w-[16px] h-[16px] xl:top-[45.5px] lg:top-[42px] md:top-[36.5px] sm:top-[38px] top-[37px] lg:right-3 md:right-[11px] sm:right-[10.5px] right-[12px] cursor-pointer dark:text-white/85"
                             />
                         )}
-                        <span className="absolute w-[1px] xl:h-[45px] lg:h-[43px] md:h-[39px] sm:h-[36px] h-[37px] bg-light-stroke dark:bg-white/30 xl:top-8 lg:top-[29px] md:top-[25px] sm:top-[26px] top-[26px] xl:right-[41px] lg:right-[39px] md:right-[37px] sm:right-[35px] right-[39px]"></span>
+                        <span className="absolute w-[1px] xl:h-[43px] lg:h-[39px] md:h-[37px] sm:h-[34px] h-[35px] bg-light-stroke dark:bg-white/30 xl:top-[34px] lg:top-[31px] md:top-[26px] sm:top-[28px] top-[27px] xl:right-[41px] lg:right-[39px] md:right-[37px] sm:right-[35px] right-[39px]"></span>
                     </div>
 
 

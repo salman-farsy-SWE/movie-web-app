@@ -16,7 +16,7 @@ interface TableRowProps {
 }
 
 const gridClass =
-    "grid xl:grid-cols-[270px_270px_270px_270px_270px_40px] lg:grid-cols-[230px_230px_230px_230px_230px_40px] md:grid-cols-[200px_200px_200px_200px_200px_30px] sm:grid-cols-[210px_210px_210px_210px_20px] grid-cols-[160px_160px_160px_160px_10px] items-center font-inter md:font-medium font-normal xl:text-[20px] lg:text-[19px] md:text-[18px] sm:text-[17px] text-[16px] text-black ";
+    "grid xl:grid-cols-[270px_270px_270px_270px_270px_40px] lg:grid-cols-[230px_230px_230px_230px_230px_40px] md:grid-cols-[200px_200px_200px_200px_200px_30px] sm:grid-cols-[210px_210px_210px_210px_20px] grid-cols-[160px_160px_160px_160px_10px] items-center font-inter md:font-medium font-normal xl:text-[20px] lg:text-[19px] md:text-[18px] sm:text-[17px] text-[16px] text-black dark:text-white/85";
 
 export function TableRow({ item, isFirst, isLast }: TableRowProps) {
     const imgRef = useRef<HTMLDivElement>(null);
@@ -108,7 +108,7 @@ export function TableRow({ item, isFirst, isLast }: TableRowProps) {
                     value={item?.rating}
                     className="lg:gap-[6px] md:gap-[5px] sm:gap-[4px] gap-[3px]"
                     className1="xl:w-[22px] xl:h-[22px] lg:w-[21px] lg:h-[21px] md:w-[20px] md:h-[20px] sm:w-[19px] sm:h-[19px] w-[18px] h-[18px]"
-                    className2="xl:text-[20px] lg:text-[19px] md:text-[18px] sm:text-[17px] text-[16px] text-black"
+                    className2="xl:text-[20px] lg:text-[19px] md:text-[18px] sm:text-[17px] text-[16px] text-black dark:text-white/85"
                 />
 
                 {item?.yourRating && (
@@ -116,7 +116,7 @@ export function TableRow({ item, isFirst, isLast }: TableRowProps) {
                         value={item?.yourRating}
                         className="lg:gap-[6px] md:gap-[5px] md:flex hidden"
                         className1="xl:w-[22px] xl:h-[22px] lg:w-[21px] lg:h-[21px] md:w-[20px] md:h-[20px]"
-                        className2="xl:text-[20px] lg:text-[19px] md:text-[18px] text-black"
+                        className2="xl:text-[20px] lg:text-[19px] md:text-[18px] text-black dark:text-white/85"
                     />
                 )}
 
@@ -138,8 +138,8 @@ export function TableRow({ item, isFirst, isLast }: TableRowProps) {
                             e.stopPropagation();
                             setOpen((prev) => !prev);
                         }}
-                        className="lg:w-[34px] lg:h-[34px] md:w-[32px] md:h-[32px] sm:w-[30px] sm:h-[30px] w-[28px] h-[28px] hover:bg-black/10 flex items-center justify-center"
-                        className2="lg:w-[16px] lg:h-[16px] md:w-[15px] md:h-[15px] sm:w-[14px] sm:h-[14px] w-[13px] h-[13px] text-black"
+                        className="lg:w-[34px] lg:h-[34px] md:w-[32px] md:h-[32px] sm:w-[30px] sm:h-[30px] w-[28px] h-[28px] hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center"
+                        className2="lg:w-[16px] lg:h-[16px] md:w-[15px] md:h-[15px] sm:w-[14px] sm:h-[14px] w-[13px] h-[13px] text-black hover:text-black/75 dark:text-white/90 dark:hover:text-white/75"
                     />
 
                     {open && (

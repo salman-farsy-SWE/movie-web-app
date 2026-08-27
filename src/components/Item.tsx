@@ -4,7 +4,7 @@ import { TableItem } from "@/types/items";
 import { TableRow } from "./TableRow";
 
 const gridClass =
-  "grid xl:grid-cols-[270px_270px_270px_270px_270px_40px] lg:grid-cols-[230px_230px_230px_230px_230px_40px] md:grid-cols-[200px_200px_200px_200px_200px_30px] sm:grid-cols-[210px_210px_210px_210px_20px] grid-cols-[160px_160px_160px_160px_10px] items-center mb-[51px] font-inter md:font-medium font-normal xl:text-[20px] lg:text-[19px] md:text-[18px] sm:text-[17px] text-[16px] text-light-table-heading-font";
+  "grid xl:grid-cols-[270px_270px_270px_270px_270px_40px] lg:grid-cols-[230px_230px_230px_230px_230px_40px] md:grid-cols-[200px_200px_200px_200px_200px_30px] sm:grid-cols-[210px_210px_210px_210px_20px] grid-cols-[160px_160px_160px_160px_10px] items-center mb-[51px] font-inter md:font-medium font-normal xl:text-[20px] lg:text-[19px] md:text-[18px] sm:text-[17px] text-[16px] text-light-table-heading-font dark:text-table-heading-font";
 
 const sampleTableData: TableItem[] = [
   {

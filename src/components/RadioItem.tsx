@@ -19,14 +19,14 @@ export function RadioItem({ id, value, label }: RadioItemProps) {
                 id={id}
                 value={value}
                 className={cn(
-                    "xl:w-[14px] xl:h-[14px] lg:w-[13px] lg:h-[13px] sm:w-[12px] sm:h-[12px] w-[11px] h-[11px] rounded-full border-2 border-black/50",
-                    "bg-white transition-all duration-150",
-                    "data-[state=checked]:border-black/30 data-[state=checked]:bg-bullet-circle",
+                    "xl:w-[14px] xl:h-[14px] lg:w-[13px] lg:h-[13px] sm:w-[12px] sm:h-[12px] w-[11px] h-[11px] rounded-full border-2 border-black/50 dark:border-light-unfill-star",
+                    "bg-white dark:bg-dropdown transition-all duration-150",
+                    "data-[state=checked]:border-black/30 dark:data-[state=checked]:border-light-unfill-star/30 data-[state=checked]:bg-bullet-circle dark:data-[state=checked]:bg-white",
                     "[&>span]:hidden outline-none"
                 )}
             />
 
-            <span className="font-inter xl:text-[16px] lg:text-[15px] sm:text-[14px] text-[13px] font-normal text-black">
+            <span className="font-inter xl:text-[16px] lg:text-[15px] sm:text-[14px] text-[13px] font-normal text-black dark:text-white/85">
                 {label}
             </span>
         </label>

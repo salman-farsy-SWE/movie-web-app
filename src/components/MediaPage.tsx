@@ -88,9 +88,9 @@ export function MediaPage({ param, type, showSearch, param2, children, hidePagin
                             }}
                             className="group flex items-center gap-[4px] cursor-pointer select-none transition-colors duration-75"
                         >
-                            <ChevronLeft className="w-[28px] h-[28px] text-black group-hover:text-black/75" />
+                            <ChevronLeft className="w-[28px] h-[28px] text-black dark:text-white group-hover:text-black/75 dark:group-hover:text-white/90" />
 
-                            <h1 className="font-akshar xl:text-[28px] lg:text-[27px] text-[25px] font-medium text-black group-hover:text-black/75">
+                            <h1 className="font-akshar xl:text-[28px] lg:text-[27px] text-[25px] md:font-medium font-normal text-black dark:text-white group-hover:text-black/75 dark:group-hover:text-white/90">
                                 {isPersonDetails
                                     ? "Person Details"
                                     : isMovie
@@ -99,7 +99,7 @@ export function MediaPage({ param, type, showSearch, param2, children, hidePagin
                             </h1>
                         </div>
                     ) : (
-                        <h1 className="font-akshar xl:text-[28px] lg:text-[27px] md:text-[25px] sm:text-[23px] text-[21px] font-medium text-black capitalize">
+                        <h1 className="font-akshar xl:text-[28px] lg:text-[27px] md:text-[25px] sm:text-[23px] text-[21px] md:font-medium font-normal text-black dark:text-white capitalize">
                             {type === "tv"
                                 ? "TV Shows"
                                 : type === "movie"

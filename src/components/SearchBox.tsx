@@ -35,7 +35,7 @@ export function SearchBox() {
   };
 
   return (
-    <section className="xl:w-[1289px] lg:w-[1060px] md:w-[880px] w-[100vw] h-fit xl:pb-[26px] lg:pb-[22px] md:pb-[20px] sm:pb-[18px] pb-[14px] flex flex-col items-center lg:rounded-[9px] md:rounded-[7px] bg-white dark:bg-search-box overflow-x-auto">
+    <section className="xl:w-[1289px] lg:w-[1060px] md:w-[880px] w-[100vw] h-fit xl:pb-[26px] lg:pb-[22px] md:pb-[20px] sm:pb-[18px] pb-[14px] flex flex-col items-center lg:rounded-[9px] md:rounded-[7px] bg-white dark:bg-dropdown overflow-x-auto">
       <div className="relative xl:w-[1214px] lg:w-[990px] md:w-[820px] w-[90vw] h-fit border-b-2 border-black/75 dark:border-white/75 xl:mt-[66px] lg:mt-[60px] md:mt-[50px] mt-[45px] flex items-center justify-center">
         <div className="absolute xl:-top-[24px] lg:-top-[22px] md:-top-[18px] -top-[16px] w-full h-full flex items-center justify-between">
           <Input
@@ -70,7 +70,7 @@ export function SearchBox() {
                   Horror/Fantasy
                 </p>
                 <span className="xl:text-sm lg:text-xs sm:text-[10px] text-[9px] text-light-search-genres-font dark:text-search-genres-font mt-1">
-                  <span className="text-black/90 italic">Released:</span> 2010
+                  <span className="text-black/90 dark:text-white/90 italic">Released:</span> 2010
                 </span>
               </div>
             </div>

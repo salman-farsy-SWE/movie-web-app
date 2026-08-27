@@ -39,11 +39,11 @@ export function PersonCard({ person, basePath, variant = "grid" }: PersonCardPro
       </Link>
 
       <Link href={`${basePath}/${slugify(person.id)}`} className="flex flex-col items-center h-fit">
-        <p className="font-normal xl:text-[13px] sm:text-[12px] text-[11px] text-persons-card-role xl:mt-[8px] lg:mt-[7px] md:mt-[6px] sm:mt-[5px] mt-[4px]">
+        <p className="font-normal xl:text-[13px] sm:text-[12px] text-[11px] text-light-persons-card-role dark:text-persons-card-role xl:mt-[8px] lg:mt-[7px] md:mt-[6px] sm:mt-[5px] mt-[4px]">
           {person.role}
         </p>
 
-        <p className="font-medium xl:text-[17px] lg:text-[16px] md:text-[15px] sm:text-[14px] text-[13px] text-black xl:mt-[5px] lg:mt-[4px] sm:mt-[3px] mt-[2px]">
+        <p className="font-medium xl:text-[17px] lg:text-[16px] md:text-[15px] sm:text-[14px] text-[13px] text-black dark:text-white/85 xl:mt-[5px] lg:mt-[4px] sm:mt-[3px] mt-[2px]">
           {person.name}
         </p>
       </Link>

@@ -2,17 +2,22 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import LoginPage from "@/app/(auth)/login/page";
+import LoginForm from "@/components/auth/LoginForm";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginModal() {
   const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    const originalOverflowX = document.body.style.overflowX;
-    const originalOverflowY = document.body.style.overflowY;
+    if (isAuthenticated || user) {
+      router.back();
+    }
+  }, [isAuthenticated, user, router]);
 
-    document.body.style.overflowX = "hidden";
-    document.body.style.overflowY = "scroll";
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -26,22 +31,25 @@ export default function LoginModal() {
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.body.style.overflowX = originalOverflowX;
-      document.body.style.overflowY = originalOverflowY;
+      document.body.style.overflow = originalOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [router]);
 
+  if (isAuthenticated || user) {
+    return null;
+  }
+
   return (
     <div
-      className="fixed xl:-top-[330px] lg:-top-[350px] md:-top-[380px] sm:-top-[350px] -top-[400px] inset-0 z-50 flex items-center justify-center bg-light-screen-shadow/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark/70 backdrop-blur-md overflow-y-auto"
       onClick={() => router.back()}
     >
       <div
-        className="animate-in fade-in zoom-in-95 duration-200"
+        className="w-full max-w-[480px] my-auto animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        <LoginPage isModal={true} />
+        <LoginForm isModal={true} />
       </div>
     </div>
   );

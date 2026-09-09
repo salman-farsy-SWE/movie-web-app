@@ -1,8 +1,8 @@
-import { PosterDetails } from "@/components/PosterDetails";
-import { MediaPage } from "@/components/MediaPage";
-import { PeopleYouMayKnow } from "@/components/PeopleYouMayKnow";
-import { YouMayLike } from "@/components/YouMayLike";
-import { slugify } from "@/lib/utils";
+import { PosterDetails } from "@/components/media/PosterDetails";
+import { MediaPage } from "@/components/media/MediaPage";
+import { PeopleYouMayKnow } from "@/components/media/PeopleYouMayKnow";
+import { YouMayLike } from "@/components/media/YouMayLike";
+import { getMediaDetails } from "@/lib/tmdb";
 
 export default async function PosterDetailsPage({
     params,
@@ -11,7 +11,14 @@ export default async function PosterDetailsPage({
 }) {
     const { posterId } = await params;
 
-    const formattedParam = slugify(posterId);
+    const data = await getMediaDetails(posterId, true);
+    let decoded = posterId;
+    try {
+        decoded = decodeURIComponent(posterId);
+    } catch {
+        decoded = posterId;
+    }
+    const formattedParam = data.title || decoded.replace(/-/g, " ");
 
     return (
         <MediaPage
@@ -21,9 +28,9 @@ export default async function PosterDetailsPage({
             hidePagination
             isMovie
         >
-            <PosterDetails />
-            <PeopleYouMayKnow title="Cast" />
-            <YouMayLike />
+            <PosterDetails isMovie data={data} />
+            <PeopleYouMayKnow title="Cast" items={data.cast} />
+            <YouMayLike items={data.recommendations} />
         </MediaPage>
     );
 }

@@ -1,4 +1,4 @@
-import { UserCollectionPage } from "@/components/UserCollectionPage";
+import { UserCollectionPage } from "@/components/user-collection/UserCollectionPage";
 import { slugify } from "@/lib/utils";
 
 export default async function ListPage({

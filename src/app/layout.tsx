@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Akshar, Inter, Poppins, Monda  } from "next/font/google";
 import "@/app/globals.css";
 import ThemeWrapper from "@/providers/ThemeWrapper";
+import { AuthProvider } from "@/contexts/AuthContext";
+
+import { getCurrentUser } from "@/actions/auth";
 
 export const metadata: Metadata = {
   title: "Movie Trails",
@@ -32,18 +35,22 @@ const monda = Monda({
   variable: "--font-monda",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getCurrentUser();
+
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body
-        className={`${poppins.variable} ${inter.variable} ${akshar.variable} ${monda.variable} flow-root overflow-x-hidden bg-white dark:bg-dark text-foreground antialiased`}
+        className={`${poppins.variable} ${inter.variable} ${akshar.variable} ${monda.variable} flow-root overflow-hidden bg-white dark:bg-dark min-h-screen text-foreground antialiased`}
       >
         <ThemeWrapper>
-          {children}
+          <AuthProvider initialUser={user}>
+            {children}
+          </AuthProvider>
         </ThemeWrapper>
       </body>
     </html>

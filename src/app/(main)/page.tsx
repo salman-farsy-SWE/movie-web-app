@@ -1,19 +1,47 @@
-import { HeroSection } from "@/components/HeroSection";
-import { HomeSection } from "@/components/HomeSection";
-import { heroContents, movieSections } from "@/data/mock-home";
+import { HeroSection } from "@/components/home/HeroSection";
+import { HomeSection } from "@/components/home/HomeSection";
+import { heroContents as mockHeroContents, movieSections as mockSections } from "@/data/mock-home";
+import {
+  getNowPlayingMovies,
+  getTrendingAll,
+  getTopRatedAll,
+  getPopularMovies,
+  getTrendingTvShows,
+} from "@/lib/tmdb";
 
-export default function Home() {
+export default async function Home() {
+  const [
+    heroContents,
+    trending,
+    topRated,
+    movies,
+    tvShows,
+  ] = await Promise.all([
+    getNowPlayingMovies(5),
+    getTrendingAll(10),
+    getTopRatedAll(10),
+    getPopularMovies(10),
+    getTrendingTvShows(10),
+  ]);
+
+  const sections = [
+    { id: "trending", title: "Trending", items: trending },
+    { id: "top-rated", title: "Top Rated", items: topRated },
+    { id: "movies", title: "Movies", items: movies },
+    { id: "tv-shows", title: "TV Shows", items: tvShows },
+  ];
+
   return (
     <main className="flex flex-col items-center">
-      <HeroSection {... {heroContents} } />
+      <HeroSection heroContents={heroContents ?? mockHeroContents} />
 
-        <div className="container-1440 flex flex-col lg:gap-[50px] md:gap-[46px] sm:gap-[42px] gap-[36px] lg:mt-[40px] md:mt-[36px] sm:mt-[32px] mt-[28px]">
-          {movieSections.map((section) => (
+        <div className="container-1440 flex flex-col xl:gap-[60px] lg:gap-[50px] md:gap-[45px] sm:gap-[40px] gap-[35px] xl:mt-[40px] lg:mt-[36px] md:mt-[32px] sm:mt-[28px] mt-[24px]">
+          {sections.map((section) => (
             <HomeSection
               key={section.id}
               id={section.id}
               title={section.title}
-              items={section.items}
+              items={section.items ?? mockSections.find(s => s.id === section.id)?.items ?? []}
             />
           ))}
         </div>

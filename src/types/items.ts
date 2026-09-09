@@ -1,4 +1,5 @@
 export type TableItem = {
+  id?: string;
   image: string;
   name: string;
   rating: number;

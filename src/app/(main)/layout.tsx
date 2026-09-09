@@ -3,11 +3,12 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { SearchProvider } from "@/contexts/SearchContext";
-import { SearchOverlay } from "@/components/SearchOverlay";
+import { SearchOverlay } from "@/components/overlays/SearchOverlay";
 import { RatingProvider } from "@/contexts/RatingContext";
-import { RatingOverlay } from "@/components/RatingOverlay";
+import { RatingOverlay } from "@/components/overlays/RatingOverlay";
 import { ListProvider } from "@/contexts/ListContext";
-import { ListOverlay } from "@/components/ListOverlay";
+import { ListOverlay } from "@/components/overlays/ListOverlay";
+import { NavigationTracker } from "@/components/navigation/NavigationTracker";
 
 export default function MainLayout({
   children,
@@ -29,6 +30,7 @@ export default function MainLayout({
             <SearchOverlay />
             <RatingOverlay />
             <ListOverlay />
+            <NavigationTracker />
           </SearchProvider>
         </RatingProvider>
       </ListProvider>

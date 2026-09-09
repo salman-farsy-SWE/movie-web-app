@@ -26,7 +26,7 @@ export function SectionControls({
         size="icon"
         aria-label="Previous"
         className={cn(
-          "absolute xl:left-[-20px] lg:left-[-23px] md:left-[-22px] sm:left-[-21px] left-[-20px] z-10 xl:h-[63px] xl:w-[63px] lg:h-[61px] lg:w-[61px] md:h-[58px] md:w-[58px] sm:h-[55px] sm:w-[55px] h-[46px] w-[46px] rounded-full",
+          "absolute xl:left-[-25px] md:left-[-20px] left-[-18px] z-10 xl:h-[63px] xl:w-[63px] lg:h-[61px] lg:w-[61px] md:h-[58px] md:w-[58px] sm:h-[55px] sm:w-[55px] h-[46px] w-[46px] rounded-full",
           "bg-light-carousal-btn/20 dark:bg-carousal-btn/20 backdrop-blur-[30px]",
           "flex items-center justify-center transition",
           canScrollLeft
@@ -43,7 +43,7 @@ export function SectionControls({
         size="icon"
         aria-label="Next"
         className={cn(
-          "absolute xl:right-[-20px] lg:right-[-23px] md:right-[-22px] sm:right-[-21px] right-[-20px] z-10 xl:h-[63px] xl:w-[63px] lg:h-[61px] lg:w-[61px] md:h-[58px] md:w-[58px] sm:h-[55px] sm:w-[55px] h-[46px] w-[46px] rounded-full",
+          "absolute xl:right-[-25px] md:right-[-20px] right-[-18px] z-10 xl:h-[63px] xl:w-[63px] lg:h-[61px] lg:w-[61px] md:h-[58px] md:w-[58px] sm:h-[55px] sm:w-[55px] h-[46px] w-[46px] rounded-full",
           "bg-light-carousal-btn/20 dark:bg-carousal-btn/20 backdrop-blur-[30px]",
           "flex items-center justify-center transition",
           canScrollRight

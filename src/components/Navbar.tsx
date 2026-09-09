@@ -1,19 +1,22 @@
 "use client";
 
-import { Search, Moon, Sun, ChevronLeft, Menu, LogOut } from "lucide-react";
+import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
-import { GenresMenu } from "@/components/GenresMenu";
-import { TrendingMenu } from "@/components/TrendingMenu";
-import { TopRatedMenu } from "@/components/TopRatedMenu";
+import { GenresMenu } from "@/components/navbar/GenresMenu";
+import { TrendingMenu } from "@/components/navbar/TrendingMenu";
+import { TopRatedMenu } from "@/components/navbar/TopRatedMenu";
 import { useSearch } from "@/contexts/SearchContext";
-import { useTheme } from "next-themes";
-import Image from "next/image";
+import { ThemeToggle } from "@/components/navbar/ThemeToggle";
+import { SearchTrigger } from "@/components/navbar/SearchTrigger";
 import { useState, useEffect, useRef, useSyncExternalStore } from "react";
-import { Sheet, SheetClose, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { ProfileDropdown } from "./ProfileDropdown";
+import { ProfileDropdown } from "@/components/navbar/ProfileDropdown";
+import { MobileNavSheet } from "@/components/navbar/MobileNavSheet";
+import { UserAvatar } from "@/components/navbar/UserAvatar";
+import { useAuth } from "@/contexts/AuthContext";
+import { getTmdbAvatarUrl } from "@/lib/tmdb/auth";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -24,23 +27,23 @@ const navLinks = [
   { label: "Top Rated", href: "/top-rated" },
 ];
 
-interface NavUser {
-  name: string;
-  image?: string;
-}
-
-const user: NavUser | null = null
-
 export function Navbar() {
+  const { user } = useAuth();
+  const navUser = user
+    ? {
+        name: user.name || user.username,
+        username: user.username,
+        id: user.id,
+        image: getTmdbAvatarUrl(user),
+      }
+    : null;
   const pathname = usePathname();
   const [prevPathname, setPrevPathname] = useState(pathname === "/login" ? "/" : pathname);
   if (pathname !== "/login" && pathname !== prevPathname) {
     setPrevPathname(pathname);
   }
   const currentPathname = pathname === "/login" ? prevPathname : pathname;
-  const { open: searchOpen, setOpen } = useSearch();
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const { open: searchOpen } = useSearch();
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -60,8 +63,6 @@ export function Navbar() {
   const [isPastHero, setIsPastHero] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time hydration flag, no cascading risk
-  useEffect(() => setMounted(true), []);
 
   /* eslint-disable react-hooks/set-state-in-effect -- syncing UI menus when search overlay opens */
   useEffect(() => {
@@ -122,322 +123,219 @@ export function Navbar() {
   };
 
   const isTransparent = currentPathname === "/";
-  const isLightNav = !isTransparent || isPastHero;
 
   return (
     <header
       ref={headerRef}
       suppressHydrationWarning
       className={cn(
-        "fixed top-0 left-0 right-0 z-40 w-full border-b transition-all duration-300 ease-in-out",
+        "fixed top-0 left-0 right-0 z-40 w-full border-b transition-all duration-300 ease-in-out ",
         isTransparent
           ? isPastHero
-            ? "bg-light-nav dark:bg-dark-nav shadow-lg shadow-black/25 dark:shadow-white/5 border-transparent"
+            ? "bg-light-nav/95 dark:bg-dark-nav/95 shadow-lg shadow-black/25 dark:shadow-white/5 border-transparent"
             : scrolled
-              ? "bg-white/10 dark:bg-black/25 backdrop-blur-md border-white/10"
+              ? "bg-black/30 backdrop-blur-md border-white/10"
               : "bg-transparent border-white/0"
           : scrolled
-            ? "bg-light-nav dark:bg-dark-nav shadow-lg shadow-black/25 dark:shadow-white/5 border-transparent"
+            ? "bg-light-nav/95 dark:bg-dark-nav/95 shadow-lg shadow-black/25 dark:shadow-white/5 border-white/5"
             : "bg-light-nav dark:bg-dark-nav border-transparent"
       )}
     >
-      <nav className="flex xl:h-[72px] lg:h-[62px] sm:h-[56px] h-[54px] w-full items-center justify-between">
-        <Link href={"/"} className="font-poppins xl:text-3xl lg:text-[28px] md:text-[26px] sm:text-[24px] text-[20px] lg:font-semibold font-medium leading-none md:ml-[30px] sm:ml-[20px] ml-[15px]">
-          <span className="text-white">Movie</span>
-          <span className={cn("text-trails-red dark:text-blue1 xl:ml-[7px] lg:ml-[5px] ml-[3px]", (!isLightNav) && "!text-white bg-light-nav lg:px-2 md:px-[6px] px-[4px]")}>Trails</span>
+      <nav className="flex xl:h-[72px] lg:h-[62px] sm:h-[56px] h-[54px] w-full items-center justify-between xl:px-8 lg:px-6 md:px-5 sm:px-4 px-3.5">
+        <Link
+          href="/"
+          className="inline-flex items-center font-poppins xl:text-[28px] lg:text-[25px] md:text-[23px] sm:text-[22px] text-[20px] font-bold tracking-tight leading-none select-none outline-none focus-visible:ring-2 focus-visible:ring-white/70 rounded-md py-1"
+        >
+          <span className="text-white drop-shadow-sm">Movie</span>
+          <span className="text-trails-red dark:text-blue1 ml-1 sm:ml-1.5 transition-colors duration-200">
+            Trails
+          </span>
         </Link>
 
-        <div className="hidden md:flex items-center xl:gap-[15px] lg:gap-[13px] md:gap-[11px] xl:text-lg lg:text-base md:text-sm font-medium text-white/75 xl:mt-1 lg:mt-[6px] md:mt-[4px] xl:ml-24 lg:ml-[40px] md:ml-[20px] select-none">
-          {navLinks.map((link) => (
-            link.label === "Genres" ? (
-              <div
-                key={link.label}
-                className="group relative flex items-center"
-                onMouseEnter={() => setGenresOpen(true)}
-                onMouseLeave={() => setGenresOpen(false)}
-              >
-                <div
-                  className={cn(
-                    isActive(link.href) && "border-white/65 text-white after:scale-x-100",
-                    "nav-btn-underline group-hover:text-white group-hover:border-transparent leading-none after:scale-x-0 group-hover:after:scale-x-100 cursor-pointer"
-                  )}
-                >
-                  {link.label}
-                </div>
+        <div className="hidden md:flex items-center xl:gap-6 lg:gap-4.5 md:gap-3.5 xl:text-lg lg:text-base md:text-sm font-medium text-white/85 select-none">
+          {navLinks.map((link) => {
+            const active = isActive(link.href);
+            const linkClasses = cn(
+              "nav-btn-underline leading-none",
+              active
+                ? "text-white font-semibold after:scale-x-100 after:opacity-100"
+                : "text-white/80 hover:text-white after:scale-x-0 after:opacity-0 hover:after:scale-x-100 hover:after:opacity-100"
+            );
 
+            if (link.label === "Genres") {
+              return (
                 <div
-                  className={cn(
-                    "absolute top-full xl:-translate-x-[49.5%] lg:-translate-x-[50%] md:-translate-x-[51%] transition-all duration-200 ease-out",
-                    genresOpen ? "opacity-100 visible" : "opacity-0 invisible"
-                  )}
+                  key={link.label}
+                  className="group relative flex items-center"
+                  onMouseEnter={() => setGenresOpen(true)}
+                  onMouseLeave={() => setGenresOpen(false)}
                 >
-                  <GenresMenu onItemClick={() => setGenresOpen(false)} />
-                </div>
-              </div>
-            ) : link.label === "Trending" ? (
-              <div
-                key={link.label}
-                className="group relative flex items-center"
-                onMouseEnter={() => setTrendingOpen(true)}
-                onMouseLeave={() => setTrendingOpen(false)}
-              >
-                <div
-                  className={cn(isActive(link.href) && "border-white/65 text-white after:scale-x-100", "nav-btn-underline group-hover:text-white leading-none group-hover:border-transparent after:scale-x-0 group-hover:after:scale-x-100 cursor-pointer")}
-                >
-                  {link.label}
-                </div>
+                  <button
+                    type="button"
+                    aria-expanded={genresOpen}
+                    aria-haspopup="menu"
+                    onClick={() => setGenresOpen((prev) => !prev)}
+                    className={linkClasses}
+                  >
+                    {link.label}
+                  </button>
 
-                <div
-                  className={cn(
-                    "absolute top-full md:-translate-x-[35%] transition-all duration-200 ease-out",
-                    trendingOpen ? "opacity-100 visible" : "opacity-0 invisible"
-                  )}
-                >
-                  <TrendingMenu onItemClick={() => setTrendingOpen(false)} />
+                  <div
+                    className={cn(
+                      "absolute top-full left-1/2 -translate-x-1/2 transition-all duration-200 ease-out",
+                      genresOpen ? "opacity-100 visible" : "opacity-0 invisible"
+                    )}
+                  >
+                    <GenresMenu onItemClick={() => setGenresOpen(false)} />
+                  </div>
                 </div>
-              </div>
-            ) : link.label === "Top Rated" ? (
-              <div
-                key={link.label}
-                className="group relative flex items-center"
-                onMouseEnter={() => setTopRatedOpen(true)}
-                onMouseLeave={() => setTopRatedOpen(false)}
-              >
-                <div
-                  className={cn(isActive(link.href) && "border-white/65 text-white after:scale-x-100", "nav-btn-underline group-hover:text-white leading-none group-hover:border-transparent after:scale-x-0 group-hover:after:scale-x-100 cursor-pointer")}
-                >
-                  {link.label}
-                </div>
+              );
+            }
 
+            if (link.label === "Trending") {
+              return (
                 <div
-                  className={cn(
-                    "absolute top-full md:-translate-x-[33%] transition-all duration-200 ease-out",
-                    topRatedOpen ? "opacity-100 visible" : "opacity-0 invisible"
-                  )}
+                  key={link.label}
+                  className="group relative flex items-center"
+                  onMouseEnter={() => setTrendingOpen(true)}
+                  onMouseLeave={() => setTrendingOpen(false)}
                 >
-                  <TopRatedMenu onItemClick={() => setTopRatedOpen(false)} />
+                  <button
+                    type="button"
+                    aria-expanded={trendingOpen}
+                    aria-haspopup="menu"
+                    onClick={() => setTrendingOpen((prev) => !prev)}
+                    className={linkClasses}
+                  >
+                    {link.label}
+                  </button>
+
+                  <div
+                    className={cn(
+                      "absolute top-full left-1/2 -translate-x-1/2 transition-all duration-200 ease-out",
+                      trendingOpen ? "opacity-100 visible" : "opacity-0 invisible"
+                    )}
+                  >
+                    <TrendingMenu onItemClick={() => setTrendingOpen(false)} />
+                  </div>
                 </div>
-              </div>
-            ) : (
+              );
+            }
+
+            if (link.label === "Top Rated") {
+              return (
+                <div
+                  key={link.label}
+                  className="group relative flex items-center"
+                  onMouseEnter={() => setTopRatedOpen(true)}
+                  onMouseLeave={() => setTopRatedOpen(false)}
+                >
+                  <button
+                    type="button"
+                    aria-expanded={topRatedOpen}
+                    aria-haspopup="menu"
+                    onClick={() => setTopRatedOpen((prev) => !prev)}
+                    className={linkClasses}
+                  >
+                    {link.label}
+                  </button>
+
+                  <div
+                    className={cn(
+                      "absolute top-full left-1/2 -translate-x-1/2 transition-all duration-200 ease-out",
+                      topRatedOpen ? "opacity-100 visible" : "opacity-0 invisible"
+                    )}
+                  >
+                    <TopRatedMenu onItemClick={() => setTopRatedOpen(false)} />
+                  </div>
+                </div>
+              );
+            }
+
+            return (
               <Link
                 key={link.label}
                 href={link.href}
-                className={cn(
-                  isActive(link.href) && "border-white/65 text-white after:scale-x-100",
-                  "nav-btn-underline hover:text-white leading-none after:scale-x-0 hover:after:scale-x-100"
-                )}
+                className={linkClasses}
               >
                 {link.label}
               </Link>
-            )
-          ))}
+            );
+          })}
         </div>
 
-        <div className="flex items-center xl:gap-[28px] lg:gap-[24px] gap-[20px] xl:text-lg lg:text-base text-sm
-         text-white/85 font-medium xl:mr-[60px] lg:mr-[45px] mr-[40px]">
-          <div
-            onClick={() => setOpen(true)}
-            className="flex items-center sm:gap-[5px] gap-[3px] xl:w-[96px] lg:w-[86px] md:w-[74px] sm:w-[70px] w-[64px] border-b-2 border-white xl:pb-[4px] lg:pb-[3px] sm:pb-[2px] pb-[1px] xl:mr-3 lg:mr-[8px] md:mr-[4px] mr-[20px]  cursor-text"
-          >
-            <Search className="text-white xl:w-[25px] xl:h-[25px] lg:w-[23px]
-lg:h-[23px] sm:w-[21px] sm:h-[21px] w-[19px] h-[19px]" />
-            <span className="xl:text-[16px] lg:text-sm sm:text-[12px] text-[11px] text-nav-search font-medium leading-none lg:mt-[2px] sm:mt-[-1px]">Search</span>
-          </div>
-          {user ? (
-            <div ref={profileRef} className="hidden relative sm:flex items-center ">
-              <div
-                onClick={() => setProfileOpen(prev => !prev)}
-                className="hidden relative xl:w-[38px] xl:h-[38px] lg:w-[36px] lg:h-[36px] md:w-[32px] md:h-[32px] rounded-full overflow-hidden border-[0px] border-white cursor-pointer md:flex items-center justify-center
-                      transition-opacity duration-150 hover:opacity-95 select-none"
-              >
-                {user?.image ? (
-                  <Image
-                    src={user?.image}
-                    alt={user?.name}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <span className="w-full h-full flex items-center justify-center bg-[#5275A3] text-white xl:text-2xl lg:text-[22px] md:text-xl font-medium font-inter select-none">
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </span>
+        <div className="flex items-center gap-3 sm:gap-4 md:gap-5 lg:gap-6 xl:gap-7 xl:text-lg lg:text-base text-sm text-white/85 font-medium">
+          <SearchTrigger />
+          {navUser ? (
+            <div ref={profileRef} className="hidden relative md:flex items-center">
+              <button
+                type="button"
+                onClick={() => setProfileOpen((prev) => !prev)}
+                aria-label="Open user profile menu"
+                aria-haspopup="menu"
+                aria-expanded={profileOpen}
+                className={cn(
+                  "relative rounded-full p-[2px] transition-all duration-200 cursor-pointer select-none",
+                  "border border-white/30 hover:border-white/90 hover:scale-105 active:scale-95",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black/20",
+                  profileOpen && "ring-2 ring-white/70 border-white bg-white/10 scale-105 shadow-md"
                 )}
-              </div>
+              >
+                <UserAvatar user={navUser} />
+              </button>
 
               {profileOpen && (
-                <ProfileDropdown user={user} onClose={() => setProfileOpen(false)} />
+                <ProfileDropdown user={navUser} onClose={() => setProfileOpen(false)} />
               )}
             </div>
           ) : (
-            <div className="hidden sm:flex items-center lg:gap-[9px] md:gap-[7px] sm:gap-[7px]">
-              <Link href="/login" scroll={false} className="font-poppins hover:text-white leading-none">
+            <div className="hidden sm:flex items-center gap-2 sm:gap-2.5 font-poppins">
+              <Link
+                href={
+                  pathname && pathname !== "/login"
+                    ? `/login?redirect=${encodeURIComponent(pathname)}`
+                    : "/login"
+                }
+                scroll={false}
+                className={cn(
+                  "relative py-1 text-white/85 hover:text-white transition-colors duration-150 leading-none outline-none focus-visible:ring-2 focus-visible:ring-white/70 rounded-sm",
+                  currentPathname === "/login" && "text-white font-semibold"
+                )}
+              >
                 Login
               </Link>
-              <span className="xl:h-[23px] lg:h-[20px] sm:h-[17px] lg:w-[1.5px] sm:w-[1px] bg-white" />
-              <Link href="#" className="font-poppins hover:text-white leading-none">
+              <span className="h-3.5 lg:h-4 w-[1px] bg-white/40 rounded-full" aria-hidden="true" />
+              <a
+                href="https://www.themoviedb.org/signup"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative py-1 text-white/85 hover:text-white transition-colors duration-150 leading-none outline-none focus-visible:ring-2 focus-visible:ring-white/70 rounded-sm"
+              >
                 Sign up
-              </Link>
+              </a>
             </div>
           )}
-          <div className="flex items-center sm:gap-[22px] gap-[16px]">
-            <div className="relative group flex items-center">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="xl:p-[5px] sm:p-[3px] p-[4px] bg-transparent hover:bg-transparent w-fit h-fit"
-              >
-                {mounted ? (theme === "dark" ? (
-                  <Sun className="xl:h-[24px] xl:w-[24px] lg:h-[22px] lg:w-[22px] sm:h-[18px] sm:w-[18px] h-[16px] w-[16px] fill-white text-white" />
-                ) : (
-                  <Moon className="xl:h-[24px] xl:w-[24px] lg:h-[22px] lg:w-[22px] sm:h-[18px] sm:w-[18px] h-[16px] w-[16px] fill-white text-white" />
-                )) : (
-                  <Sun className="xl:h-[24px] xl:w-[24px] lg:h-[22px] lg:w-[22px] sm:h-[18px] sm:w-[18px] h-[16px] w-[16px] fill-white text-white" />
-                )}
-              </Button>
-
-              <span
-                className="absolute top-full lg:mt-[6px] sm:mt-[4px] mt-[4px] left-1/2 -translate-x-1/2 translate-y-1 group-hover:translate-y-0 
-               whitespace-nowrap md:rounded-md rounded-[4px] bg-black text-white xl:text-[14px] lg:text-[12px] text-[10px]
-               md:px-[6px] xl:py-0 lg:py-[2px] sm:py-[1px] px-[5px] opacity-0 invisible 
-               group-hover:opacity-100 group-hover:visible 
-               transition-all duration-200 ease-out z-50" 
-              >
-                {mounted ? (theme === "dark" ? "Light mode" : "Dark mode") : "Light mode"}
-              </span>
-            </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle />
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setSidebarOpen(true)}
-              className="sm:flex md:hidden p-1 bg-transparent hover:bg-transparent w-fit h-fit"
+              aria-label="Open mobile navigation menu"
+              className="flex md:hidden p-1.5 sm:p-2 rounded-full text-white/85 hover:text-white hover:bg-white/10 active:bg-white/20 transition-colors duration-150 w-8 h-8 sm:w-9 sm:h-9"
             >
-              <Menu className="sm:h-[27px] sm:w-[27px] h-[21px] w-[21px] text-white sm:[stroke-width:2] [stroke-width:2.2]" />
+              <Menu className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
             </Button>
           </div>
         </div>
       </nav>
 
-      <Sheet open={sidebarOpen && !isMdUp} onOpenChange={setSidebarOpen}>
-        <SheetContent
-          side="right"
-          className="sm:w-[40vw] w-[35vw] 
-  bg-white dark:bg-dropdown border-none
-
-  data-[state=open]:animate-in data-[state=closed]:animate-out
-  data-[state=open]:slide-in-from-right data-[state=closed]:slide-out-to-right
-  duration-300 ease-in-out
-
-  [&>button]:text-black dark:[&>button]:text-white
-  sm:[&>button]:scale-125
-  [&>button]:top-4 [&>button]:right-4
-"
-        >
-          <SheetTitle className="sr-only">Menu</SheetTitle>
-
-          <div className="flex flex-col h-full sm:mt-4 mt-[14px]">
-            <div className="font-poppins sm:text-[24px] text-[20px] font-medium leading-none sm:ml-[22px] ml-[16px] mb-[14px]">
-              <span className="text-black dark:text-white">Movie</span>
-              <span className="text-trails-red dark:text-blue1 sm:ml-[6px] ml-[4px]">Trails</span>
-            </div>
-
-            <div className="h-[1px] w-full bg-black dark:bg-white"/> 
-
-            <nav className="flex flex-col sm:gap-8 gap-[30px] sm:text-lg text-base sm:mt-[24px] mt-[18px] sm:ml-[20px] ml-[14px] font-medium text-black/75 dark:text-white/85 relative">
-              {user ? (
-                <div className="relative group">
-                  <div
-                    className="flex items-center sm:gap-2 gap-[3px] hover:text-black dark:hover:text-white transition-colors duration-75 cursor-pointer"
-                  >
-                    <ChevronLeft className="sm:h-[18px] sm:w-[18px] h-[16px] w-[16px]" />
-                    Profile
-                  </div>
-
-                  <div className="-translate-x-[102%] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out">
-                    <ProfileDropdown user={user} onClose={() => setSidebarOpen(false)} />
-                  </div>
-                </div>
-              ) : (
-                <div className="sm:hidden flex items-center gap-[10px] ml-[17px]">
-                  <SheetClose asChild>
-                    <Link href="/login" scroll={false} className="font-poppins hover:text-black leading-none">
-                      Login
-                    </Link>
-                  </SheetClose>
-                  <span className="h-[16px] w-[1px] bg-black" />
-                  <SheetClose asChild>
-                    <Link href="#" className="font-poppins hover:text-black leading-none">
-                      Sign up
-                    </Link>
-                  </SheetClose>
-                </div>
-              )}
-              {navLinks.map((link) =>
-                link.label === "Genres" ? (
-                  <div key={link.label} className="relative group">
-                    <div
-                      className="flex items-center sm:gap-2 gap-[3px] hover:text-black hover:dark:text-white transition-colors duration-75 cursor-pointer"
-                    >
-                      <ChevronLeft className="sm:h-[18px] sm:w-[18px] h-[16px] w-[16px]" />
-                      {link.label}
-                    </div>
-
-                    <div className="absolute sm:-top-1 top-[0px] -translate-x-[102%] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out">
-                      <GenresMenu onItemClick={() => setSidebarOpen(false)} />
-                    </div>
-                  </div>
-                ) : link.label === "Trending" ? (
-                  <div key={link.label} className="relative group">
-                    <div
-                      className="flex items-center sm:gap-2 gap-[3px] hover:text-black hover:dark:text-white transition-colors duration-75 cursor-pointer"
-                    >
-                      <ChevronLeft className="sm:h-[18px] sm:w-[18px] h-[16px] w-[16px]" />
-                      {link.label}
-                    </div>
-
-                    <div className="absolute sm:-top-1 top-[0px] -translate-x-[102%] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out">
-                      <TrendingMenu onItemClick={() => setSidebarOpen(false)} />
-                    </div>
-                  </div>
-                ) : link.label === "Top Rated" ? (
-                  <div key={link.label} className="relative group">
-                    <div
-                      className="flex items-center sm:gap-2 gap-[3px] hover:text-black hover:dark:text-white transition-colors duration-75 cursor-pointer"
-                    >
-                      <ChevronLeft className="sm:h-[18px] sm:w-[18px] h-[16px] w-[16px]" />
-                      {link.label}
-                    </div>
-
-                    <div className="absolute sm:-top-1 top-[0px] -translate-x-[102%] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out">
-                      <TopRatedMenu onItemClick={() => setSidebarOpen(false)} />
-                    </div>
-                  </div>
-                ) : (
-                  <SheetClose asChild key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="hover:text-black hover:dark:text-white sm:ml-[27px] ml-[17px] transition-colors duration-75"
-                    >
-                      {link.label}
-                    </Link>
-                  </SheetClose>
-                )
-              )}
-
-              {user && (
-                <SheetClose asChild>
-                  <Button
-                    className="w-fit h-fit bg-transparent hover:bg-transparent rounded-none flex items-center sm:gap-[11px] gap-[7px] m-0 p-0 sm:pl-1 pl-[6px] sm:mt-[30px] mt-[20px] text-start sm:text-lg text-base text-light-logout-font/90 hover:text-light-logout-font transition-colors duration-75 cursor-pointer"
-                  >
-                    <LogOut className="sm:h-[18px] sm:w-[18px] h-[16px] w-[16px]" />
-                    Log out
-                  </Button>
-                </SheetClose>
-              )}
-            </nav>
-          </div>
-        </SheetContent>
-      </Sheet>
+      <MobileNavSheet
+        open={sidebarOpen && !isMdUp}
+        onOpenChange={setSidebarOpen}
+        navLinks={navLinks}
+        user={navUser}
+      />
     </header>
   );
 }

@@ -1,4 +1,6 @@
 
+import { resolveGenreDef } from "@/lib/tmdb";
+
 interface BreadcrumbProps {
   subRoute?: string;
   type: string;
@@ -12,15 +14,22 @@ export function Breadcrumb({ subRoute, type, subRoute2 }: BreadcrumbProps) {
     "top-rated": "Top Rated",
   }[type] || "";
 
+  const formattedSubRoute =
+    type === "genre" && subRoute
+      ? resolveGenreDef(subRoute)?.canonical || subRoute.replace(/-/g, " ")
+      : subRoute === "tv-shows"
+      ? "TV Shows"
+      : subRoute?.replace(/-/g, " ");
+
   return (
-    <div className="mt-[15px] mb-[11px] ml-2 font-inter md:font-medium font-normal xl:text-[18px] lg:text-[17px] md:text-[16px] sm:text-[15px] text-[14px] text-light-breadcrumb dark:text-breadcrumb capitalize tracking-wide">
+    <div className="mt-[15px] mb-[11px] ml-2 font-inter md:font-medium font-normal xl:text-[18px] lg:text-[17px] md:text-[16px] sm:text-[15px] text-[14px] text-dropdown dark:text-breadcrumb capitalize tracking-wide">
       <span>
         {type === "movie" ? "Movies" : type === "tv" ? "TV Shows" : type === "genre" ? "Genres" : type === "trending" ? "Trending" : type === "top-rated" ? "Top Rated" : type === "list" ? "List" : "Search"}
       </span>
       {subRoute && (<>
         <span className="mx-2">/</span>
         <span>
-          {title} {subRoute?.replace(/-/g, " ")}
+          {title} {formattedSubRoute}
         </span>
       </>)}
       {subRoute2 && (

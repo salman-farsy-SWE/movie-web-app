@@ -20,14 +20,14 @@
     border-color: hsl(var(--border));
   }
 
-  body {
-    @apply bg-background text-foreground;
+  html, body {
+    @apply bg-background text-foreground overflow-x-hidden;
   }
 }
 
 @layer components {
   .nav-btn-underline {
-    @apply xl:border-b-[3px] border-b-2 border-transparent xl:pb-[6px] lg:pb-[5px] md:pb-[6px] leading-none transition-colors;
+    @apply relative py-1 font-poppins font-medium text-white/85 hover:text-white transition-colors duration-200 select-none cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-white/70 rounded-sm after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full xl:after:h-[2.5px] after:h-[2px] after:bg-white after:rounded-full after:origin-center after:transition-all after:duration-200 after:ease-out;
   }
 }
 

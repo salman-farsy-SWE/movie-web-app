@@ -32,17 +32,18 @@ export function ScrollToTop() {
     <button
       type="button"
       onClick={scrollToTop}
-      aria-label="Go Up"
-      title="Go Up"
+      aria-label="To Top"
+      title="To Top"
       className={cn(
         "group fixed xl:bottom-14 xl:right-14 lg:bottom-12 lg:right-12 md:bottom-11 md:right-6 sm:bottom-10 sm:right-5 bottom-9 right-3 z-40",
         "flex items-center justify-center",
         "xl:w-[68px] xl:h-[68px] lg:w-[64px] lg:h-[64px] md:w-[62px] md:h-[62px] sm:w-[58px] sm:h-[58px] w-[52px] h-[52px] rounded-full",
-        "bg-black/60 dark:bg-white/60 text-white dark:text-black/75 dark:hover:text-white",
-        "backdrop-blur-md border border-white/20 dark:border-white/10",
-        "shadow-lg shadow-black/30 dark:shadow-white/5 hover:shadow-xl hover:shadow-black/50",
-        "hover:bg-light-nav dark:hover:bg-dark-nav hover:border-transparent",
+        "bg-white/80 dark:bg-dropdown/80 text-light-nav dark:text-trails-red",
+        "hover:bg-light-nav dark:hover:bg-trails-red hover:text-white dark:hover:text-white",
+        "backdrop-blur-md border border-light-nav/20 dark:border-white/10 hover:border-transparent",
+        "shadow-md shadow-black/10 dark:shadow-black/50 hover:shadow-lg hover:shadow-black/20 dark:hover:shadow-black/70",
         "transition-all duration-300 ease-in-out cursor-pointer",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-nav dark:focus-visible:ring-trails-red focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         "active:scale-90",
         isVisible
           ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"

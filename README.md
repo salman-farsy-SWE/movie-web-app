@@ -1,49 +1,174 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎬 CineVerse — Movie & TV Discovery Web App
 
-## Getting Started
+Welcome to **CineVerse**! 👋 A modern, smooth, and friendly movie and TV show exploration app built with **Next.js 16**, **React 19**, **Tailwind CSS**, and powered by the **TMDB (The Movie Database) API**.
 
-First, run the development server:
+Whether you're looking for what's trending tonight, diving deep into actor filmographies, filtering movies by your favorite genres, or organizing your personal watchlist — CineVerse has you covered!
 
+---
+
+## 📸 App Preview & Demos
+
+<div align="center">
+  <img src="./_assets/Home%20Page.png" alt="CineVerse Home Page" width="100%" />
+</div>
+
+---
+
+## 🎯 What Makes CineVerse Special?
+
+- ⚡ **Fast & Responsive**: Built with Next.js App Router for quick page loads and smooth browsing on mobile, tablet, and desktop.
+- 🍿 **All-in-One Entertainment Hub**: Explore movies, TV shows, cast details, trailers, and reviews in one clean interface.
+- 🔄 **Direct TMDB Sync**: Log in with your TMDB account to manage your personal watchlist, favorites, custom lists, and ratings in real-time.
+- 🎨 **Polished & Accessible Design**: Beautiful modern UI with dark mode support, smooth animations, and intuitive navigation.
+
+---
+
+## ✨ Features Tour
+
+### 1. 🏠 Home & Discovery
+Catch the latest trending movies and popular TV shows right on the homepage with an interactive hero carousel and curated lists.
+
+<div align="center">
+  <img src="./_assets/Home%20Page.png" alt="Home Page Preview" width="85%" />
+</div>
+
+---
+
+### 2. 🎬 Rich Movie & TV Show Details
+Get everything you need to know before hitting play: plot summaries, release dates, genres, budgets, cast & crew lists, trailers, and tailored recommendations.
+
+| 🎬 Movie Details | 📺 TV Show Details |
+| :---: | :---: |
+| <img src="./_assets/Movie%20Detail%20Page.png" alt="Movie Details" width="100%" /> | <img src="./_assets/TV%20Shows%20Detail%20Page.png" alt="TV Show Details" width="100%" /> |
+
+---
+
+### 3. 🔍 Smart Search & Easy Filtering
+Looking for something specific? Use the instant search bar or filter collections by genre, release year, rating, or popularity to find your next favorite watch.
+
+| 🔍 Search with Filters | 🏷️ Genre Explorer |
+| :---: | :---: |
+| <img src="./_assets/Search%20Page%20with%20Filter%20Dropdown.png" alt="Search with Filters" width="100%" /> | <img src="./_assets/Genre%20Page%20with%20Filter%20Dropdown.png" alt="Genre Explorer" width="100%" /> |
+
+| 📽️ Movies Catalog | 🏆 Top Rated Library |
+| :---: | :---: |
+| <img src="./_assets/Movies%20Page%20with%20Filter%20Dropdown.png" alt="Movies Catalog" width="100%" /> | <img src="./_assets/Top%20Rated%20Page%20with%20Filter%20Dropdown.png" alt="Top Rated Library" width="100%" /> |
+
+---
+
+### 4. 🌟 Actor & Creator Profiles
+Discover actor biographies, birthdays, places of birth, and browse their entire acting and production history.
+
+| 👤 Person Detail Page | 🔥 Trending People |
+| :---: | :---: |
+| <img src="./_assets/Person%20Detail%20Page.png" alt="Person Details" width="100%" /> | <img src="./_assets/Trending%20Persons%20Page.png" alt="Trending People" width="100%" /> |
+
+---
+
+### 5. 💖 Watchlists, Favorites & Ratings
+Sign in with your TMDB account to save movies you want to watch later, mark your all-time favorites, rate titles, and view your profile stats.
+
+| 📌 Watchlist | ❤️ Favorites |
+| :---: | :---: |
+| <img src="./_assets/Watchlist%20Page%20with%20Filter%20Dropdown.png" alt="Watchlist" width="100%" /> | <img src="./_assets/Favorite%20Page%20with%20Filter%20Dropdown.png" alt="Favorites" width="100%" /> |
+
+| ⭐ User Ratings | 👤 Profile Overview |
+| :---: | :---: |
+| <img src="./_assets/Rating%20Page%20with%20Filter%20Dropdown.png" alt="User Ratings" width="100%" /> | <img src="./_assets/Profile%20Page.png" alt="Profile" width="100%" /> |
+
+---
+
+## 🛠️ Built With
+
+- **[Next.js 16](https://nextjs.org/)** — Fast React framework with App Router and Server Actions
+- **[React 19](https://react.dev/)** — Modern UI components and hooks
+- **[TypeScript](https://www.typescriptlang.org/)** — Type-safe, reliable codebase
+- **[Tailwind CSS](https://tailwindcss.com/)** — Clean, responsive utility styling
+- **[Radix UI](https://www.radix-ui.com/) & [Lucide Icons](https://lucide.dev/)** — Accessible primitives and icons
+- **[Zustand](https://zustand-demo.pmnd.rs/)** — Lightweight client state management
+- **[Framer Motion](https://www.framer.com/motion/) & [Embla Carousel](https://www.embla-carousel.com/)** — Smooth animations and touch-friendly carousels
+- **[TMDB API](https://developer.themoviedb.org/docs)** — Global movie and television database
+
+---
+
+## 🚀 How to Run Locally
+
+Getting CineVerse running on your local machine takes just a couple of minutes!
+
+### Step 1: Clone the Project
+```bash
+git clone https://github.com/salman-farsy-SWE/movie-web-app.git
+cd movie-web-app
+```
+
+### Step 2: Install Packages
+```bash
+npm install
+```
+
+### Step 3: Set Up Your TMDB API Keys
+1. If you don't have an account yet, create a free one on [The Movie Database (TMDB)](https://www.themoviedb.org/).
+2. Head over to **Settings > API** to generate your free API key.
+3. In your project root, make a copy of `.env.example` named `.env.local`:
+
+```bash
+cp .env.example .env.local
+```
+
+4. Open `.env.local` and paste in your keys:
+
+```env
+TMDB_ACCESS_TOKEN=your_tmdb_read_access_token_here
+TMDB_API_KEY=your_tmdb_api_key_v3_here
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+### Step 4: Start the App!
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Now open [http://localhost:3000](http://localhost:3000) in your browser and enjoy exploring! 🎉
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> 💡 **Friendly tip for Windows users**:
+> If you notice that changes aren't auto-refreshing in your browser, simply run `npm run dev:polling` instead.
 
-## Live Reload Troubleshooting (Windows + Next.js 16)
+---
 
-- Default setup: run `npm run dev` from PowerShell or Command Prompt in this project folder (`C:\Users\Salman Farsy\Desktop\movie_web_app`).
-- If edits do not reflect in the browser, stop the dev server and run:
+## 📂 Quick Folder Tour
 
-```bash
-npm run dev:polling
+Here's a friendly roadmap to help you navigate the codebase:
+
+```text
+movie-web-app/
+├── _assets/          # Screenshots and demo images for the README
+├── public/           # Static icons and logos
+├── src/
+│   ├── actions/      # Server actions for TMDB authentication & collections
+│   ├── app/          # App Router pages (Home, Movies, TV, Details, Search, Profile)
+│   ├── components/   # UI building blocks (Navbar, Cards, Modals, Filters, Carousels)
+│   ├── contexts/     # App-level contexts (Themes, state wrappers)
+│   ├── hooks/        # Custom React hooks (Debounce, screen size helpers)
+│   ├── lib/          # TMDB API client functions and utility helpers
+│   ├── stores/       # Zustand state stores
+│   └── types/        # TypeScript interfaces and data models
+├── .env.example      # Example environment variables
+└── package.json      # Project dependencies and scripts
 ```
 
-- Avoid running daily development from WSL against `/mnt/c/...` for this project, because file-watch events can be unreliable across that boundary.
-- Keep only one dev server running at a time. If both Windows and WSL servers are active, stop one to avoid stale or confusing results.
-- If HMR appears stuck, stop the server, delete `.next/dev`, and restart `npm run dev`.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🤝 Contributing & Feedback
 
-## Learn More
+Got an idea or found a bug? Contributions, issues, and feature suggestions are always welcome! Feel free to open an issue or submit a pull request.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📜 Acknowledgements & Disclaimer
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Movie and TV show information, images, and metadata are provided by **[The Movie Database (TMDB)](https://www.themoviedb.org/)**.
+- *This product uses the TMDB API but is not endorsed or certified by TMDB.*
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Enjoy using CineVerse! 🍿

@@ -9,7 +9,7 @@ import { RouteProgressBar } from "@/components/navigation/RouteProgressBar";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "https://movie-trails.vercel.app"
+    process.env.NEXT_PUBLIC_APP_URL || "https://movietrails.vercel.app"
   ),
   title: {
     default: "Movie Trails | Watch, Discover & Track Movies",
@@ -41,6 +41,15 @@ export const metadata: Metadata = {
     title: "Movie Trails | Watch, Discover & Track Movies",
     description:
       "Discover watch movies, TV shows trailers. Explore genres, trending and top rated. build your custom collections and track your entertainment.",
+  },
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: [
+      { url: "/apple-icon.svg", type: "image/svg+xml" },
+    ],
   },
 };
 

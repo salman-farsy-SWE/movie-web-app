@@ -1,20 +1,20 @@
-# 🎬 CineVerse — Movie & TV Discovery Web App
+# 🎬 MovieTrails — Movie & TV Discovery Web App
 
-Welcome to **CineVerse**! 👋 A modern, smooth, and friendly movie and TV show exploration app built with **Next.js 16**, **React 19**, **Tailwind CSS**, and powered by the **TMDB (The Movie Database) API**.
+Welcome to **MovieTrails**! 👋 A modern, smooth, and friendly movie and TV show exploration app built with **Next.js 16**, **React 19**, **Tailwind CSS**, and powered by the **TMDB (The Movie Database) API**.
 
-Whether you're looking for what's trending tonight, diving deep into actor filmographies, filtering movies by your favorite genres, or organizing your personal watchlist — CineVerse has you covered!
+Whether you're looking for what's trending tonight, diving deep into actor filmographies, filtering movies by your favorite genres, or organizing your personal watchlist — MovieTrails has you covered!
 
 ---
 
 ## 📸 App Preview & Demos
 
 <div align="center">
-  <img src="./_assets/Home%20Page.png" alt="CineVerse Home Page" width="100%" />
+  <img src="./_assets/Home%20Page.png" alt="MovieTrails Home Page" width="100%" />
 </div>
 
 ---
 
-## 🎯 What Makes CineVerse Special?
+## 🎯 What Makes MovieTrails Special?
 
 - ⚡ **Fast & Responsive**: Built with Next.js App Router for quick page loads and smooth browsing on mobile, tablet, and desktop.
 - 🍿 **All-in-One Entertainment Hub**: Explore movies, TV shows, cast details, trailers, and reviews in one clean interface.
@@ -93,7 +93,7 @@ Sign in with your TMDB account to save movies you want to watch later, mark your
 
 ## 🚀 How to Run Locally
 
-Getting CineVerse running on your local machine takes just a couple of minutes!
+Getting MovieTrails running on your local machine takes just a couple of minutes!
 
 ### Step 1: Clone the Project
 ```bash
@@ -171,4 +171,4 @@ Got an idea or found a bug? Contributions, issues, and feature suggestions are a
 
 ---
 
-Enjoy using CineVerse! 🍿
+Enjoy using MovieTrails! 🍿

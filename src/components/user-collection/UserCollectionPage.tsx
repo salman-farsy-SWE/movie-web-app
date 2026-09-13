@@ -186,7 +186,7 @@ export function UserCollectionPage({
         name: item.title,
         rating: typeof item.rating === "number" ? item.rating : 0,
         media: (item.mediaType === "tv" || item.isMovie === false) ? "TV Show" : "Movie",
-        released: item.releaseDate ? item.releaseDate.split("-")[0] || item.releaseDate : "—",
+        released: item.releaseDate ? item.releaseDate.split("-")[0] : "—",
       }));
     }
 
@@ -197,7 +197,7 @@ export function UserCollectionPage({
         name: item.title,
         rating: typeof item.rating === "number" ? item.rating : 0,
         media: (item.mediaType === "tv" || item.isMovie === false) ? "TV Show" : "Movie",
-        released: item.releaseDate ? item.releaseDate.split("-")[0] || item.releaseDate : "—",
+        released: item.releaseDate ? item.releaseDate.split("-")[0] : "—",
       }));
     }
 
@@ -209,7 +209,7 @@ export function UserCollectionPage({
         rating: typeof item.rating === "number" ? item.rating : 0,
         yourRating: rating,
         media: (item.mediaType === "tv" || item.isMovie === false) ? "TV Show" : "Movie",
-        released: item.releaseDate ? item.releaseDate.split("-")[0] || item.releaseDate : "—",
+        released: item.releaseDate ? item.releaseDate.split("-")[0] : "—",
       }));
     }
 
@@ -225,7 +225,7 @@ export function UserCollectionPage({
         name: item.title,
         rating: typeof item.rating === "number" ? item.rating : 0,
         media: (item.mediaType === "tv" || item.isMovie === false) ? "TV Show" : "Movie",
-        released: item.releaseDate ? item.releaseDate.split("-")[0] || item.releaseDate : "—",
+        released: item.releaseDate ? item.releaseDate.split("-")[0] : "—",
       }));
     }
 

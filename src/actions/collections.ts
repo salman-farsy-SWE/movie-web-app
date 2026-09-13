@@ -23,10 +23,11 @@ import {
   type TmdbAccountStates,
   type TmdbMediaResult,
   type TmdbAccountStats,
+  type TmdbListDetailsResponse,
 } from "@/lib/tmdb/auth";
 import { getTmdbImageUrl } from "@/lib/tmdb/tmdb";
 import type { CollectionMediaItem } from "@/stores/useUserCollectionsStore";
-import type { UserList } from "@/data/mock-lists";
+import type { UserList } from "@/types";
 
 const SESSION_COOKIE_NAME = "tmdb_session_id";
 
@@ -94,12 +95,12 @@ export async function toggleTmdbFavoriteAction({
     }
 
     if (!sessionId) {
-      return { success: true, favorite, isTmdbSynced: false };
+      return { success: false, favorite: !favorite, isTmdbSynced: false, error: "Authentication required" };
     }
 
     const account = await getAccountDetails(sessionId);
     if (!account?.id) {
-      return { success: true, favorite, isTmdbSynced: false };
+      return { success: false, favorite: !favorite, isTmdbSynced: false, error: "Authentication required" };
     }
 
     const validMediaType: "movie" | "tv" = mediaType === "tv" ? "tv" : "movie";
@@ -129,16 +130,16 @@ export async function toggleTmdbWatchlistAction({
 
     const numericId = Math.floor(Number(mediaId));
     if (isNaN(numericId) || numericId <= 0) {
-      return { success: true, watchlist, isTmdbSynced: false };
+      return { success: false, watchlist: !watchlist, isTmdbSynced: false, error: "Invalid media ID" };
     }
 
     if (!sessionId) {
-      return { success: true, watchlist, isTmdbSynced: false };
+      return { success: false, watchlist: !watchlist, isTmdbSynced: false, error: "Authentication required" };
     }
 
     const account = await getAccountDetails(sessionId);
     if (!account?.id) {
-      return { success: true, watchlist, isTmdbSynced: false };
+      return { success: false, watchlist: !watchlist, isTmdbSynced: false, error: "Authentication required" };
     }
 
     const validMediaType: "movie" | "tv" = mediaType === "tv" ? "tv" : "movie";
@@ -167,8 +168,12 @@ export async function setTmdbRatingAction({
     const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
     const numericId = Math.floor(Number(mediaId));
-    if (isNaN(numericId) || numericId <= 0 || !sessionId) {
-      return { success: true, isTmdbSynced: false };
+    if (isNaN(numericId) || numericId <= 0) {
+      return { success: false, isTmdbSynced: false, error: "Invalid media ID" };
+    }
+
+    if (!sessionId) {
+      return { success: false, isTmdbSynced: false, error: "Authentication required" };
     }
 
     const validMediaType: "movie" | "tv" = mediaType === "tv" ? "tv" : "movie";
@@ -195,8 +200,12 @@ export async function removeTmdbRatingAction({
     const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
     const numericId = Math.floor(Number(mediaId));
-    if (isNaN(numericId) || numericId <= 0 || !sessionId) {
-      return { success: true, isTmdbSynced: false };
+    if (isNaN(numericId) || numericId <= 0) {
+      return { success: false, isTmdbSynced: false, error: "Invalid media ID" };
+    }
+
+    if (!sessionId) {
+      return { success: false, isTmdbSynced: false, error: "Authentication required" };
     }
 
     const validMediaType: "movie" | "tv" = mediaType === "tv" ? "tv" : "movie";
@@ -397,7 +406,9 @@ export async function syncTmdbListsAction(): Promise<{
     }
 
     const firstListsRes = await getAccountLists(sessionId, account.id, 1);
-    const allListResults = [...(firstListsRes.results || [])];
+    const listMapById = new Map<string, (typeof firstListsRes.results)[0]>();
+    (firstListsRes.results || []).forEach((l) => listMapById.set(String(l.id), l));
+
     const totalListPages = Math.min(firstListsRes.total_pages || 1, 50);
     if (totalListPages > 1) {
       const listPromises = [];
@@ -407,14 +418,24 @@ export async function syncTmdbListsAction(): Promise<{
       const restPages = await Promise.all(listPromises);
       for (const res of restPages) {
         if (res?.results) {
-          allListResults.push(...res.results);
+          res.results.forEach((l) => {
+            if (!listMapById.has(String(l.id))) {
+              listMapById.set(String(l.id), l);
+            }
+          });
         }
       }
     }
 
+    const allListResults = Array.from(listMapById.values());
+
     const tmdbLists: UserList[] = await Promise.all(
       allListResults.map(async (l) => {
-        const details = await getListDetails(l.id, sessionId);
+        let details: TmdbListDetailsResponse | null = null;
+        try {
+          details = await getListDetails(l.id, sessionId);
+        } catch {}
+
         const rawItems = details?.items || [];
         const items = rawItems.map((item) => {
           const isTvItem =
@@ -432,13 +453,23 @@ export async function syncTmdbListsAction(): Promise<{
         const coverBackdrop =
           mostRecentItem?.backdropImage ||
           getTmdbImageUrl(detailsBackdrop || l.backdrop_path, "original") ||
+          (l.poster_path ? getTmdbImageUrl(l.poster_path, "w500") : null) ||
           "/assets/movie-placeholder.jpg";
 
         const isPrivate =
-          details?.public !== undefined ? !details.public : (l.list_type === "private" ? true : false);
-        const listTitle = details?.name || l.name;
+          details?.public !== undefined
+            ? !details.public
+            : (l.list_type === "private" ? true : false);
+        const listTitle = details?.name || l.name || "Untitled List";
         const listDescription = details?.description || l.description || "";
         const listLanguage = details?.iso_639_1 || l.iso_639_1 || "en";
+
+        const computedPosters =
+          posters.length > 0
+            ? posters.slice(0, 4)
+            : l.poster_path
+            ? [getTmdbImageUrl(l.poster_path, "w500") || "/assets/movie-placeholder.jpg"]
+            : ["/assets/movie-placeholder.jpg"];
 
         return {
           id: String(l.id),
@@ -446,8 +477,8 @@ export async function syncTmdbListsAction(): Promise<{
           title: listTitle,
           description: listDescription,
           curator: {
-            name: account.name || account.username || "User",
-            handle: `@${account.username}`,
+            name: details?.created_by || account.name || account.username || "User",
+            handle: `@${account.username || "user"}`,
             avatar: "/assets/persons-image.jpg",
           },
           itemCount: details?.item_count ?? (l.item_count ?? items.length),
@@ -457,10 +488,7 @@ export async function syncTmdbListsAction(): Promise<{
           rating: 4.8,
           tags: ["TMDB List"],
           backdrop: coverBackdrop,
-          posters:
-            posters.length > 0
-              ? posters.slice(0, 4)
-              : ["/assets/movie-placeholder.jpg"],
+          posters: computedPosters,
           items,
           isPrivate,
           language: listLanguage,
@@ -568,30 +596,7 @@ export async function createTmdbListAction({
     const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
     if (!sessionId) {
-      const localId = `custom-list-${Date.now()}`;
-      const list: UserList = {
-        id: localId,
-        slug: `list-${localId}`,
-        title: cleanTitle,
-        description: description.trim(),
-        curator: {
-          name: "User",
-          handle: "@user",
-          avatar: "/assets/persons-image.jpg",
-        },
-        itemCount: 0,
-        runtime: "0m",
-        likesCount: 0,
-        viewsCount: "1",
-        tags: ["Custom List"],
-        backdrop: "/assets/movie-placeholder.jpg",
-        posters: [],
-        items: [],
-        isPrivate,
-        language,
-        updatedAt: "Just now",
-      };
-      return { success: true, listId: localId, list, isTmdbSynced: false };
+      return { success: false, error: "Authentication required" };
     }
 
     const res = await createList(sessionId, cleanTitle, description.trim(), language, isPrivate);
@@ -660,8 +665,11 @@ export async function updateTmdbListAction({
     const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     const cleanListId = String(listId).replace(/^list-/, "").trim();
 
-    if (!sessionId || isNaN(Number(cleanListId)) || String(listId).startsWith("custom-list-")) {
-      return { success: true, isTmdbSynced: false };
+    if (!sessionId) {
+      return { success: false, isTmdbSynced: false, error: "Authentication required" };
+    }
+    if (isNaN(Number(cleanListId)) || String(listId).startsWith("custom-list-")) {
+      return { success: false, isTmdbSynced: false, error: "Invalid list ID" };
     }
 
     let listTitle = title?.trim();
@@ -708,8 +716,11 @@ export async function clearTmdbListAction(
     const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     const cleanListId = String(listId).replace(/^list-/, "").trim();
 
-    if (!sessionId || isNaN(Number(cleanListId)) || String(listId).startsWith("custom-list-")) {
-      return { success: true, isTmdbSynced: false };
+    if (!sessionId) {
+      return { success: false, isTmdbSynced: false, error: "Authentication required" };
+    }
+    if (isNaN(Number(cleanListId)) || String(listId).startsWith("custom-list-")) {
+      return { success: false, isTmdbSynced: false, error: "Invalid list ID" };
     }
 
     const res = await clearList(sessionId, cleanListId);
@@ -730,6 +741,10 @@ export async function deleteTmdbListAction(
     const cookieStore = await cookies();
     const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
+    if (!sessionId) {
+      return { success: false, isTmdbSynced: false, error: "Authentication required" };
+    }
+
     const idStr = String(listId);
     if (
       idStr.startsWith("custom-list-") ||
@@ -740,15 +755,15 @@ export async function deleteTmdbListAction(
     }
 
     const cleanListId = idStr.replace(/^list-/, "").trim();
-    if (!sessionId || isNaN(Number(cleanListId))) {
-      return { success: true, isTmdbSynced: false };
+    if (isNaN(Number(cleanListId))) {
+      return { success: false, isTmdbSynced: false, error: "Invalid list ID" };
     }
 
     const res = await deleteList(sessionId, cleanListId);
     return { success: true, isTmdbSynced: res.success };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to delete list from TMDB.";
-    return { success: true, isTmdbSynced: false, error: message };
+    return { success: false, isTmdbSynced: false, error: message };
   }
 }
 
@@ -770,12 +785,16 @@ export async function toggleTmdbListItemAction({
     const cookieStore = await cookies();
     const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
+    if (!sessionId) {
+      return { success: false, error: "Authentication required" };
+    }
+
     const cleanListId = String(listId).replace(/^list-/, "").trim();
     const numericMediaId = Math.floor(Number(mediaId));
     const validMediaType: "movie" | "tv" = mediaType === "tv" ? "tv" : "movie";
 
-    if (!sessionId || isNaN(numericMediaId) || numericMediaId <= 0 || isNaN(Number(cleanListId))) {
-      return { success: true };
+    if (isNaN(numericMediaId) || numericMediaId <= 0 || isNaN(Number(cleanListId))) {
+      return { success: false, error: "Invalid parameters" };
     }
 
     if (inList) {

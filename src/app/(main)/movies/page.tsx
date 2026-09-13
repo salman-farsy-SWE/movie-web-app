@@ -1,9 +1,27 @@
+import type { Metadata } from "next";
 import { MediaPage } from "@/components/media/MediaPage";
 import {
   getDiscoverMovies,
   parseFilterParams,
   isFilterActive,
 } from "@/lib/tmdb";
+
+export const metadata: Metadata = {
+  title: "Explore Movies",
+  description:
+    "Discover popular, top-rated, and newly released movies. Filter by genre, release year, rating, country, and duration.",
+  openGraph: {
+    title: "Explore Movies | Movie Trails",
+    description:
+      "Discover popular, top-rated, and newly released movies. Filter by genre, release year, rating, country, and duration.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Explore Movies | Movie Trails",
+    description:
+      "Discover popular, top-rated, and newly released movies. Filter by genre, release year, rating, country, and duration.",
+  },
+};
 
 export default async function MoviesPage({
   searchParams,

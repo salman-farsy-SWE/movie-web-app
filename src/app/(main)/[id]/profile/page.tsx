@@ -1,5 +1,26 @@
+import type { Metadata } from "next";
 import { ProfileSection } from "@/components/user-collection/ProfileSection";
 import { slugify } from "@/lib/utils";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const username = decodeURIComponent(id)
+    .replace(/[-_]/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+
+  return {
+    title: `${username}'s Profile`,
+    description: `Manage your profile, account preferences, and collections on Movie Trails.`,
+    robots: {
+      index: false,
+      follow: false,
+    },
+  };
+}
 
 export default async function ProfilePage({
   params,

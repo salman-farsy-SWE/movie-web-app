@@ -1,6 +1,5 @@
 import { HeroSection } from "@/components/home/HeroSection";
 import { HomeSection } from "@/components/home/HomeSection";
-import { heroContents as mockHeroContents, movieSections as mockSections } from "@/data/mock-home";
 import {
   getNowPlayingMovies,
   getTrendingAll,
@@ -33,18 +32,18 @@ export default async function Home() {
 
   return (
     <main className="flex flex-col items-center">
-      <HeroSection heroContents={heroContents ?? mockHeroContents} />
+      <HeroSection heroContents={heroContents ?? []} />
 
-        <div className="container-1440 flex flex-col xl:gap-[60px] lg:gap-[50px] md:gap-[45px] sm:gap-[40px] gap-[35px] xl:mt-[40px] lg:mt-[36px] md:mt-[32px] sm:mt-[28px] mt-[24px]">
-          {sections.map((section) => (
-            <HomeSection
-              key={section.id}
-              id={section.id}
-              title={section.title}
-              items={section.items ?? mockSections.find(s => s.id === section.id)?.items ?? []}
-            />
-          ))}
-        </div>
+      <div className="container-1440 flex flex-col xl:gap-[60px] lg:gap-[50px] md:gap-[45px] sm:gap-[40px] gap-[35px] xl:mt-[40px] lg:mt-[36px] md:mt-[32px] sm:mt-[28px] mt-[24px]">
+        {sections.map((section) => (
+          <HomeSection
+            key={section.id}
+            id={section.id}
+            title={section.title}
+            items={section.items ?? []}
+          />
+        ))}
+      </div>
     </main>
   );
 }

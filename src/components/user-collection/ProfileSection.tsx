@@ -53,7 +53,7 @@ export async function ProfileSection({ param }: ProfileSectionProps) {
           .join(" ")
       : "Salman Farsy");
 
-  const avatarUrl = user ? getTmdbAvatarUrl(user) : "/assets/images.jpg";
+  const avatarUrl = user ? getTmdbAvatarUrl(user) : "/assets/persons-image.jpg";
 
   return (
     <div className="w-full bg-light-dropdown dark:bg-dropdown rounded-2xl md:rounded-3xl mt-6 sm:mt-8 p-6 sm:p-8 md:p-12 transition-colors">

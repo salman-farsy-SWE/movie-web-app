@@ -1,10 +1,28 @@
 
+import type { Metadata } from "next";
 import { MediaPage } from "@/components/media/MediaPage";
 import {
   getDiscoverTvShows,
   parseFilterParams,
   isFilterActive,
 } from "@/lib/tmdb";
+
+export const metadata: Metadata = {
+  title: "Explore TV Shows",
+  description:
+    "Discover trending and top-rated TV shows, series, and miniseries. Filter by genre, release year, network, country, and rating.",
+  openGraph: {
+    title: "Explore TV Shows | Movie Trails",
+    description:
+      "Discover trending and top-rated TV shows, series, and miniseries. Filter by genre, release year, network, country, and rating.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Explore TV Shows | Movie Trails",
+    description:
+      "Discover trending and top-rated TV shows, series, and miniseries. Filter by genre, release year, network, country, and rating.",
+  },
+};
 
 export default async function TVShowsPage({
   searchParams,

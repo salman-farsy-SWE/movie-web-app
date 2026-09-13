@@ -1,5 +1,15 @@
+import type { Metadata } from "next";
 import { UserCollectionPage } from "@/components/user-collection/UserCollectionPage";
 import { slugify } from "@/lib/utils";
+
+export const metadata: Metadata = {
+    title: "Watchlist",
+    description: "Track movies and TV shows you want to watch on Movie Trails.",
+    robots: {
+        index: false,
+        follow: false,
+    },
+};
 
 export default async function WatchlistPage({
     params,

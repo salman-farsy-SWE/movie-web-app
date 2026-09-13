@@ -1,4 +1,3 @@
-import type { MovieItem } from "@/data/mock-home";
 import type { FilterContextType } from "./filters";
 
 export type MovieSortOption =
@@ -193,50 +192,5 @@ export function getSortOptionConfig(
   return options.find((opt) => opt.value === sortOption) ?? options[0];
 }
 
-export function sortMockMovies(
-  items: MovieItem[],
-  sortOption: MovieSortOption
-): MovieItem[] {
-  const cloned = [...items];
-  switch (sortOption) {
-    case "title-asc":
-      return cloned.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
-    case "title-desc":
-      return cloned.sort((a, b) => (b.title || "").localeCompare(a.title || ""));
-    case "latest":
-      return cloned.sort((a, b) => {
-        const yearA = parseInt(String(a.year || a.releaseYear || "0"), 10) || 0;
-        const yearB = parseInt(String(b.year || b.releaseYear || "0"), 10) || 0;
-        return yearB - yearA;
-      });
-    case "rating":
-      return cloned.sort((a, b) => {
-        const ratingA = parseFloat(String(a.rating || "0")) || 0;
-        const ratingB = parseFloat(String(b.rating || "0")) || 0;
-        if (ratingB !== ratingA) {
-          return ratingB - ratingA;
-        }
-        const votesA = a.voteCount ?? 0;
-        const votesB = b.voteCount ?? 0;
-        if (votesB !== votesA) {
-          return votesB - votesA;
-        }
-        return (b.popularity ?? 0) - (a.popularity ?? 0);
-      });
-    case "most-rated":
-      return cloned.sort((a, b) => {
-        const votesA = a.voteCount ?? (parseFloat(String(a.rating || "0")) || 0);
-        const votesB = b.voteCount ?? (parseFloat(String(b.rating || "0")) || 0);
-        return votesB - votesA;
-      });
-    case "popularity":
-    default:
-      return cloned.sort((a, b) => {
-        if (a.popularity !== undefined && b.popularity !== undefined) {
-          return b.popularity - a.popularity;
-        }
-        return 0;
-      });
-  }
-}
+
 

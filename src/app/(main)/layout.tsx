@@ -2,13 +2,12 @@ import "@/app/globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ScrollToTop } from "@/components/ScrollToTop";
-import { SearchProvider } from "@/contexts/SearchContext";
 import { SearchOverlay } from "@/components/overlays/SearchOverlay";
-import { RatingProvider } from "@/contexts/RatingContext";
 import { RatingOverlay } from "@/components/overlays/RatingOverlay";
-import { ListProvider } from "@/contexts/ListContext";
 import { ListOverlay } from "@/components/overlays/ListOverlay";
 import { NavigationTracker } from "@/components/navigation/NavigationTracker";
+import { PageTransition } from "@/components/navigation/PageTransition";
+import { SortFilterTransitionProvider } from "@/contexts/SortFilterTransitionContext";
 
 export default function MainLayout({
   children,
@@ -19,22 +18,19 @@ export default function MainLayout({
 }>) {
   return (
     <>
-      <ListProvider>
-        <RatingProvider>
-          <SearchProvider>
-            <Navbar />
-            {children}
-            {modal}
-            <Footer />
-            <ScrollToTop />
-            <SearchOverlay />
-            <RatingOverlay />
-            <ListOverlay />
-            <NavigationTracker />
-          </SearchProvider>
-        </RatingProvider>
-      </ListProvider>
-
+      <SortFilterTransitionProvider>
+        <Navbar />
+        <PageTransition>
+          {children}
+        </PageTransition>
+        {modal}
+        <Footer />
+        <ScrollToTop />
+        <SearchOverlay />
+        <RatingOverlay />
+        <ListOverlay />
+        <NavigationTracker />
+      </SortFilterTransitionProvider>
     </>
   );
 }

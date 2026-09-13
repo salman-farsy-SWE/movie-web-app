@@ -18,9 +18,65 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { isProtectedRoute } from "@/lib/auth-routes";
+import { hasInternalHistory } from "@/components/navigation/NavigationTracker";
 
 interface LoginFormProps {
   isModal?: boolean;
+}
+
+function getSafePublicUrl(fallback = "/"): string {
+  if (typeof window !== "undefined") {
+    try {
+      const stored = sessionStorage.getItem("last_app_url");
+      if (
+        stored &&
+        stored.startsWith("/") &&
+        !stored.startsWith("//") &&
+        stored !== "/login" &&
+        !stored.startsWith("/login?") &&
+        !stored.startsWith("/api/") &&
+        !isProtectedRoute(stored)
+      ) {
+        return stored;
+      }
+    } catch {}
+
+    try {
+      const match = document.cookie.match(new RegExp("(^| )last_app_url=([^;]+)"));
+      if (match) {
+        const cookieUrl = decodeURIComponent(match[2]);
+        if (
+          cookieUrl &&
+          cookieUrl.startsWith("/") &&
+          !cookieUrl.startsWith("//") &&
+          cookieUrl !== "/login" &&
+          !cookieUrl.startsWith("/login?") &&
+          !cookieUrl.startsWith("/api/") &&
+          !isProtectedRoute(cookieUrl)
+        ) {
+          return cookieUrl;
+        }
+      }
+    } catch {}
+
+    if (document.referrer) {
+      try {
+        const refUrl = new URL(document.referrer);
+        if (
+          refUrl.origin === window.location.origin &&
+          refUrl.pathname !== "/login" &&
+          !refUrl.pathname.startsWith("/login") &&
+          !refUrl.pathname.startsWith("/api/") &&
+          !isProtectedRoute(refUrl.pathname)
+        ) {
+          return refUrl.pathname + refUrl.search;
+        }
+      } catch {}
+    }
+  }
+
+  return fallback;
 }
 
 function getSafeReturnUrl(paramUrl: string | null, fallback = "/"): string {
@@ -109,13 +165,17 @@ function LoginFormContent({ isModal = false }: LoginFormProps) {
     searchParams.get("returnTo") ||
     searchParams.get("from");
   const returnUrl = getSafeReturnUrl(queryRedirect, "/");
+  const hasNavigatedRef = useRef(false);
 
   const navigateBackOrReturn = useCallback(() => {
+    if (hasNavigatedRef.current) return;
+    hasNavigatedRef.current = true;
+
     if (isModal) {
-      if (window.history.length > 1) {
+      if (typeof window !== "undefined" && window.history.length > 1) {
         router.back();
       } else {
-        router.push(returnUrl);
+        router.push(returnUrl || "/");
       }
     } else {
       if (returnUrl && returnUrl !== "/login") {
@@ -125,6 +185,38 @@ function LoginFormContent({ isModal = false }: LoginFormProps) {
       }
     }
   }, [isModal, returnUrl, router]);
+
+  const handleGoBack = useCallback(() => {
+    if (isModal) {
+      router.back();
+      return;
+    }
+
+    const safePublicUrl = getSafePublicUrl("/");
+
+    // If redirected from a protected route, user was unauthenticated.
+    // Never navigate back to the protected route without login.
+    if (queryRedirect && isProtectedRoute(queryRedirect)) {
+      router.push(safePublicUrl);
+      return;
+    }
+
+    if (returnUrl && returnUrl !== "/login" && returnUrl !== "/" && !isProtectedRoute(returnUrl)) {
+      router.push(returnUrl);
+      return;
+    }
+
+    if (safePublicUrl && safePublicUrl !== "/login" && !isProtectedRoute(safePublicUrl)) {
+      router.push(safePublicUrl);
+      return;
+    }
+
+    if (hasInternalHistory()) {
+      router.back();
+    } else {
+      router.push("/");
+    }
+  }, [isModal, queryRedirect, returnUrl, router]);
 
   useEffect(() => {
     userNameRef.current?.focus({ preventScroll: true });
@@ -335,18 +427,10 @@ function LoginFormContent({ isModal = false }: LoginFormProps) {
         <div className="fixed top-6 left-6 sm:top-8 sm:left-8 z-20">
           <button
             type="button"
-            onClick={() => {
-              if (returnUrl && returnUrl !== "/login" && returnUrl !== "/") {
-                router.push(returnUrl);
-              } else if (window.history.length > 1) {
-                router.back();
-              } else {
-                router.push("/");
-              }
-            }}
-            className="group flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/80 dark:bg-dropdown/80 hover:bg-white dark:hover:bg-dropdown border border-black/10 dark:border-white/10 shadow-sm backdrop-blur-md text-black/80 dark:text-white/80 hover:text-black dark:hover:text-white transition-all duration-200 cursor-pointer text-sm font-medium font-akshar"
+            onClick={handleGoBack}
+            className="group flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/80 dark:bg-dropdown/80 hover:bg-white dark:hover:bg-dropdown border border-black/10 dark:border-white/10 shadow-sm backdrop-blur-md text-black/80 dark:text-white/80 hover:text-black dark:hover:text-white transition-all duration-200 cursor-pointer text-sm font-medium font-akshar focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-trails-red"
           >
-            <ChevronLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
+            <ChevronLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
             <span>Back</span>
           </button>
         </div>

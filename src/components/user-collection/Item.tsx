@@ -3,6 +3,8 @@
 import { TableItem } from "@/types/items";
 import { TableRow } from "@/components/user-collection/TableRow";
 
+import { TableRowSkeleton } from "@/components/skeletons/TableSkeleton";
+
 interface FavoriteItemsProps {
   headers?: string[];
   data?: TableItem[];
@@ -46,9 +48,10 @@ export function Item({
 
       {/* Items List */}
       {isLoading ? (
-        <div className="py-16 flex flex-col items-center justify-center gap-3 text-light-genre-font dark:text-genre-font font-inter text-sm md:text-base">
-          <div className="w-6 h-6 border-2 border-trails-red border-t-transparent rounded-full animate-spin" />
-          <span>Loading items ...</span>
+        <div className="flex flex-col gap-2.5 sm:gap-3 md:gap-2">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <TableRowSkeleton key={`loading-row-${i}`} isRatingView={isRatingView} />
+          ))}
         </div>
       ) : items.length === 0 ? (
         <div className="py-16 flex flex-col items-center justify-center gap-3 text-light-genre-font dark:text-genre-font font-inter text-sm md:text-base">

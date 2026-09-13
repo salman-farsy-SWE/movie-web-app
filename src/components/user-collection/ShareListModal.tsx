@@ -48,6 +48,7 @@ export function ShareListModal({
   customUrl,
 }: ShareListModalProps) {
   const [copied, setCopied] = useState(false);
+  const [hasImageError, setHasImageError] = useState(false);
   const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const mounted = useSyncExternalStore(
@@ -215,14 +216,15 @@ export function ShareListModal({
 
         {/* List Info Card Preview */}
         <div className="flex items-center gap-3 p-3 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/5 dark:border-white/10 mb-4">
-          {list.backdrop && (
+          {(list.backdrop || hasImageError) && (
             <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden shrink-0 bg-neutral-800">
               <Image
-                src={list.backdrop}
+                src={hasImageError || !list.backdrop ? "/assets/movie-placeholder.jpg" : list.backdrop}
                 alt={list.title}
                 fill
                 className="object-cover"
                 sizes="64px"
+                onError={() => setHasImageError(true)}
               />
             </div>
           )}

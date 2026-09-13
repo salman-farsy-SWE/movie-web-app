@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { mockUserLists, type UserList } from "@/data/mock-lists";
+import type { UserList } from "@/types";
 import { slugify } from "@/lib/utils";
 import { operationQueue } from "@/lib/queue/operationQueue";
 import {
@@ -33,32 +33,38 @@ export interface CollectionMediaItem {
   genre?: string;
 }
 
+export const COLLECTION_SYNC_TTL = 5 * 60 * 1000; // 5 minutes
+
 export interface UserCollectionsState {
   favorites: CollectionMediaItem[];
   watchlist: CollectionMediaItem[];
   ratings: Record<string, { rating: number; item: CollectionMediaItem; ratedAt: string }>;
   customLists: UserList[];
   deletedListIds: string[];
+  lastSyncedAt: Record<string, number>;
+
+  // Freshness check
+  isStale: (key: "favorites" | "watchlist" | "ratings" | "customLists" | "collectionIds" | string, ttlMs?: number) => boolean;
 
   // Favorites
   isFavorite: (id: string | number) => boolean;
   toggleFavorite: (item: CollectionMediaItem) => Promise<boolean>;
   setFavoriteStatus: (item: CollectionMediaItem, favorite: boolean) => void;
   removeFavorite: (id: string | number) => void;
-  syncFavoritesFromTmdb: () => Promise<void>;
+  syncFavoritesFromTmdb: (force?: boolean) => Promise<void>;
 
   // Watchlist
   isInWatchlist: (id: string | number) => boolean;
   toggleWatchlist: (item: CollectionMediaItem) => Promise<boolean>;
   setWatchlistStatus: (item: CollectionMediaItem, inWatchlist: boolean) => void;
   removeWatchlist: (id: string | number) => void;
-  syncWatchlistFromTmdb: () => Promise<void>;
+  syncWatchlistFromTmdb: (force?: boolean) => Promise<void>;
 
   // Ratings
   getUserRating: (id: string | number) => number | undefined;
   setUserRating: (item: CollectionMediaItem, rating: number) => Promise<void>;
   removeUserRating: (id: string | number, mediaType?: "movie" | "tv") => Promise<void>;
-  syncRatingsFromTmdb: () => Promise<void>;
+  syncRatingsFromTmdb: (force?: boolean) => Promise<void>;
 
   // Custom Lists
   createCustomList: (params: { title: string; description?: string; language?: string; isPrivate?: boolean }) => Promise<UserList>;
@@ -71,12 +77,14 @@ export interface UserCollectionsState {
   isItemInList: (listId: string | number, itemId: string | number, itemTitle?: string) => boolean;
   getListBySlugOrId: (slugOrId: string) => UserList | undefined;
   updateListDetails: (list: UserList) => void;
-  syncCustomListsFromTmdb: () => Promise<void>;
+  syncCustomListsFromTmdb: (force?: boolean) => Promise<void>;
 
-  // Sync All
   // Sync All & Fast ID Sync
-  syncCollectionIdsFromTmdb: () => Promise<void>;
-  syncAllFromTmdb: () => Promise<void>;
+  syncCollectionIdsFromTmdb: (force?: boolean) => Promise<void>;
+  syncAllFromTmdb: (force?: boolean) => Promise<void>;
+
+  // Reset & Clear
+  reset: () => void;
 }
 
 export const useUserCollectionsStore = create<UserCollectionsState>()(
@@ -85,8 +93,15 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
       favorites: [],
       watchlist: [],
       ratings: {},
-      customLists: mockUserLists,
+      customLists: [],
       deletedListIds: [],
+      lastSyncedAt: {},
+
+      isStale: (key, ttlMs = COLLECTION_SYNC_TTL) => {
+        const last = get().lastSyncedAt?.[key];
+        if (!last) return true;
+        return Date.now() - last > ttlMs;
+      },
 
       // ==========================================
       // Favorites (Coalesced & Sequenced)
@@ -99,9 +114,11 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
       setFavoriteStatus: (item, favorite) => {
         const idStr = String(item.id);
         set((state) => {
-          const exists = state.favorites.some((f) => String(f.id) === idStr);
+          const existing = state.favorites.find((f) => String(f.id) === idStr);
+          const fullItem = existing ? { ...existing, ...item } : item;
+          const exists = Boolean(existing);
           if (favorite && !exists) {
-            return { favorites: [item, ...state.favorites] };
+            return { favorites: [fullItem, ...state.favorites] };
           }
           if (!favorite && exists) {
             return { favorites: state.favorites.filter((f) => String(f.id) !== idStr) };
@@ -112,6 +129,8 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
 
       toggleFavorite: async (item) => {
         const idStr = String(item.id);
+        const existing = get().favorites.find((f) => String(f.id) === idStr);
+        const fullItem = existing ? { ...existing, ...item } : item;
         const currentlyFavorited = get().isFavorite(item.id);
         const newFavoriteState = !currentlyFavorited;
 
@@ -123,7 +142,7 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
             };
           }
           return {
-            favorites: [item, ...state.favorites],
+            favorites: [fullItem, ...state.favorites],
           };
         });
 
@@ -192,21 +211,20 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
         }
       },
 
-      syncFavoritesFromTmdb: async () => {
+      syncFavoritesFromTmdb: async (force = false) => {
+        if (!force && !get().isStale("favorites")) {
+          return;
+        }
         try {
           const res = await syncTmdbFavoritesAction();
           if (res.success) {
-            set((state) => {
-              const tmdbMap = new Map<string, CollectionMediaItem>();
-              res.favorites.forEach((item) => tmdbMap.set(String(item.id), item));
-              // Preserve non-numeric local mock items if any
-              state.favorites.forEach((item) => {
-                if (isNaN(Number(item.id)) && !tmdbMap.has(String(item.id))) {
-                  tmdbMap.set(String(item.id), item);
-                }
-              });
-              return { favorites: Array.from(tmdbMap.values()) };
-            });
+            set((state) => ({
+              favorites: res.favorites,
+              lastSyncedAt: {
+                ...state.lastSyncedAt,
+                favorites: Date.now(),
+              },
+            }));
           }
         } catch {}
       },
@@ -222,9 +240,11 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
       setWatchlistStatus: (item, inWatchlist) => {
         const idStr = String(item.id);
         set((state) => {
-          const exists = state.watchlist.some((w) => String(w.id) === idStr);
+          const existing = state.watchlist.find((w) => String(w.id) === idStr);
+          const fullItem = existing ? { ...existing, ...item } : item;
+          const exists = Boolean(existing);
           if (inWatchlist && !exists) {
-            return { watchlist: [item, ...state.watchlist] };
+            return { watchlist: [fullItem, ...state.watchlist] };
           }
           if (!inWatchlist && exists) {
             return { watchlist: state.watchlist.filter((w) => String(w.id) !== idStr) };
@@ -235,6 +255,8 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
 
       toggleWatchlist: async (item) => {
         const idStr = String(item.id);
+        const existing = get().watchlist.find((w) => String(w.id) === idStr);
+        const fullItem = existing ? { ...existing, ...item } : item;
         const currentlyInWatchlist = get().isInWatchlist(item.id);
         const newWatchlistState = !currentlyInWatchlist;
 
@@ -246,7 +268,7 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
             };
           }
           return {
-            watchlist: [item, ...state.watchlist],
+            watchlist: [fullItem, ...state.watchlist],
           };
         });
 
@@ -273,7 +295,7 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
                   return {
                     watchlist: failedValue
                       ? state.watchlist.filter((w) => String(w.id) !== idStr)
-                      : [item, ...state.watchlist],
+                      : [fullItem, ...state.watchlist],
                   };
                 }
                 return state;
@@ -314,21 +336,20 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
         }
       },
 
-      syncWatchlistFromTmdb: async () => {
+      syncWatchlistFromTmdb: async (force = false) => {
+        if (!force && !get().isStale("watchlist")) {
+          return;
+        }
         try {
           const res = await syncTmdbWatchlistAction();
           if (res.success) {
-            set((state) => {
-              const tmdbMap = new Map<string, CollectionMediaItem>();
-              res.watchlist.forEach((item) => tmdbMap.set(String(item.id), item));
-              // Preserve non-numeric local mock items if any
-              state.watchlist.forEach((item) => {
-                if (isNaN(Number(item.id)) && !tmdbMap.has(String(item.id))) {
-                  tmdbMap.set(String(item.id), item);
-                }
-              });
-              return { watchlist: Array.from(tmdbMap.values()) };
-            });
+            set((state) => ({
+              watchlist: res.watchlist,
+              lastSyncedAt: {
+                ...state.lastSyncedAt,
+                watchlist: Date.now(),
+              },
+            }));
           }
         } catch {}
       },
@@ -344,9 +365,11 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
       setUserRating: async (item, rating) => {
         const idStr = String(item.id);
         const prevRating = get().ratings[idStr];
+        const existingItem = prevRating?.item;
 
         // 1. Instant Optimistic Local State Update
         const updatedItem: CollectionMediaItem = {
+          ...(existingItem || {}),
           ...item,
           userRating: rating,
         };
@@ -418,20 +441,20 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
           .catch(() => {});
       },
 
-      syncRatingsFromTmdb: async () => {
+      syncRatingsFromTmdb: async (force = false) => {
+        if (!force && !get().isStale("ratings")) {
+          return;
+        }
         try {
           const res = await syncTmdbRatingsAction();
           if (res.success) {
-            set((state) => {
-              const newRatings: Record<string, { rating: number; item: CollectionMediaItem; ratedAt: string }> = { ...res.ratings };
-              // Preserve non-numeric local mock items if any
-              Object.entries(state.ratings).forEach(([id, val]) => {
-                if (isNaN(Number(id)) && !newRatings[id]) {
-                  newRatings[id] = val;
-                }
-              });
-              return { ratings: newRatings };
-            });
+            set((state) => ({
+              ratings: res.ratings,
+              lastSyncedAt: {
+                ...state.lastSyncedAt,
+                ratings: Date.now(),
+              },
+            }));
           }
         } catch {}
       },
@@ -955,34 +978,18 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
         });
       },
 
-      syncCustomListsFromTmdb: async () => {
+      syncCustomListsFromTmdb: async (force = false) => {
+        if (!force && !get().isStale("customLists")) {
+          return;
+        }
         try {
           const res = await syncTmdbListsAction();
           if (res.success) {
             set((state) => {
-              const deletedSet = new Set(state.deletedListIds || []);
               const listMap = new Map<string, UserList>();
 
-              const filteredTmdbLists = res.lists.filter(
-                (l) =>
-                  !deletedSet.has(String(l.id)) &&
-                  !deletedSet.has(l.slug) &&
-                  !deletedSet.has(String(l.id).replace(/^list-/, ""))
-              );
-
-              const tmdbListIdSet = new Set(
-                filteredTmdbLists.flatMap((l) => [
-                  String(l.id),
-                  String(l.id).replace(/^list-/, ""),
-                  `list-${String(l.id).replace(/^list-/, "")}`,
-                  l.slug,
-                ])
-              );
-
-              // Track local list IDs that were reconciled into TMDB lists
-              const reconciledLocalIds = new Set<string>();
-
-              filteredTmdbLists.forEach((l) => {
+              // 1. Reconcile and add all TMDB lists returned from TMDB
+              res.lists.forEach((l) => {
                 const lTitleLower = l.title.trim().toLowerCase();
                 const existing = state.customLists.find(
                   (prev) =>
@@ -991,10 +998,6 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
                     (String(prev.id).startsWith("custom-list-") &&
                       prev.title.trim().toLowerCase() === lTitleLower)
                 );
-
-                if (existing && String(existing.id).startsWith("custom-list-")) {
-                  reconciledLocalIds.add(String(existing.id));
-                }
 
                 const tmdbItems = l.items || [];
                 const existingTvItems = (existing?.items || []).filter(
@@ -1028,7 +1031,7 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
                       : (existing?.isPrivate ?? false),
                   language: l.language || existing?.language || "en",
                   items: mergedItems,
-                  itemCount: mergedItems.length,
+                  itemCount: mergedItems.length > 0 ? mergedItems.length : l.itemCount,
                   posters:
                     newPosters.length > 0
                       ? newPosters.slice(0, 4)
@@ -1041,52 +1044,35 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
                 });
               });
 
-              const newlyDeletedTmdbIds: string[] = [];
-
+              // 2. Preserve un-synced local-only custom lists (custom-list-*) that weren't deleted
+              const deletedSet = new Set(state.deletedListIds || []);
               state.customLists.forEach((l) => {
                 const lId = String(l.id);
-                const lCleanId = lId.replace(/^list-/, "");
-                const isDeleted =
-                  deletedSet.has(lId) ||
-                  deletedSet.has(lCleanId) ||
-                  deletedSet.has(l.slug);
+                if (!lId.startsWith("custom-list-")) return;
+                if (deletedSet.has(lId) || deletedSet.has(l.slug)) return;
 
-                if (isDeleted) return;
-
-                const isMockList = /^list-[1-8]$/.test(lId) || /^[1-8]$/.test(lId);
-                const isLocalOnly = lId.startsWith("custom-list-");
-
-                if (isLocalOnly) {
-                  // If this local list was already reconciled into a TMDB list, or if a TMDB list has the same title, skip it
-                  const lTitleLower = l.title.trim().toLowerCase();
-                  const matchesTmdbList =
-                    reconciledLocalIds.has(lId) ||
-                    filteredTmdbLists.some(
-                      (tmdbList) => tmdbList.title.trim().toLowerCase() === lTitleLower
-                    );
-
-                  if (!matchesTmdbList && !listMap.has(lId)) {
-                    listMap.set(lId, l);
-                  }
-                } else if (isMockList) {
-                  if (!listMap.has(lId)) {
-                    listMap.set(lId, l);
-                  }
-                } else {
-                  if (!tmdbListIdSet.has(lId) && !tmdbListIdSet.has(lCleanId)) {
-                    newlyDeletedTmdbIds.push(lId, lCleanId, l.slug);
-                  }
+                const lTitleLower = l.title.trim().toLowerCase();
+                const alreadyMergedIntoTmdb = res.lists.some(
+                  (tmdbList) => tmdbList.title.trim().toLowerCase() === lTitleLower
+                );
+                if (!alreadyMergedIntoTmdb && !listMap.has(lId)) {
+                  listMap.set(lId, l);
                 }
               });
 
+              // 3. Clean up deletedListIds: remove any IDs that TMDB confirmed currently exist
+              const tmdbListIds = new Set(res.lists.map((l) => String(l.id)));
+              const updatedDeletedListIds = (state.deletedListIds || []).filter(
+                (id) => !tmdbListIds.has(id) && !tmdbListIds.has(id.replace(/^list-/, ""))
+              );
+
               return {
                 customLists: Array.from(listMap.values()),
-                deletedListIds:
-                  newlyDeletedTmdbIds.length > 0
-                    ? Array.from(
-                        new Set([...state.deletedListIds, ...newlyDeletedTmdbIds])
-                      )
-                    : state.deletedListIds,
+                deletedListIds: updatedDeletedListIds,
+                lastSyncedAt: {
+                  ...state.lastSyncedAt,
+                  customLists: Date.now(),
+                },
               };
             });
           }
@@ -1095,45 +1081,26 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
         }
       },
 
-      syncCollectionIdsFromTmdb: async () => {
+      syncCollectionIdsFromTmdb: async (force = false) => {
+        if (!force && !get().isStale("collectionIds")) {
+          return;
+        }
         try {
           const res = await syncTmdbCollectionIdsAction();
           if (res.success) {
             set((state) => {
               const currentFavMap = new Map<string, CollectionMediaItem>();
               state.favorites.forEach((f) => currentFavMap.set(String(f.id), f));
-              const newFavorites: CollectionMediaItem[] = [];
-              res.favoriteIds.forEach((id) => {
+              const newFavorites: CollectionMediaItem[] = res.favoriteIds.map((id) => {
                 const idStr = String(id);
-                if (currentFavMap.has(idStr)) {
-                  newFavorites.push(currentFavMap.get(idStr)!);
-                } else {
-                  newFavorites.push({ id: Number(id) || id, title: "" });
-                }
-              });
-              // Preserve non-numeric local mock items if any
-              state.favorites.forEach((item) => {
-                if (isNaN(Number(item.id)) && !newFavorites.some((f) => String(f.id) === String(item.id))) {
-                  newFavorites.push(item);
-                }
+                return currentFavMap.get(idStr) || { id: Number(id) || id, title: "" };
               });
 
               const currentWlMap = new Map<string, CollectionMediaItem>();
               state.watchlist.forEach((w) => currentWlMap.set(String(w.id), w));
-              const newWatchlist: CollectionMediaItem[] = [];
-              res.watchlistIds.forEach((id) => {
+              const newWatchlist: CollectionMediaItem[] = res.watchlistIds.map((id) => {
                 const idStr = String(id);
-                if (currentWlMap.has(idStr)) {
-                  newWatchlist.push(currentWlMap.get(idStr)!);
-                } else {
-                  newWatchlist.push({ id: Number(id) || id, title: "" });
-                }
-              });
-              // Preserve non-numeric local mock items if any
-              state.watchlist.forEach((item) => {
-                if (isNaN(Number(item.id)) && !newWatchlist.some((w) => String(w.id) === String(item.id))) {
-                  newWatchlist.push(item);
-                }
+                return currentWlMap.get(idStr) || { id: Number(id) || id, title: "" };
               });
 
               const newRatings: Record<string, { rating: number; item: CollectionMediaItem; ratedAt: string }> = { ...state.ratings };
@@ -1156,6 +1123,10 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
                 favorites: newFavorites,
                 watchlist: newWatchlist,
                 ratings: newRatings,
+                lastSyncedAt: {
+                  ...state.lastSyncedAt,
+                  collectionIds: Date.now(),
+                },
               };
             });
           }
@@ -1164,14 +1135,30 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
         }
       },
 
-      syncAllFromTmdb: async () => {
+      syncAllFromTmdb: async (force = false) => {
         await Promise.allSettled([
-          get().syncFavoritesFromTmdb(),
-          get().syncWatchlistFromTmdb(),
-          get().syncRatingsFromTmdb(),
-          get().syncCollectionIdsFromTmdb(),
-          get().syncCustomListsFromTmdb(),
+          get().syncFavoritesFromTmdb(force),
+          get().syncWatchlistFromTmdb(force),
+          get().syncRatingsFromTmdb(force),
+          get().syncCollectionIdsFromTmdb(force),
+          get().syncCustomListsFromTmdb(force),
         ]);
+      },
+
+      reset: () => {
+        set({
+          favorites: [],
+          watchlist: [],
+          ratings: {},
+          customLists: [],
+          deletedListIds: [],
+          lastSyncedAt: {},
+        });
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.removeItem("movie_trails_user_collections");
+          } catch {}
+        }
       },
     }),
     {
@@ -1184,6 +1171,11 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
           mediaType: f.mediaType,
           isMovie: f.isMovie,
           posterImage: f.posterImage,
+          backdropImage: f.backdropImage,
+          rating: f.rating,
+          userRating: f.userRating,
+          releaseDate: f.releaseDate,
+          genre: f.genre,
         })),
         watchlist: state.watchlist.map((w) => ({
           id: w.id,
@@ -1191,6 +1183,11 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
           mediaType: w.mediaType,
           isMovie: w.isMovie,
           posterImage: w.posterImage,
+          backdropImage: w.backdropImage,
+          rating: w.rating,
+          userRating: w.userRating,
+          releaseDate: w.releaseDate,
+          genre: w.genre,
         })),
         ratings: Object.fromEntries(
           Object.entries(state.ratings).map(([id, val]) => [
@@ -1203,13 +1200,19 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
                 title: val.item.title || "",
                 mediaType: val.item.mediaType,
                 isMovie: val.item.isMovie,
+                posterImage: val.item.posterImage,
+                backdropImage: val.item.backdropImage,
+                rating: val.item.rating,
                 userRating: val.rating,
+                releaseDate: val.item.releaseDate,
+                genre: val.item.genre,
               },
             },
           ])
         ),
-        customLists: state.customLists,
+        customLists: state.customLists || [],
         deletedListIds: state.deletedListIds,
+        lastSyncedAt: state.lastSyncedAt || {},
       }),
     }
   )

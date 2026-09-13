@@ -2,14 +2,12 @@
 
 import { RowCarousel } from "@/components/home/RowCarousel";
 import { PosterCard } from "@/components/media/PosterCard";
-import { useBasePath } from "@/contexts/BasePathContext";
-import { rowItems } from "@/data/mock-home";
+import type { MovieItem } from "@/types";
 
-import type { MovieItem } from "@/data/mock-home";
+export function YouMayLike({ items, basePath }: { items?: MovieItem[]; basePath?: string }) {
+    const displayItems = items || [];
 
-export function YouMayLike({ items }: { items?: MovieItem[] }) {
-    const { basePath } = useBasePath();
-    const displayItems = items && items.length > 0 ? items : rowItems;
+    if (displayItems.length === 0) return null;
 
     return (
         <div className="xl:mt-[56px] lg:mt-[48px] md:mt-[42px] sm:mt-[36px] mt-[30px] xl:mb-[24px] lg:mb-[20px] md:mb-[16px] mb-[12px] xl:px-0 lg:px-5 md:px-7 px-9">
@@ -30,6 +28,9 @@ export function YouMayLike({ items }: { items?: MovieItem[] }) {
                             image={movie.image}
                             mediaType={"mediaType" in movie ? (movie.mediaType as "movie" | "tv") : undefined}
                             basePath={basePath}
+                            rating={movie.rating}
+                            releaseDate={movie.releaseDate || (movie.year ? String(movie.year) : (movie.releaseYear ? String(movie.releaseYear) : undefined))}
+                            genre={movie.genre}
                         />
                     </div>
                 ))}

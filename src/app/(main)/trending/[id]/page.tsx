@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { MediaPage } from "@/components/media/MediaPage";
 import { slugify } from "@/lib/utils";
 import {
@@ -7,6 +8,92 @@ import {
   parseFilterParams,
   isFilterActive,
 } from "@/lib/tmdb";
+import { notFound } from "next/navigation";
+
+const VALID_TRENDING_CATEGORIES = [
+  "today",
+  "this-week",
+  "movies",
+  "tv-shows",
+  "persons",
+  "all",
+  "day",
+  "week",
+];
+
+const TRENDING_METADATA_MAP: Record<
+  string,
+  { title: string; description: string }
+> = {
+  today: {
+    title: "Trending Movies & TV Shows Today",
+    description:
+      "Explore the most watched and trending movies and TV shows today on Movie Trails.",
+  },
+  "this-week": {
+    title: "Trending Movies & TV Shows This Week",
+    description:
+      "Discover the hottest movies and TV shows trending across the globe this week.",
+  },
+  movies: {
+    title: "Trending Movies",
+    description:
+      "Browse popular movies currently trending on Movie Trails and across streaming services.",
+  },
+  "tv-shows": {
+    title: "Trending TV Shows",
+    description:
+      "Discover top trending television series, shows, and seasons catching viewers' attention right now.",
+  },
+  persons: {
+    title: "Trending Celebrities & Actors",
+    description:
+      "Explore trending actors, directors, creators, and cinema personalities making headlines.",
+  },
+  all: {
+    title: "Trending Entertainment",
+    description:
+      "Find trending movies, TV shows, and celebrities updated daily on Movie Trails.",
+  },
+  day: {
+    title: "Trending Today",
+    description: "What's popular and trending today in movies and entertainment.",
+  },
+  week: {
+    title: "Trending This Week",
+    description:
+      "What's popular and trending this week in movies and entertainment.",
+  },
+};
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const formattedParam = slugify(id);
+
+  const meta = TRENDING_METADATA_MAP[formattedParam] || {
+    title: "Trending Entertainment",
+    description:
+      "Discover what's trending in movies and TV shows on Movie Trails.",
+  };
+
+  return {
+    title: meta.title,
+    description: meta.description,
+    openGraph: {
+      title: `${meta.title} | Movie Trails`,
+      description: meta.description,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${meta.title} | Movie Trails`,
+      description: meta.description,
+    },
+  };
+}
 
 export default async function TrendingPage({
   params,
@@ -24,6 +111,10 @@ export default async function TrendingPage({
   const { id } = await params;
   const urlParams = await searchParams;
   const formattedParam = slugify(id);
+
+  if (!VALID_TRENDING_CATEGORIES.includes(formattedParam)) {
+    notFound();
+  }
 
   const parsedPage = Number(urlParams.page);
   const currentPage = !isNaN(parsedPage) && parsedPage >= 1 ? parsedPage : 1;

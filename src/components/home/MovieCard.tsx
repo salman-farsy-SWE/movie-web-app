@@ -4,10 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { usePathname, useRouter } from "next/navigation";
 import { Volume2, VolumeX } from "lucide-react";
 import { WatchlistPopup } from "@/components/WatchlistPopup";
 import { AddButton } from "@/components/AddButton";
 import { slugify } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 import type { CollectionMediaItem } from "@/stores/useUserCollectionsStore";
 
 const DEFAULT_MOVIE_IMAGE = "/assets/movie-placeholder.jpg";
@@ -15,11 +17,13 @@ const DEFAULT_MOVIE_IMAGE = "/assets/movie-placeholder.jpg";
 interface MovieCardProps {
   id?: string | number;
   title: string;
-  genre: string;
+  genre?: string;
   image?: string | null;
   trailerKey?: string | null;
   basePath?: string;
   mediaType?: "movie" | "tv";
+  rating?: number | string;
+  releaseDate?: string | number;
 }
 
 function formatTime(seconds: number) {
@@ -32,20 +36,31 @@ function formatTime(seconds: number) {
 export function MovieCard({
   id,
   title,
-  genre,
+  genre = "Movie",
   image,
   trailerKey,
   basePath,
   mediaType,
+  rating,
+  releaseDate,
 }: MovieCardProps) {
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+
   const resolvedMediaType: "movie" | "tv" =
     mediaType || (basePath?.startsWith("/tv-shows") ? "tv" : "movie");
   const mediaId = id || title;
+  const numericRating = typeof rating === "number" ? rating : (rating ? Number(rating) || undefined : undefined);
+  const releaseStr = releaseDate !== undefined ? String(releaseDate) : undefined;
+
   const mediaItem: CollectionMediaItem = {
     id: mediaId,
     title,
     posterImage: image,
     genre,
+    rating: numericRating,
+    releaseDate: releaseStr,
     mediaType: resolvedMediaType,
     isMovie: resolvedMediaType !== "tv",
   };
@@ -374,6 +389,7 @@ export function MovieCard({
           src={thumbnailUrl}
           alt={title}
           fill
+          sizes="(max-width: 700px) 220px, (max-width: 900px) 270px, (max-width: 1060px) 285px, (max-width: 1200px) 300px, 325px"
           className="object-cover select-none"
           onError={() => setHasError(true)}
         />
@@ -493,8 +509,18 @@ export function MovieCard({
 
         <AddButton
           ref={btnRef}
+          onMouseEnter={() => {
+            if (!isAuthenticated) {
+              router.prefetch("/login");
+            }
+          }}
           onClick={(e) => {
             e.stopPropagation();
+            if (!isAuthenticated) {
+              const returnUrl = pathname || "/";
+              router.push(`/login?redirect=${encodeURIComponent(returnUrl)}`, { scroll: false });
+              return;
+            }
             setOpen((prev) => !prev);
           }}
           className="shrink-0 xl:h-[30px] xl:w-[30px] lg:h-[28px] lg:w-[28px] md:h-[26px] md:w-[26px] sm:h-[24px] sm:w-[24px] h-[24px] w-[24px] bg-light-plus-btn dark:bg-plus-btn hover:bg-light-plus-btn/95 dark:hover:bg-plus-btn/95 rounded-[4px] transition-all duration-200 transform-gpu will-change-transform hover:scale-105 active:scale-95"

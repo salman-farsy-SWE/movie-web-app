@@ -4,12 +4,12 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Search, X, Star, Loader2 } from "lucide-react";
-import { useSearch } from "@/contexts/SearchContext";
+import { useUIStore } from "@/stores/useUIStore";
 import { slugify } from "@/lib/utils";
-import type { MovieItem } from "@/data/mock-home";
+import type { MovieItem } from "@/types";
 
 export function SearchBox() {
-  const { setOpen } = useSearch();
+  const setOpen = useUIStore((state) => state.setSearchOpen);
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<MovieItem[]>([]);

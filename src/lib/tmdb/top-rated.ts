@@ -2,14 +2,13 @@ import { tmdbFetch } from "./tmdb";
 import {
   getGenres,
   getTvGenres,
-  filterMockMovies,
   deduplicateByTitleAndId,
 } from "./movies";
 import type {
   TmdbMovieListResponse,
   TmdbTvListResponse,
 } from "./types";
-import { rowItems, type MovieItem } from "@/data/mock-home";
+import type { MovieItem } from "@/types";
 import { mapTmdbToMovieItem } from "./mapper";
 
 export interface TopRatedMediaResult {
@@ -83,16 +82,9 @@ export async function getTopRatedContent(
     };
   } catch (error) {
     console.error(`Failed to fetch top rated ${category} from TMDB:`, error);
-    const mediaFilter = isTv ? "tv_shows" : "movies";
-
-    const baseMock = filterMockMovies(rowItems, {
-      media: mediaFilter,
-    });
-    const deduplicatedMock = deduplicateByTitleAndId(baseMock);
-
     return {
-      movies: deduplicatedMock.slice((page - 1) * pageSize, page * pageSize).slice(0, pageSize),
-      totalPages: Math.max(1, Math.ceil(deduplicatedMock.length / pageSize)),
+      movies: [],
+      totalPages: 1,
       currentPage: page,
     };
   }

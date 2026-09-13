@@ -1,7 +1,6 @@
 import { getTmdbImageUrl } from "./tmdb";
 import type { TmdbMovie, TmdbTvShow, TmdbPerson } from "./types";
-import type { MovieItem } from "@/data/mock-home";
-import type { Person } from "@/components/media/PersonCard";
+import type { MovieItem, Person } from "@/types";
 
 
 export const LANG_CODE_TO_NAME: Record<string, string> = {

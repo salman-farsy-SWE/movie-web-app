@@ -1,27 +1,51 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { isProtectedRoute } from "@/lib/auth-routes";
+
+const SESSION_COOKIE_NAME = "tmdb_session_id";
 
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+  const sessionId = request.cookies.get(SESSION_COOKIE_NAME)?.value;
 
-  // Only track main app pages, exclude api, _next, login, and static files
-  if (
+  // Track last visited public page for redirect after login
+  const isPublicPage =
     !pathname.startsWith("/_next") &&
     !pathname.startsWith("/api") &&
     !pathname.startsWith("/login") &&
-    !pathname.includes(".")
-  ) {
+    !pathname.includes(".");
+
+  // Add x-pathname and x-url headers for server components
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", pathname);
+  requestHeaders.set("x-url", `${pathname}${search}`);
+
+  // Check if the user is visiting a protected user collection or profile page
+  if (isProtectedRoute(pathname)) {
+    if (!sessionId) {
+      const returnUrl = `${pathname}${search}`;
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("redirect", returnUrl);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
+  if (isPublicPage && !isProtectedRoute(pathname)) {
     const fullUrl = search ? `${pathname}${search}` : pathname;
-    const response = NextResponse.next();
     response.cookies.set("last_app_url", encodeURIComponent(fullUrl), {
       path: "/",
       maxAge: 60 * 60 * 24 * 30, // 30 days
       sameSite: "lax",
     });
-    return response;
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
@@ -31,9 +55,9 @@ export const config = {
      * - api routes
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - favicon.ico, images, and other asset files
+     * - assets (public assets)
+     * - favicon.ico, sitemap.xml, robots.txt
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)",
+    "/((?!api|_next/static|_next/image|assets|favicon.ico|sitemap.xml|robots.txt).*)",
   ],
 };
-

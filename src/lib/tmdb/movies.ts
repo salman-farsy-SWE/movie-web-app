@@ -4,7 +4,7 @@ import type {
   TmdbMovieListResponse,
   TmdbGenreListResponse,
 } from "./types";
-import { rowItems, type HeroContent, type MovieItem } from "@/data/mock-home";
+import type { HeroContent, MovieItem } from "@/types";
 
 let genreCache: Map<number, string> | null = null;
 let tvGenreCache: Map<number, string> | null = null;
@@ -234,7 +234,6 @@ import {
   SORT_OPTIONS,
   DEFAULT_SORT_OPTION,
   normalizeSortOption,
-  sortMockMovies,
   getSortOptionConfig,
   type MovieSortOption,
   type SortOptionConfig,
@@ -250,7 +249,6 @@ export {
   SORT_OPTIONS,
   DEFAULT_SORT_OPTION,
   normalizeSortOption,
-  sortMockMovies,
   getSortOptionConfig,
   type MovieSortOption,
   type SortOptionConfig,
@@ -425,117 +423,6 @@ export function deduplicateByTitleAndId<
     if (title) seenTitles.add(title);
     return true;
   });
-}
-
-export function filterMockMovies(
-  items: MovieItem[],
-  filters: MovieFilterParams | MovieFilterOption
-): MovieItem[] {
-  const filterObj: MovieFilterParams =
-    typeof filters === "string" ? { media: filters } : filters;
-
-  const normalizedMedia = normalizeMovieFilter(filterObj.media);
-  let result = [...items];
-
-  // Media filter
-  if (normalizedMedia === "now_playing") {
-    result = result.filter(
-      (item, idx) => (item.mediaStatus === "now_playing" || idx % 2 === 0) && item.mediaType !== "tv"
-    );
-  } else if (normalizedMedia === "upcoming") {
-    result = result.filter(
-      (item, idx) => (item.mediaStatus === "upcoming" || idx % 3 === 0) && item.mediaType !== "tv"
-    );
-  } else if (normalizedMedia === "airing_today") {
-    result = result.filter(
-      (item, idx) => (item.mediaStatus === "airing_today" || idx % 2 === 0) && item.mediaType === "tv"
-    );
-  } else if (normalizedMedia === "on_the_air") {
-    result = result.filter(
-      (item, idx) => (item.mediaStatus === "on_the_air" || idx % 3 === 0) && item.mediaType === "tv"
-    );
-  } else if (normalizedMedia === "released") {
-    result = result.filter(
-      (item, idx) => (item.mediaStatus === "released" || idx % 2 !== 0) && item.mediaType !== "tv"
-    );
-  } else if (normalizedMedia === "movies") {
-    result = result.filter((item) => item.mediaType !== "tv");
-  } else if (normalizedMedia === "tv_shows") {
-    result = result.filter((item) => item.mediaType === "tv");
-  }
-
-  // Genre filter with strict targeted matching
-  if (filterObj.genres && filterObj.genres.length > 0) {
-    result = result.filter((item) => {
-      return filterObj.genres!.every((g) => matchesGenre(item.genre || "", g));
-    });
-  }
-
-  // Strict country filter
-  if (filterObj.countries && filterObj.countries.length > 0) {
-    const selected = filterObj.countries.map((c) => c.toLowerCase());
-    result = result.filter((item) =>
-      item.country ? selected.includes(item.country.toLowerCase()) : false
-    );
-  }
-
-  // Strict language filter
-  if (filterObj.languages && filterObj.languages.length > 0) {
-    const selected = filterObj.languages.map((l) => l.toLowerCase());
-    result = result.filter((item) =>
-      item.language ? selected.includes(item.language.toLowerCase()) : false
-    );
-  }
-
-  // Year filter (supporting decades, direct years, before 1970)
-  if (filterObj.years && filterObj.years.length > 0) {
-    result = result.filter((item) => {
-      const yearStr = item.year || item.releaseYear;
-      if (!yearStr) return false;
-      const yr = Number(yearStr);
-      return filterObj.years!.some((y) => {
-        if (y === "Before 1970" || y === "before-1970") return yr < 1970;
-        if (y.endsWith("s")) {
-          const decadeStart = parseInt(y, 10);
-          if (!isNaN(decadeStart)) {
-            return yr >= decadeStart && yr <= decadeStart + 9;
-          }
-        }
-        return yearStr === y || String(yr) === y;
-      });
-    });
-  }
-
-  // Minimum rating filter
-  if (filterObj.ratings && filterObj.ratings.length > 0) {
-    const minRating = Math.min(
-      ...filterObj.ratings.map(Number).filter((n) => !isNaN(n))
-    );
-    if (!isNaN(minRating) && minRating > 0) {
-      result = result.filter((item) => {
-        const itemRating = parseFloat(item.rating || "0");
-        return itemRating >= minRating;
-      });
-    }
-  }
-
-  // Duration filter
-  if (filterObj.durations && filterObj.durations.length > 0) {
-    result = result.filter((item) => {
-      if (!item.duration) return false;
-      const d = item.duration;
-      return filterObj.durations!.some((dur) => {
-        if (dur === "0-60") return d <= 60;
-        if (dur === "60-90") return d >= 60 && d <= 90;
-        if (dur === "90-120") return d >= 90 && d <= 120;
-        if (dur === "120-150") return d >= 120 && d <= 150;
-        if (dur === "150+") return d >= 150;
-        return true;
-      });
-    });
-  }
-
-  return deduplicateByTitleAndId(result);
 }
 
 export interface DiscoverMoviesResult {
@@ -808,26 +695,9 @@ export async function getDiscoverMovies(
     };
   } catch (error) {
     console.error("Failed to fetch discover/filtered movies from TMDB:", error);
-    const movieFilters: MovieFilterParams = {
-      ...filterParams,
-      media:
-        filterParams.media && filterParams.media !== "all"
-          ? filterParams.media
-          : "movies",
-    };
-    const baseMock = filterMockMovies(rowItems, movieFilters);
-    const sortedMock = sortMockMovies(baseMock, normalizedSort);
-    const deduplicated = deduplicateByTitleAndId(sortedMock);
-    const paged = deduplicated.slice((page - 1) * pageSize, page * pageSize);
-
-    const targetGenreStr = filterParams.genres?.[0] || undefined;
     return {
-      movies: paged.slice(0, pageSize).map((item) => ({
-        ...item,
-        genre: targetGenreStr ? formatItemGenre(item.genre.split("/").map((s) => s.trim()), targetGenreStr, "Movie") : item.genre,
-        mediaType: "movie" as const,
-      })),
-      totalPages: Math.max(1, Math.ceil(deduplicated.length / pageSize)),
+      movies: [],
+      totalPages: 1,
       currentPage: page,
     };
   }
@@ -1113,26 +983,9 @@ export async function getDiscoverTvShows(
     };
   } catch (error) {
     console.error("Failed to fetch discover/filtered TV shows:", error);
-    const tvFilters: MovieFilterParams = {
-      ...filterParams,
-      media:
-        filterParams.media && filterParams.media !== "all"
-          ? filterParams.media
-          : "tv_shows",
-    };
-    const baseMock = filterMockMovies(rowItems, tvFilters);
-    const sortedMock = sortMockMovies(baseMock, normalizedSort);
-    const deduplicated = deduplicateByTitleAndId(sortedMock);
-    const paged = deduplicated.slice((page - 1) * pageSize, page * pageSize);
-
-    const targetGenreStr = filterParams.genres?.[0] || undefined;
     return {
-      movies: paged.slice(0, pageSize).map((item) => ({
-        ...item,
-        genre: targetGenreStr ? formatItemGenre(item.genre.split("/").map((s) => s.trim()), targetGenreStr, "TV Show") : item.genre,
-        mediaType: "tv" as const,
-      })),
-      totalPages: Math.max(1, Math.ceil(deduplicated.length / pageSize)),
+      movies: [],
+      totalPages: 1,
       currentPage: page,
     };
   }
@@ -1219,46 +1072,9 @@ export async function getDiscoverMixed(
     };
   } catch (error) {
     console.error("Failed to fetch discover mixed content from TMDB:", error);
-    const baseMockMovies = filterMockMovies(rowItems, { ...filterParams, media: "movies" });
-    const baseMockTv = filterMockMovies(rowItems, { ...filterParams, media: "tv_shows" });
-
-    const sortedMovies = sortMockMovies(baseMockMovies, normalizeSortOption(sortBy));
-    const sortedTv = sortMockMovies(baseMockTv, normalizeSortOption(sortBy));
-
-    const targetGenreStr = baseGenre || filterParams.genres?.[0] || undefined;
-    const pagedMovies = sortedMovies
-      .slice((page - 1) * movieCount, page * movieCount)
-      .map((item) => ({
-        ...item,
-        genre: targetGenreStr ? formatItemGenre(item.genre.split("/").map((s) => s.trim()), targetGenreStr, "Movie") : item.genre,
-        mediaType: "movie" as const,
-      }));
-    const pagedTv = sortedTv
-      .slice((page - 1) * tvCount, page * tvCount)
-      .map((item, idx) => ({
-        ...item,
-        id: item.id?.startsWith("tv-") ? item.id : `tv-${item.id || idx}`,
-        genre: targetGenreStr ? formatItemGenre(item.genre.split("/").map((s) => s.trim()), targetGenreStr, "TV Show") : item.genre,
-        mediaType: "tv" as const,
-      }));
-
-    const mixed: MovieItem[] = [];
-    let mIdx = 0;
-    let tIdx = 0;
-    while (mIdx < pagedMovies.length || tIdx < pagedTv.length) {
-      if (mIdx < pagedMovies.length) mixed.push(pagedMovies[mIdx++]);
-      if (mIdx < pagedMovies.length) mixed.push(pagedMovies[mIdx++]);
-      if (tIdx < pagedTv.length) mixed.push(pagedTv[tIdx++]);
-    }
-
-    const deduplicatedMixed = deduplicateByTitleAndId(mixed);
-    const moviePages = Math.ceil(sortedMovies.length / movieCount);
-    const tvPages = Math.ceil(sortedTv.length / tvCount);
-    const totalPages = Math.max(1, moviePages, tvPages);
-
     return {
-      movies: deduplicatedMixed.slice(0, pageSize),
-      totalPages,
+      movies: [],
+      totalPages: 1,
       currentPage: page,
     };
   }

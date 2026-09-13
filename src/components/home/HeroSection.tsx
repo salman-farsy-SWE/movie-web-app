@@ -1,6 +1,5 @@
 import Image from "next/image";
-
-import { HeroContent } from "@/data/mock-home";
+import type { HeroContent } from "@/types";
 import { GenreBadge } from "@/components/GenreBadge";
 import { Rating } from "@/components/Rating";
 import { HeroCarousel } from "./HeroCarousel";
@@ -18,7 +17,7 @@ export function HeroSection({
         {heroContents.map((data, index) => (
           <div key={index} className="min-w-full h-full relative group">
             <Image
-              src={data.image}
+              src={data.image || "/assets/movie-placeholder.jpg"}
               alt={data.title}
               fill
               priority={index === 0}

@@ -9,7 +9,8 @@ import { useUserCollectionsStore, type CollectionMediaItem } from "@/stores/useU
 import { cn, slugify } from "@/lib/utils";
 import { AddButton } from "@/components/AddButton";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 const DEFAULT_POSTER_IMAGE = "/assets/movie-placeholder.jpg";
 
@@ -19,16 +20,26 @@ export function PosterCard({
     image,
     basePath,
     mediaType,
+    rating,
+    releaseDate,
+    genre,
 }: {
     id?: string | number;
     title: string;
     image?: string | null;
     basePath?: string;
     mediaType?: "movie" | "tv";
+    rating?: number | string;
+    releaseDate?: string | number;
+    genre?: string;
 }) {
+    const { isAuthenticated } = useAuth();
+    const router = useRouter();
+    const pathname = usePathname();
+
     const mediaId = id || title;
     const isFav = useUserCollectionsStore((state) =>
-        state.favorites.some((f) => String(f.id) === String(mediaId))
+        isAuthenticated && state.favorites.some((f) => String(f.id) === String(mediaId))
     );
     const toggleFavorite = useUserCollectionsStore((state) => state.toggleFavorite);
 
@@ -36,10 +47,16 @@ export function PosterCard({
     const [hasError, setHasError] = useState(false);
     const [popupPos, setPopupPos] = useState<{ bottom: number; left: number } | null>(null);
 
+    const numericRating = typeof rating === "number" ? rating : (rating ? Number(rating) || undefined : undefined);
+    const releaseStr = releaseDate !== undefined ? String(releaseDate) : undefined;
+
     const mediaItem: CollectionMediaItem = {
         id: mediaId,
         title,
         posterImage: image,
+        rating: numericRating,
+        releaseDate: releaseStr,
+        genre,
         mediaType,
         isMovie: mediaType !== "tv",
     };
@@ -52,7 +69,6 @@ export function PosterCard({
     const openRef = useRef(open);
     const dragStartRef = useRef<{ x: number; y: number } | null>(null);
     const dragThreshold = 5;
-    const pathname = usePathname();
 
     const isSearch = pathname.startsWith("/search") || basePath === "/search";
     const isPersonsList = pathname === "/trending/persons";
@@ -168,6 +184,7 @@ export function PosterCard({
                     src={imgSrc}
                     alt={title}
                     fill
+                    sizes="(max-width: 700px) 175px, (max-width: 900px) 185px, (max-width: 1060px) 200px, (max-width: 1200px) 210px, 220px"
                     className="object-cover select-none"
                     onError={() => setHasError(true)}
                 />
@@ -176,9 +193,19 @@ export function PosterCard({
                     type="button"
                     aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
                     title={isFav ? "Favorited" : "Add to Favorites"}
+                    onMouseEnter={() => {
+                        if (!isAuthenticated) {
+                            router.prefetch("/login");
+                        }
+                    }}
                     onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
+                        if (!isAuthenticated) {
+                            const returnUrl = pathname || "/";
+                            router.push(`/login?redirect=${encodeURIComponent(returnUrl)}`, { scroll: false });
+                            return;
+                        }
                         toggleFavorite(mediaItem);
                     }}
                     className={cn(
@@ -210,8 +237,18 @@ export function PosterCard({
 
             <AddButton
                 ref={btnRef}
+                onMouseEnter={() => {
+                    if (!isAuthenticated) {
+                        router.prefetch("/login");
+                    }
+                }}
                 onClick={(e) => {
                     e.stopPropagation();
+                    if (!isAuthenticated) {
+                        const returnUrl = pathname || "/";
+                        router.push(`/login?redirect=${encodeURIComponent(returnUrl)}`, { scroll: false });
+                        return;
+                    }
                     setOpen((prev) => !prev);
                 }}
                 className="xl:h-[30px] xl:w-[30px] lg:h-[28px] lg:w-[28px] md:h-[26px] md:w-[26px] sm:h-[24px] sm:w-[24px] h-[22px] w-[22px] bg-light-plus-btn dark:bg-plus-btn hover:bg-light-plus-btn/95 dark:hover:bg-plus-btn/95 rounded-[3px] transition-all duration-200 transform-gpu will-change-transform hover:scale-105 active:scale-95 xl:mt-[12px] lg:mt-[11px] md:mt-[10px] sm:mt-[9px] mt-[8px]"

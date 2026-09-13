@@ -10,21 +10,23 @@ import { DeleteListModal } from "@/components/user-collection/DeleteListModal";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
-import { useList } from "@/contexts/ListContext";
+import { useUIStore } from "@/stores/useUIStore";
 import { useUserCollectionsStore } from "@/stores/useUserCollectionsStore";
 import { useAuth } from "@/contexts/AuthContext";
-import type { UserList } from "@/data/mock-lists";
+import type { UserList } from "@/types";
+import { ListCardSkeleton } from "@/components/skeletons/ListGridSkeleton";
 
 interface ListProps {
   basePath: string;
   lists?: UserList[];
   emptyMessage?: string;
+  isLoading?: boolean;
   onClear?: () => void;
 }
 
 const DEFAULT_BACKDROP = "/assets/movie-placeholder.jpg";
 
-export function List({ basePath, lists, emptyMessage, onClear }: ListProps) {
+export function List({ basePath, lists, emptyMessage, isLoading = false, onClear }: ListProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [popupPos, setPopupPos] = useState<{ bottom: number; left: number } | null>(null);
   const [shareList, setShareList] = useState<UserList | null>(null);
@@ -36,7 +38,8 @@ export function List({ basePath, lists, emptyMessage, onClear }: ListProps) {
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   const dragThreshold = 5;
 
-  const { openCreate, openEdit } = useList();
+  const openCreate = useUIStore((state) => state.openCreateList);
+  const openEdit = useUIStore((state) => state.openEditList);
   const { isAuthenticated } = useAuth();
 
   const customLists = useUserCollectionsStore((state) => state.customLists);
@@ -211,7 +214,13 @@ export function List({ basePath, lists, emptyMessage, onClear }: ListProps) {
       </div>
 
       {/* Movie List Grid */}
-      {displayedLists.length === 0 ? (
+      {isLoading ? (
+        <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-4 sm:gap-x-6 lg:gap-x-7 gap-y-7 sm:gap-y-9 lg:gap-y-10 pb-12">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <ListCardSkeleton key={`loading-list-card-${i}`} />
+          ))}
+        </div>
+      ) : displayedLists.length === 0 ? (
         <div className="py-20 flex flex-col items-center justify-center gap-3 text-light-genre-font dark:text-genre-font font-inter text-sm md:text-base">
           <p>{emptyMessage || "You haven't created any lists yet. Click \"Create new\" to build your first collection!"}</p>
           {onClear && (
@@ -241,14 +250,7 @@ export function List({ basePath, lists, emptyMessage, onClear }: ListProps) {
                   href={href}
                   className="group/image relative block w-full aspect-[16/10] rounded-[8px] overflow-hidden bg-black/10 dark:bg-white/5 shadow-xs"
                 >
-                  <Image
-                    src={coverImage}
-                    alt={list.title}
-                    fill
-                    style={{ objectFit: "cover", objectPosition: "center" }}
-                    className="object-cover object-center select-none"
-                    sizes="(max-width: 700px) 100vw, (max-width: 900px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                  />
+                  <ListCardCover src={coverImage} alt={list.title} />
 
                   {/* Dark dimming overlay on hover */}
                   <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 dark:group-hover/image:bg-black/10 transition-colors duration-150 pointer-events-none" />
@@ -277,7 +279,7 @@ export function List({ basePath, lists, emptyMessage, onClear }: ListProps) {
 
                 {/* Title and Options Action */}
                 <div className="flex items-start justify-between gap-2 mt-2.5 relative">
-                  <Link href={href} className="group/title flex-1 min-w-0">
+                  <Link href={href} className="group/title min-w-0 w-fit">
                     <h3 className="font-inter font-semibold sm:font-medium text-[15px] sm:text-[16px] text-black/90 dark:text-white/90 group-hover/title:text-black dark:group-hover/title:text-white transition-colors duration-150 truncate leading-snug">
                       {list.title}
                     </h3>
@@ -311,5 +313,22 @@ export function List({ basePath, lists, emptyMessage, onClear }: ListProps) {
         </div>
       )}
     </div>
+  );
+}
+
+function ListCardCover({ src, alt }: { src: string; alt: string }) {
+  const [hasError, setHasError] = useState(false);
+  const imgSrc = hasError || !src ? DEFAULT_BACKDROP : src;
+
+  return (
+    <Image
+      src={imgSrc}
+      alt={alt}
+      fill
+      style={{ objectFit: "cover", objectPosition: "center" }}
+      className="object-cover object-center select-none"
+      sizes="(max-width: 700px) 100vw, (max-width: 900px) 50vw, (max-width: 1200px) 33vw, 25vw"
+      onError={() => setHasError(true)}
+    />
   );
 }

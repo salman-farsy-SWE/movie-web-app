@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 import { GenresMenu } from "@/components/navbar/GenresMenu";
 import { TrendingMenu } from "@/components/navbar/TrendingMenu";
 import { TopRatedMenu } from "@/components/navbar/TopRatedMenu";
-import { useSearch } from "@/contexts/SearchContext";
+import { useUIStore } from "@/stores/useUIStore";
 import { ThemeToggle } from "@/components/navbar/ThemeToggle";
 import { SearchTrigger } from "@/components/navbar/SearchTrigger";
 import { useState, useEffect, useRef, useSyncExternalStore } from "react";
@@ -43,7 +43,7 @@ export function Navbar() {
     setPrevPathname(pathname);
   }
   const currentPathname = pathname === "/login" ? prevPathname : pathname;
-  const { open: searchOpen } = useSearch();
+  const searchOpen = useUIStore((state) => state.isSearchOpen);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -132,12 +132,12 @@ export function Navbar() {
         "fixed top-0 left-0 right-0 z-40 w-full border-b transition-all duration-300 ease-in-out ",
         isTransparent
           ? isPastHero
-            ? "bg-light-nav/95 dark:bg-dark-nav/95 shadow-lg shadow-black/25 dark:shadow-white/5 border-transparent"
+            ? "bg-light-nav dark:bg-dark-nav shadow-lg shadow-black/25 dark:shadow-white/5 border-transparent"
             : scrolled
               ? "bg-black/30 backdrop-blur-md border-white/10"
               : "bg-transparent border-white/0"
           : scrolled
-            ? "bg-light-nav/95 dark:bg-dark-nav/95 shadow-lg shadow-black/25 dark:shadow-white/5 border-white/5"
+            ? "bg-light-nav dark:bg-dark-nav shadow-lg shadow-black/25 dark:shadow-white/5 border-white/5"
             : "bg-light-nav dark:bg-dark-nav border-transparent"
       )}
     >

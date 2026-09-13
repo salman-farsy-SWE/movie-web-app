@@ -68,6 +68,22 @@ export async function GET(request: Request) {
       maxAge: 60 * 60 * 24 * 2, // 2 days
     });
 
+    const lastAppUrl = cookieStore.get("last_app_url")?.value;
+    let fallbackRedirect = "/";
+    if (lastAppUrl) {
+      try {
+        const decoded = decodeURIComponent(lastAppUrl);
+        if (
+          decoded.startsWith("/") &&
+          !decoded.startsWith("//") &&
+          !decoded.startsWith("/login") &&
+          !decoded.startsWith("/api/")
+        ) {
+          fallbackRedirect = decoded;
+        }
+      } catch {}
+    }
+
     return new NextResponse(
       `<!DOCTYPE html>
       <html>
@@ -91,7 +107,7 @@ export async function GET(request: Request) {
             <div class="spinner"></div>
             <h3>Authentication Successful!</h3>
             <p>Logging you in and redirecting to Movie Trails...</p>
-            <a href="/" class="btn" id="continue-btn" onclick="window.close();">Continue to Movie Trails</a>
+            <a href="${fallbackRedirect}" class="btn" id="continue-btn" onclick="window.close();">Continue to Movie Trails</a>
           </div>
           <script>
             try {
@@ -114,7 +130,7 @@ export async function GET(request: Request) {
                 window.close();
               } catch (e) {}
               setTimeout(function() {
-                window.location.href = '/';
+                window.location.href = ${JSON.stringify(fallbackRedirect)};
               }, 400);
             }, 300);
           </script>

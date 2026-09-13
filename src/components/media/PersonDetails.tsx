@@ -144,6 +144,7 @@ export function PersonDetails({
                             src={personImage}
                             alt={name}
                             fill
+                            sizes="(max-width: 640px) 210px, (max-width: 768px) 230px, (max-width: 1024px) 260px, (max-width: 1280px) 290px, 320px"
                             className="object-cover object-top select-none"
                             priority
                             onError={() => setImageError(true)}

@@ -5,14 +5,8 @@ import { cn, slugify } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 
-export type Person = {
-  id: string;
-  name: string;
-  role: string;
-  image?: string | null;
-  popularity?: number;
-  knownFor?: string;
-};
+import type { Person } from "@/types";
+export type { Person };
 
 const DEFAULT_PERSON_IMAGE = "/assets/persons-image.jpg";
 

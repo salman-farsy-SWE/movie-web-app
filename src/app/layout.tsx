@@ -5,10 +5,43 @@ import ThemeWrapper from "@/providers/ThemeWrapper";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 import { getCurrentUser } from "@/actions/auth";
+import { RouteProgressBar } from "@/components/navigation/RouteProgressBar";
 
 export const metadata: Metadata = {
-  title: "Movie Trails",
-  description: "Movie streaming landing page",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "https://movie-trails.vercel.app"
+  ),
+  title: {
+    default: "Movie Trails | Watch, Discover & Track Movies",
+    template: "%s | Movie Trails",
+  },
+  description:
+    "Discover watch movies, TV shows trailers. Explore genres, trending and top rated. build your custom collections and track your entertainment.",
+  keywords: [
+    "movies",
+    "tv shows",
+    "streaming",
+    "watchlist",
+    "trailers",
+    "reviews",
+    "tmdb",
+  ],
+  authors: [{ name: "Movie Trails" }],
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/",
+    siteName: "Movie Trails",
+    title: "Movie Trails | Watch, Discover & Track Movies",
+    description:
+      "Discover watch movies, TV shows trailers. Explore genres, trending and top rated. build your custom collections and track your entertainment.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Movie Trails | Watch, Discover & Track Movies",
+    description:
+      "Discover watch movies, TV shows trailers. Explore genres, trending and top rated. build your custom collections and track your entertainment.",
+  },
 };
 
 const poppins = Poppins({
@@ -49,6 +82,7 @@ export default async function RootLayout({
       >
         <ThemeWrapper>
           <AuthProvider initialUser={user}>
+            <RouteProgressBar />
             {children}
           </AuthProvider>
         </ThemeWrapper>

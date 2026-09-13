@@ -14,7 +14,9 @@ import { WatchlistPopup } from "@/components/WatchlistPopup";
 import { AddButton } from "@/components/AddButton";
 import { Rating } from "@/components/Rating";
 import { TrailerDialog } from "@/components/home/TrailerDialog";
-import { useRating } from "@/contexts/RatingContext";
+import { useUIStore } from "@/stores/useUIStore";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePathname, useRouter } from "next/navigation";
 import { useUserCollectionsStore, type CollectionMediaItem } from "@/stores/useUserCollectionsStore";
 import { getTmdbAccountStateAction } from "@/actions/collections";
 import { cn } from "@/lib/utils";
@@ -27,6 +29,10 @@ export function PosterDetails({
     data?: MediaDetailsData;
     isMovie?: boolean;
 }) {
+    const { isAuthenticated } = useAuth();
+    const router = useRouter();
+    const pathname = usePathname();
+
     const isMovie = data?.isMovie !== undefined ? data.isMovie : (isMovieProp ?? false);
     const [open2, setOpen2] = useState(false);
     const [isTrailerOpen, setIsTrailerOpen] = useState(false);
@@ -48,7 +54,7 @@ export function PosterDetails({
     const open2Ref = useRef(open2);
     const dragStartRef = useRef<{ x: number; y: number } | null>(null);
     const dragThreshold = 5;
-    const { openRating } = useRating();
+    const openRating = useUIStore((state) => state.openRating);
 
     const title = data?.title || (isMovie ? "Movie Details" : "TV Shows Details");
     const releaseDate = data?.releaseDate || "7 Nov, 2014";
@@ -88,15 +94,15 @@ export function PosterDetails({
     }), [mediaId, title, data?.posterImage, posterImage, data?.backdropImage, bgImage, rating, releaseDate, isMovie, genre]);
 
     const isFav = useUserCollectionsStore((state) =>
-        state.favorites.some((f) => String(f.id) === String(mediaId))
+        isAuthenticated && state.favorites.some((f) => String(f.id) === String(mediaId))
     );
     const userRating = useUserCollectionsStore((state) =>
-        state.ratings[String(mediaId)]?.rating
+        isAuthenticated ? state.ratings[String(mediaId)]?.rating : undefined
     );
 
     // Sync TMDB account state if authenticated and item is from TMDB
     useEffect(() => {
-        if (!data?.id) return;
+        if (!isAuthenticated || !data?.id) return;
         let isCancelled = false;
 
         getTmdbAccountStateAction(data.id, isMovie ? "movie" : "tv")
@@ -117,7 +123,7 @@ export function PosterDetails({
         return () => {
             isCancelled = true;
         };
-    }, [data?.id, isMovie, mediaItem, setFavoriteStatus, setWatchlistStatus, setUserRating]);
+    }, [isAuthenticated, data?.id, isMovie, mediaItem, setFavoriteStatus, setWatchlistStatus, setUserRating]);
 
     const [prevOverview, setPrevOverview] = useState(overview);
     if (prevOverview !== overview) {
@@ -221,6 +227,7 @@ export function PosterDetails({
                     src={bgImage}
                     alt={`${title} Background`}
                     fill
+                    sizes="100vw"
                     className="object-cover object-center select-none blur-[5px] scale-105 transition-all duration-300"
                     priority
                     onError={() => setBgError(true)}
@@ -254,7 +261,19 @@ export function PosterDetails({
                             type="button"
                             aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
                             title={isFav ? "Favorited" : "Add to Favorites"}
-                            onClick={() => toggleFavorite(mediaItem)}
+                            onMouseEnter={() => {
+                                if (!isAuthenticated) {
+                                    router.prefetch("/login");
+                                }
+                            }}
+                            onClick={() => {
+                                if (!isAuthenticated) {
+                                    const returnUrl = pathname || "/";
+                                    router.push(`/login?redirect=${encodeURIComponent(returnUrl)}`, { scroll: false });
+                                    return;
+                                }
+                                toggleFavorite(mediaItem);
+                            }}
                             className="flex-shrink-0 cursor-pointer flex items-center justify-center xl:w-[44px] xl:h-[44px] lg:w-[40px] lg:h-[40px] md:w-[38px] md:h-[38px] sm:w-[35px] sm:h-[35px] w-[32px] h-[32px] rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white transition-all duration-200 hover:scale-110 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 shadow-sm"
                         >
                             <Heart
@@ -316,7 +335,19 @@ export function PosterDetails({
                                 <p className="tracking-wider text-white/70 text-[11px] sm:text-[12px] uppercase font-semibold">YOUR RATING</p>
                                 <Button
                                     type="button"
-                                    onClick={() => openRating(mediaItem)}
+                                    onMouseEnter={() => {
+                                        if (!isAuthenticated) {
+                                            router.prefetch("/login");
+                                        }
+                                    }}
+                                    onClick={() => {
+                                        if (!isAuthenticated) {
+                                            const returnUrl = pathname || "/";
+                                            router.push(`/login?redirect=${encodeURIComponent(returnUrl)}`, { scroll: false });
+                                            return;
+                                        }
+                                        openRating(mediaItem);
+                                    }}
                                     className="bg-white/15 hover:bg-white/25 border border-white/20 text-white hover:text-white flex items-center gap-1.5 h-8 px-2.5 rounded-[4px] transition-colors cursor-pointer shadow-md backdrop-blur-sm"
                                 >
                                     <IoMdStarOutline className={cn("w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 drop-shadow-[0_0_6px_rgba(250,204,21,0.4)]", userRating !== undefined && "fill-yellow-400")} />
@@ -366,6 +397,8 @@ export function PosterDetails({
                                     src={posterImage}
                                     alt={title}
                                     fill
+                                    sizes="(max-width: 640px) 200px, (max-width: 768px) 210px, (max-width: 1024px) 230px, (max-width: 1280px) 245px, 255px"
+                                    priority
                                     className="object-cover select-none"
                                     onError={() => setPosterError(true)}
                                 />
@@ -464,9 +497,10 @@ export function PosterDetails({
                                 <div className="flex items-center gap-3">
                                     <div className="xl:w-[62px] xl:h-[62px] lg:w-[56px] lg:h-[56px] md:w-[52px] md:h-[52px] w-[46px] h-[46px] relative rounded-full overflow-hidden border-2 border-white/30 bg-white/10 flex-shrink-0 shadow-sm">
                                         <Image
-                                            src={creatorError || !createdByImage ? "/assets/movie-placeholder.jpg" : createdByImage}
+                                            src={creatorError || !createdByImage ? "/assets/persons-image.jpg" : createdByImage}
                                             alt={createdByName}
                                             fill
+                                            sizes="64px"
                                             className="object-cover object-[center_25%]"
                                             onError={() => setCreatorError(true)}
                                         />
@@ -489,8 +523,18 @@ export function PosterDetails({
                         )}
                         <AddButton
                             ref={btnRef}
+                            onMouseEnter={() => {
+                                if (!isAuthenticated) {
+                                    router.prefetch("/login");
+                                }
+                            }}
                             onClick={(e) => {
                                 e.stopPropagation();
+                                if (!isAuthenticated) {
+                                    const returnUrl = pathname || "/";
+                                    router.push(`/login?redirect=${encodeURIComponent(returnUrl)}`, { scroll: false });
+                                    return;
+                                }
                                 setOpen2((prev) => !prev);
                             }}
                             className="xl:w-[32px] xl:h-[32px] lg:w-[30px] lg:h-[30px] md:w-[28px] md:h-[28px] sm:w-[26px] sm:h-[26px] w-[24px] h-[24px] bg-white/20 hover:bg-white/30 dark:bg-white/15 dark:hover:bg-white/25 rounded-[3px] flex items-center justify-center cursor-pointer border border-white/30 dark:border-white/25 shadow-lg backdrop-blur-md transition-all duration-200 hover:scale-105 active:scale-95"

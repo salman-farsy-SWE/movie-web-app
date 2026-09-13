@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useList } from "@/contexts/ListContext";
+import { useRouter, usePathname } from "next/navigation";
+import { useUIStore } from "@/stores/useUIStore";
+import { useAuth } from "@/contexts/AuthContext";
 import { useUserCollectionsStore } from "@/stores/useUserCollectionsStore";
 import { ChevronDown, X, Globe, Check, Search, Lock, Eye, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -10,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { FILTER_LANGUAGES, TMDB_LANGUAGE_MAP } from "@/lib/tmdb";
 import { cn } from "@/lib/utils";
-import type { UserList } from "@/data/mock-lists";
+import type { UserList } from "@/types";
 
 const TMDB_LANGUAGES = FILTER_LANGUAGES.map((name) => ({
   name,
@@ -417,7 +419,20 @@ function ListOverlayContent({ editingList, onClose }: ListOverlayContentProps) {
 }
 
 export function ListOverlay() {
-  const { open, editingList, close } = useList();
+  const open = useUIStore((state) => state.isListOpen);
+  const editingList = useUIStore((state) => state.editingList);
+  const close = useUIStore((state) => state.closeList);
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (open && !isAuthenticated) {
+      close();
+      const returnUrl = pathname || "/";
+      router.push(`/login?redirect=${encodeURIComponent(returnUrl)}`, { scroll: false });
+    }
+  }, [open, isAuthenticated, close, router, pathname]);
 
   // Lock body scroll on open
   useEffect(() => {
@@ -431,7 +446,7 @@ export function ListOverlay() {
     };
   }, [open]);
 
-  if (!open) return null;
+  if (!open || !isAuthenticated) return null;
 
   return (
     <div

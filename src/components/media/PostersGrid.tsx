@@ -2,8 +2,8 @@
 
 import { Suspense } from "react";
 import { PosterCard } from "@/components/media/PosterCard";
-import { rowItems, type MovieItem } from "@/data/mock-home";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import type { MovieItem } from "@/types";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   getSortOptionsByContext,
   normalizeSortOption,
@@ -16,55 +16,35 @@ import {
 import { X, Film, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useSortFilterTransition } from "@/contexts/SortFilterTransitionContext";
+
+import { PostersGridSkeleton } from "@/components/skeletons/PostersGridSkeleton";
 
 interface PostersGridProps {
   basePath: string;
   items?: MovieItem[] | { id: string | number; title: string; image?: string | null }[];
   context?: FilterContextType;
+  isLoading?: boolean;
 }
 
 export function PostersGrid(props: PostersGridProps) {
   return (
-    <Suspense fallback={<PostersGridFallback {...props} />}>
+    <Suspense fallback={<PostersGridFallback />}>
       <PostersGridContent {...props} />
     </Suspense>
   );
 }
 
-function PostersGridFallback({ basePath, items }: PostersGridProps) {
-  const baseItems = items !== undefined ? items : rowItems;
-  const displayMovies = deduplicateByTitleAndId(baseItems).slice(0, 24);
-
-  return (
-    <div className="w-full flex flex-col items-center">
-      <div className="xl:mt-[30px] md:mt-[27px] sm:mt-[25px] mt-[23px] max-w-[1440px] w-full flex justify-center flex-wrap xl:gap-[24px] lg:gap-[23px] gap-[22px]">
-        {displayMovies.map((movie) => {
-          const resolvedMediaType: "movie" | "tv" =
-            "mediaType" in movie && movie.mediaType
-              ? (movie.mediaType as "movie" | "tv")
-              : basePath?.startsWith("/tv-shows")
-              ? "tv"
-              : "movie";
-          return (
-            <PosterCard
-              key={movie.id}
-              id={movie.id}
-              title={movie.title}
-              image={movie.image}
-              mediaType={resolvedMediaType}
-              basePath={basePath}
-            />
-          );
-        })}
-      </div>
-    </div>
-  );
+function PostersGridFallback() {
+  return <PostersGridSkeleton count={24} />;
 }
 
-function PostersGridContent({ basePath, items, context = "movie" }: PostersGridProps) {
-  const router = useRouter();
+function PostersGridContent({ basePath, items, context = "movie", isLoading: propLoading = false }: PostersGridProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { isPending, navigateWithTransition } = useSortFilterTransition();
+
+  const isTransitionLoading = propLoading || isPending;
 
   const sortParam = searchParams.get("sort_by");
   const normalized = sortParam ? normalizeSortOption(sortParam) : null;
@@ -78,15 +58,18 @@ function PostersGridContent({ basePath, items, context = "movie" }: PostersGridP
   const handleRemoveSort = () => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("sort_by");
-    // Return to the page where it was
-    const returnPage = getBasePage(pathname, 1);
-    if (returnPage > 1) {
-      params.set("page", String(returnPage));
-    } else {
-      params.delete("page");
+
+    if (!isFilterActive(params)) {
+      const returnPage = getBasePage(pathname, 1);
+      if (returnPage > 1) {
+        params.set("page", String(returnPage));
+      } else {
+        params.delete("page");
+      }
     }
+
     const newQuery = params.toString();
-    router.push(newQuery ? `${pathname}?${newQuery}` : pathname);
+    navigateWithTransition(newQuery ? `${pathname}?${newQuery}` : pathname);
   };
 
   const handleRemoveFilter = (key: string, valueToRemove?: string) => {
@@ -106,25 +89,27 @@ function PostersGridContent({ basePath, items, context = "movie" }: PostersGridP
       }
     }
 
-    if (!isFilterActive(params)) {
-      // All filters removed - return to the saved base page
+    if (!isFilterActive(params) && !params.get("sort_by")) {
       const returnPage = getBasePage(pathname, 1);
       if (returnPage > 1) {
         params.set("page", String(returnPage));
       } else {
         params.delete("page");
       }
-    } else {
-      params.delete("page");
     }
 
     const newQuery = params.toString();
-    router.push(newQuery ? `${pathname}?${newQuery}` : pathname);
+    navigateWithTransition(newQuery ? `${pathname}?${newQuery}` : pathname);
   };
 
   const handleClearAll = () => {
     const returnPage = getBasePage(pathname, 1);
-    router.push(returnPage > 1 ? `${pathname}?page=${returnPage}` : pathname);
+    const params = new URLSearchParams();
+    if (returnPage > 1) {
+      params.set("page", String(returnPage));
+    }
+    const newQuery = params.toString();
+    navigateWithTransition(newQuery ? `${pathname}?${newQuery}` : pathname);
   };
 
   const totalBadges =
@@ -137,7 +122,7 @@ function PostersGridContent({ basePath, items, context = "movie" }: PostersGridP
     (filterParams.ratings?.length || 0) +
     (filterParams.durations?.length || 0);
 
-  const baseItems = items !== undefined ? items : rowItems;
+  const baseItems = items || [];
   const displayMovies = deduplicateByTitleAndId(baseItems).slice(0, 24);
   const hasActiveBadges = totalBadges > 0;
 
@@ -297,7 +282,9 @@ function PostersGridContent({ basePath, items, context = "movie" }: PostersGridP
         </div>
       )}
 
-      {displayMovies.length === 0 ? (
+      {isTransitionLoading ? (
+        <PostersGridSkeleton count={24} />
+      ) : displayMovies.length === 0 ? (
         <div className="w-full max-w-[1440px] flex flex-col items-center justify-center py-16 px-4 text-center">
           <div className="w-14 h-14 rounded-full bg-light-dropdown dark:bg-dropdown border border-black/10 dark:border-white/10 flex items-center justify-center mb-4 text-black/50 dark:text-white/50">
             <Film className="w-7 h-7" />
@@ -331,9 +318,10 @@ function PostersGridContent({ basePath, items, context = "movie" }: PostersGridP
           )}
         >
           {displayMovies.map((movie) => {
+            const m = movie as Partial<MovieItem>;
             const resolvedMediaType: "movie" | "tv" =
-              "mediaType" in movie && movie.mediaType
-                ? (movie.mediaType as "movie" | "tv")
+              m.mediaType
+                ? (m.mediaType as "movie" | "tv")
                 : context === "tv" || basePath?.startsWith("/tv-shows")
                 ? "tv"
                 : "movie";
@@ -345,6 +333,9 @@ function PostersGridContent({ basePath, items, context = "movie" }: PostersGridP
                 image={movie.image}
                 mediaType={resolvedMediaType}
                 basePath={basePath}
+                rating={m.rating}
+                releaseDate={m.releaseDate || (m.year ? String(m.year) : (m.releaseYear ? String(m.releaseYear) : undefined))}
+                genre={m.genre}
               />
             );
           })}

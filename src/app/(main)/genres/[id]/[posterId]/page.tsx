@@ -1,9 +1,82 @@
+import type { Metadata } from "next";
 import { PosterDetails } from "@/components/media/PosterDetails";
 import { MediaPage } from "@/components/media/MediaPage";
 import { PeopleYouMayKnow } from "@/components/media/PeopleYouMayKnow";
 import { YouMayLike } from "@/components/media/YouMayLike";
 import { slugify } from "@/lib/utils";
-import { getMediaDetails } from "@/lib/tmdb";
+import { getMediaDetails, MIXED_GENRES } from "@/lib/tmdb";
+import { notFound } from "next/navigation";
+
+const VALID_GENRE_SLUGS = new Set([
+  ...MIXED_GENRES.map((g) => slugify(g)),
+  "action",
+  "adventure",
+  "animation",
+  "comedy",
+  "crime",
+  "documentary",
+  "drama",
+  "family",
+  "fantasy",
+  "history",
+  "horror",
+  "kids",
+  "music",
+  "mystery",
+  "news",
+  "reality",
+  "romance",
+  "sci-fi",
+  "sci-fi-fantasy",
+  "soap",
+  "talk",
+  "tv-movie",
+  "thriller",
+  "war",
+  "war-politics",
+  "western",
+  "action-adventure",
+]);
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string; posterId: string }>;
+}): Promise<Metadata> {
+  const { posterId } = await params;
+
+  try {
+    const data = await getMediaDetails(posterId);
+    const isMovie = data.isMovie ?? true;
+    const title = data.title || "Media Details";
+    const description =
+      data.overview ||
+      `Watch trailers, cast, and overview for ${data.title} on Movie Trails.`;
+    const image = data.backdropImage || data.posterImage;
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title: `${title} | Movie Trails`,
+        description,
+        type: isMovie ? "video.movie" : "video.tv_show",
+        images: image ? [{ url: image, alt: data.title }] : [],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${title} | Movie Trails`,
+        description,
+        images: image ? [image] : [],
+      },
+    };
+  } catch {
+    return {
+      title: "Media Details",
+      description: "Discover movie and TV show details on Movie Trails.",
+    };
+  }
+}
 
 export default async function PosterDetailsPage({
   params,
@@ -12,9 +85,14 @@ export default async function PosterDetailsPage({
 }) {
   const { id, posterId } = await params;
 
+  const formattedParam = slugify(id) || id;
+
+  if (!VALID_GENRE_SLUGS.has(formattedParam)) {
+    notFound();
+  }
+
   const data = await getMediaDetails(posterId);
   const isMovie = data.isMovie ?? true;
-  const formattedParam = slugify(id) || id;
   let decoded = posterId;
   try {
     decoded = decodeURIComponent(posterId);

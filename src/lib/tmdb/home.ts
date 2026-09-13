@@ -7,7 +7,7 @@ import type {
   TmdbMovie,
   TmdbTvShow,
 } from "./types";
-import type { MovieItem } from "@/data/mock-home";
+import type { MovieItem } from "@/types";
 
 import { fetchMovieTrailerKey, fetchTvTrailerKey } from "./trailers";
 

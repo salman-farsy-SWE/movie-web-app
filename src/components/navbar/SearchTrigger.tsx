@@ -1,7 +1,7 @@
 "use client";
 
 import { Search } from "lucide-react";
-import { useSearch } from "@/contexts/SearchContext";
+import { useUIStore } from "@/stores/useUIStore";
 import { cn } from "@/lib/utils";
 
 interface SearchTriggerProps {
@@ -9,7 +9,7 @@ interface SearchTriggerProps {
 }
 
 export function SearchTrigger({ className }: SearchTriggerProps) {
-  const { setOpen } = useSearch();
+  const setOpen = useUIStore((state) => state.setSearchOpen);
 
   return (
     <button

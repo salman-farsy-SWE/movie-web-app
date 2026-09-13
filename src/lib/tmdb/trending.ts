@@ -2,7 +2,6 @@ import { tmdbFetch } from "./tmdb";
 import {
   getGenres,
   getTvGenres,
-  filterMockMovies,
   deduplicateByTitleAndId,
 } from "./movies";
 import { type MovieFilterParams } from "./filters";
@@ -13,10 +12,8 @@ import type {
   TmdbPersonListResponse,
   TmdbPerson,
 } from "./types";
-import { rowItems, type MovieItem } from "@/data/mock-home";
+import type { MovieItem, Person } from "@/types";
 import { mapTmdbToMovieItem, mapTmdbToPersonItem } from "./mapper";
-import type { Person } from "@/components/media/PersonCard";
-
 
 export interface TrendingMediaResult {
   movies: MovieItem[];
@@ -31,7 +28,6 @@ export interface TrendingPersonsResult {
 }
 
 export type TrendingCategory = "today" | "this-week" | "movies" | "tv-shows" | "persons" | string;
-
 
 export async function getTrendingContent(
   category: TrendingCategory,
@@ -134,22 +130,9 @@ export async function getTrendingContent(
     };
   } catch (error) {
     console.error(`Failed to fetch trending ${category} from TMDB:`, error);
-    const mediaFilter =
-      category === "tv-shows" || selectedMedia === "tv_shows"
-        ? "tv_shows"
-        : category === "movies" || selectedMedia === "movies"
-        ? "movies"
-        : undefined;
-
-    const baseMock = filterMockMovies(rowItems, {
-      ...filterParams,
-      media: mediaFilter,
-    });
-    const deduplicatedMock = deduplicateByTitleAndId(baseMock);
-
     return {
-      movies: deduplicatedMock.slice((page - 1) * pageSize, page * pageSize).slice(0, pageSize),
-      totalPages: Math.max(1, Math.ceil(deduplicatedMock.length / pageSize)),
+      movies: [],
+      totalPages: 1,
       currentPage: page,
     };
   }
@@ -213,22 +196,9 @@ export async function getTrendingPersons(
     };
   } catch (error) {
     console.error(`Failed to fetch trending persons from TMDB:`, error);
-    const mockPersonsList: Person[] = [
-      { id: "1", name: "John Doe", role: "Actor", image: "/assets/persons-image.jpg" },
-      { id: "2", name: "Jane Smith", role: "Director", image: "/assets/persons-image.jpg" },
-      { id: "3", name: "Michael Lee", role: "Producer", image: "/assets/persons-image.jpg" },
-      { id: "4", name: "Emma Brown", role: "Actress", image: "/assets/persons-image.jpg" },
-      { id: "5", name: "David Kim", role: "Writer", image: "/assets/persons-image.jpg" },
-      { id: "6", name: "Sophia Wilson", role: "Cinematographer", image: "/assets/persons-image.jpg" },
-    ];
-    const gridData = Array.from({ length: 36 }).map((_, i) => {
-      const base = mockPersonsList[i % mockPersonsList.length];
-      return { ...base, id: `${base.id}-${i}` };
-    });
-
     return {
-      persons: gridData.slice((page - 1) * pageSize, page * pageSize),
-      totalPages: Math.max(1, Math.ceil(gridData.length / pageSize)),
+      persons: [],
+      totalPages: 1,
       currentPage: page,
     };
   }
@@ -299,33 +269,10 @@ export async function searchPersons(
     };
   } catch (error) {
     console.error(`Failed to search persons for query "${trimmedQuery}":`, error);
-    const mockPersonsList: Person[] = [
-      { id: "1", name: "John Doe", role: "Actor", image: "/assets/movie-placeholder.jpg", knownFor: "Action, Thriller" },
-      { id: "2", name: "Jane Smith", role: "Director", image: "/assets/movie-placeholder.jpg", knownFor: "Drama, Sci-Fi" },
-      { id: "3", name: "Michael Lee", role: "Producer", image: "/assets/movie-placeholder.jpg", knownFor: "Comedy" },
-      { id: "4", name: "Emma Brown", role: "Actress", image: "/assets/movie-placeholder.jpg", knownFor: "Romance, Drama" },
-      { id: "5", name: "David Kim", role: "Writer", image: "/assets/movie-placeholder.jpg", knownFor: "Animation" },
-      { id: "6", name: "Sophia Wilson", role: "Cinematographer", image: "/assets/movie-placeholder.jpg", knownFor: "Adventure" },
-      { id: "7", name: "Tom Cruise", role: "Acting", image: "/assets/movie-placeholder.jpg", knownFor: "Top Gun, Mission: Impossible" },
-      { id: "8", name: "Christopher Nolan", role: "Directing", image: "/assets/movie-placeholder.jpg", knownFor: "Oppenheimer, Inception" },
-      { id: "9", name: "Leonardo DiCaprio", role: "Acting", image: "/assets/movie-placeholder.jpg", knownFor: "Titanic, Inception" },
-      { id: "10", name: "Cillian Murphy", role: "Acting", image: "/assets/movie-placeholder.jpg", knownFor: "Oppenheimer, Peaky Blinders" },
-      { id: "11", name: "Margot Robbie", role: "Acting", image: "/assets/movie-placeholder.jpg", knownFor: "Barbie, Babylon" },
-      { id: "12", name: "Zendaya", role: "Acting", image: "/assets/movie-placeholder.jpg", knownFor: "Dune, Euphoria" },
-    ];
-    const qLower = trimmedQuery.toLowerCase();
-    const matched = mockPersonsList.filter(
-      (p) =>
-        p.name.toLowerCase().includes(qLower) ||
-        p.role.toLowerCase().includes(qLower) ||
-        (p.knownFor && p.knownFor.toLowerCase().includes(qLower))
-    );
-
     return {
-      persons: matched.slice((page - 1) * pageSize, page * pageSize),
-      totalPages: Math.max(1, Math.ceil(matched.length / pageSize)),
+      persons: [],
+      totalPages: 1,
       currentPage: page,
     };
   }
 }
-

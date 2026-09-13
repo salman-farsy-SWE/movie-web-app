@@ -8,6 +8,7 @@ import {
   useCallback,
   useTransition,
 } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import {
   loginWithTmdb,
   logoutFromTmdb,
@@ -16,6 +17,11 @@ import {
 } from "@/actions/auth";
 import type { TmdbAccount } from "@/lib/tmdb/auth";
 import { useUserCollectionsStore } from "@/stores/useUserCollectionsStore";
+import { isProtectedRoute } from "@/lib/auth-routes";
+import {
+  triggerRouteProgressStart,
+  triggerRouteProgressDone,
+} from "@/components/navigation/RouteProgressBar";
 
 interface AuthContextType {
   user: TmdbAccount | null;
@@ -35,6 +41,8 @@ export function AuthProvider({
   children: React.ReactNode;
   initialUser?: TmdbAccount | null;
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<TmdbAccount | null>(initialUser ?? null);
   const [isLoading, setIsLoading] = useState(initialUser === undefined);
   const [prevInitialUser, setPrevInitialUser] = useState(initialUser);
@@ -117,6 +125,7 @@ export function AuthProvider({
         const response = await loginWithTmdb(null, { username, password });
         if (response.success && response.user) {
           setUser(response.user);
+          useUserCollectionsStore.getState().syncAllFromTmdb(true);
         }
         return response;
       } catch (error) {
@@ -131,16 +140,40 @@ export function AuthProvider({
   );
 
   const logout = useCallback(async () => {
-    setIsLoading(true);
+    triggerRouteProgressStart();
+    const currentPath =
+      typeof window !== "undefined" ? window.location.pathname : pathname;
+    const wasProtected = isProtectedRoute(currentPath) || isProtectedRoute(pathname);
+
     try {
       await logoutFromTmdb();
-      setUser(null);
     } catch {
-      setUser(null);
-    } finally {
-      setIsLoading(false);
+      // Continue cleanup on network or TMDB error
     }
-  }, []);
+
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("tmdb_account_info");
+        localStorage.removeItem("movie_trails_user_collections");
+      } catch {}
+    }
+
+    setUser(null);
+    useUserCollectionsStore.getState().reset();
+    setIsLoading(false);
+
+    if (wasProtected) {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("last_app_url", "/");
+        document.cookie = "last_app_url=/; path=/; max-age=2592000; SameSite=Lax";
+      }
+      router.replace("/");
+    } else {
+      router.refresh();
+    }
+
+    triggerRouteProgressDone();
+  }, [router, pathname]);
 
   return (
     <AuthContext.Provider
@@ -165,4 +198,3 @@ export function useAuth() {
   }
   return context;
 }
-

@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useRouter, usePathname } from "next/navigation";
 import { X, Trash2, Loader2 } from "lucide-react";
 import { FaRegStar, FaRegStarHalfStroke, FaStar } from "react-icons/fa6";
-import { useRating } from "@/contexts/RatingContext";
+import { useUIStore } from "@/stores/useUIStore";
+import { useAuth } from "@/contexts/AuthContext";
 import { useUserCollectionsStore, type CollectionMediaItem } from "@/stores/useUserCollectionsStore";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -231,7 +233,20 @@ function RatingModalContent({ targetMedia, onClose }: RatingModalContentProps) {
 }
 
 export function RatingOverlay() {
-  const { open, setOpen, targetMedia } = useRating();
+  const open = useUIStore((state) => state.isRatingOpen);
+  const setOpen = useUIStore((state) => state.setRatingOpen);
+  const targetMedia = useUIStore((state) => state.ratingTargetMedia);
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (open && !isAuthenticated) {
+      setOpen(false);
+      const returnUrl = pathname || "/";
+      router.push(`/login?redirect=${encodeURIComponent(returnUrl)}`, { scroll: false });
+    }
+  }, [open, isAuthenticated, setOpen, router, pathname]);
 
   useEffect(() => {
     if (!open) return;
@@ -253,7 +268,7 @@ export function RatingOverlay() {
     };
   }, [open, setOpen]);
 
-  if (!open) return null;
+  if (!open || !isAuthenticated) return null;
 
   return (
     <div

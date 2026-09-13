@@ -564,7 +564,7 @@ export async function getAccountRated(
 }
 
 /**
- * Fetches lists created by the user on TMDB.
+ * Fetches lists created by the user on TMDB (supporting both v4 modern lists and v3 legacy lists).
  */
 export async function getAccountLists(
   sessionId: string,
@@ -572,24 +572,84 @@ export async function getAccountLists(
   page: number = 1
 ): Promise<{ results: TmdbListResult[]; total_pages: number; total_results: number }> {
   const { headers, apiKeyParam } = getAuthParams();
-  const base = `https://api.themoviedb.org/3/account/${accountId}/lists?session_id=${encodeURIComponent(sessionId)}&page=${page}`;
-  const url = apiKeyParam ? `${base}&${apiKeyParam}` : base;
+  const sessionParam = sessionId ? `session_id=${encodeURIComponent(sessionId)}` : "";
+  const queryParts = [sessionParam, apiKeyParam, `page=${page}`].filter(Boolean).join("&");
 
+  const v4Url = queryParts
+    ? `https://api.themoviedb.org/4/account/${accountId}/lists?${queryParts}`
+    : `https://api.themoviedb.org/4/account/${accountId}/lists?page=${page}`;
+
+  const v3Base = `https://api.themoviedb.org/3/account/${accountId}/lists`;
+  const v3Url = queryParts ? `${v3Base}?${queryParts}` : `${v3Base}?page=${page}`;
+
+  const allResults: TmdbListResult[] = [];
+  const seenIds = new Set<string>();
+  let maxTotalPages = 1;
+  let totalCount = 0;
+
+  // 1. Fetch modern v4 lists (e.g. lists created on themoviedb.org or v4 API)
   try {
-    const res = await tmdbAuthFetch(url, {
-      headers,
-    });
+    const resV4 = await tmdbAuthFetch(v4Url, { headers });
+    if (resV4.ok) {
+      const dataV4 = await resV4.json();
+      if (dataV4 && Array.isArray(dataV4.results)) {
+        maxTotalPages = Math.max(maxTotalPages, dataV4.total_pages || 1);
+        totalCount += dataV4.total_results || dataV4.results.length;
+        dataV4.results.forEach((r: Record<string, unknown>) => {
+          const idStr = String(r.id);
+          if (!seenIds.has(idStr)) {
+            seenIds.add(idStr);
+            allResults.push({
+              id: Number(r.id) || 0,
+              name: (r.name as string) || "",
+              description: (r.description as string) || "",
+              favorite_count: (r.favorite_count as number) || (r.likes_count as number) || 0,
+              item_count: (r.item_count as number) ?? (r.number_of_items as number) ?? 0,
+              iso_639_1: (r.iso_639_1 as string) || "en",
+              list_type: r.public !== undefined ? (r.public ? "public" : "private") : ((r.list_type as string) || "public"),
+              poster_path: (r.poster_path as string | null) || null,
+              backdrop_path: (r.backdrop_path as string | null) || null,
+            });
+          }
+        });
+      }
+    }
+  } catch {}
 
-    if (!res.ok) return { results: [], total_pages: 0, total_results: 0 };
-    const data = await res.json();
-    return {
-      results: (data.results || []) as TmdbListResult[],
-      total_pages: data.total_pages || 1,
-      total_results: data.total_results || 0,
-    };
-  } catch {
-    return { results: [], total_pages: 0, total_results: 0 };
-  }
+  // 2. Fetch v3 lists
+  try {
+    const resV3 = await tmdbAuthFetch(v3Url, { headers });
+    if (resV3.ok) {
+      const dataV3 = await resV3.json();
+      if (dataV3 && Array.isArray(dataV3.results)) {
+        maxTotalPages = Math.max(maxTotalPages, dataV3.total_pages || 1);
+        totalCount += dataV3.total_results || dataV3.results.length;
+        dataV3.results.forEach((r: Record<string, unknown>) => {
+          const idStr = String(r.id);
+          if (!seenIds.has(idStr)) {
+            seenIds.add(idStr);
+            allResults.push({
+              id: Number(r.id) || 0,
+              name: (r.name as string) || "",
+              description: (r.description as string) || "",
+              favorite_count: (r.favorite_count as number) || (r.likes_count as number) || 0,
+              item_count: (r.item_count as number) ?? (r.number_of_items as number) ?? 0,
+              iso_639_1: (r.iso_639_1 as string) || "en",
+              list_type: (r.list_type as string) || "public",
+              poster_path: (r.poster_path as string | null) || null,
+              backdrop_path: (r.backdrop_path as string | null) || null,
+            });
+          }
+        });
+      }
+    }
+  } catch {}
+
+  return {
+    results: allResults,
+    total_pages: maxTotalPages,
+    total_results: totalCount || allResults.length,
+  };
 }
 
 /**
@@ -640,15 +700,20 @@ export async function getListDetails(
           }
         }
 
+        const creatorName =
+          data.created_by?.username ||
+          data.created_by?.name ||
+          (typeof data.created_by === "string" ? data.created_by : undefined);
+
         return {
           id: data.id || cleanId,
           name: data.name || "",
           description: data.description || "",
-          created_by: data.created_by?.username || data.created_by?.name || (typeof data.created_by === "string" ? data.created_by : undefined),
+          created_by: creatorName,
           favorite_count: data.favorite_count || data.likes_count || 0,
-          item_count: data.total_results ?? data.item_count ?? allItems.length,
+          item_count: data.total_results ?? data.item_count ?? (data.number_of_items as number | undefined) ?? allItems.length,
           iso_639_1: data.iso_639_1,
-          public: typeof data.public === "boolean" ? data.public : undefined,
+          public: typeof data.public === "boolean" ? data.public : (typeof data.public === "number" ? Boolean(data.public) : undefined),
           poster_path: data.poster_path,
           backdrop_path: data.backdrop_path,
           items: allItems,
@@ -672,7 +737,7 @@ export async function getListDetails(
     const data = await res.json();
     return {
       ...data,
-      public: typeof data.public === "boolean" ? data.public : undefined,
+      public: typeof data.public === "boolean" ? data.public : (typeof data.public === "number" ? Boolean(data.public) : undefined),
       items: (data.items || data.results || []) as TmdbMediaResult[],
     } as TmdbListDetailsResponse;
   } catch {

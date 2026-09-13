@@ -8,7 +8,7 @@ import { TableItem } from "@/types/items";
 import { Rating } from "@/components/Rating";
 import { MoreOptionsButton } from "@/components/MoreOptionsButton";
 import { WatchlistPopup, type CollectionPageType } from "@/components/WatchlistPopup";
-import { slugify } from "@/lib/utils";
+import { cn, slugify } from "@/lib/utils";
 import type { CollectionMediaItem } from "@/stores/useUserCollectionsStore";
 
 interface TableRowProps {
@@ -22,10 +22,10 @@ interface TableRowProps {
 
 const DEFAULT_POSTER_IMAGE = "/assets/movie-placeholder.jpg";
 
-export function TableRow({ item, isRatingView, currentListId, pageType }: TableRowProps) {
+export function TableRow({ item, isFirst = false, isRatingView, currentListId, pageType }: TableRowProps) {
   const [hasError, setHasError] = useState(false);
   const [open, setOpen] = useState(false);
-  const [popupPos, setPopupPos] = useState<{ bottom: number; left: number } | null>(null);
+  const [popupPos, setPopupPos] = useState<{ top?: number; bottom?: number; left: number } | null>(null);
 
   const popupRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -61,12 +61,28 @@ export function TableRow({ item, isRatingView, currentListId, pageType }: TableR
   useEffect(() => {
     if (!open) return;
 
+    const getActiveBtn = () => {
+      if (btnRef.current && (btnRef.current.offsetWidth > 0 || btnRef.current.getClientRects().length > 0)) {
+        return btnRef.current;
+      }
+      if (mobileBtnRef.current && (mobileBtnRef.current.offsetWidth > 0 || mobileBtnRef.current.getClientRects().length > 0)) {
+        return mobileBtnRef.current;
+      }
+      return btnRef.current || mobileBtnRef.current;
+    };
+
     const update = () => {
-      const activeBtn = btnRef.current || mobileBtnRef.current;
+      const activeBtn = getActiveBtn();
       if (!activeBtn) return;
       const btnRect = activeBtn.getBoundingClientRect();
       const h = window.innerHeight;
-      setPopupPos({ bottom: h - btnRect.top + 7, left: btnRect.right });
+      const left = Math.min(btnRect.right, window.innerWidth - 8);
+
+      if (isFirst) {
+        setPopupPos({ top: btnRect.bottom + 6, left });
+      } else {
+        setPopupPos({ bottom: h - btnRect.top + 6, left });
+      }
     };
 
     const raf = requestAnimationFrame(update);
@@ -77,15 +93,15 @@ export function TableRow({ item, isRatingView, currentListId, pageType }: TableR
       window.removeEventListener("scroll", update, true);
       window.removeEventListener("resize", update);
     };
-  }, [open]);
+  }, [open, isFirst]);
 
   useEffect(() => {
     const onDown = (e: PointerEvent) => {
       if (!openRef.current) return;
       if (popupRef.current?.contains(e.target as Node)) return;
       if (
-        btnRef.current?.contains(e.target as Node) ||
-        mobileBtnRef.current?.contains(e.target as Node)
+        (btnRef.current && btnRef.current.contains(e.target as Node)) ||
+        (mobileBtnRef.current && mobileBtnRef.current.contains(e.target as Node))
       ) {
         return;
       }
@@ -111,8 +127,8 @@ export function TableRow({ item, isRatingView, currentListId, pageType }: TableR
       if (
         popupRef.current &&
         !popupRef.current.contains(e.target as Node) &&
-        !btnRef.current?.contains(e.target as Node) &&
-        !mobileBtnRef.current?.contains(e.target as Node)
+        (!btnRef.current || !btnRef.current.contains(e.target as Node)) &&
+        (!mobileBtnRef.current || !mobileBtnRef.current.contains(e.target as Node))
       ) {
         setOpen(false);
       }
@@ -137,9 +153,14 @@ export function TableRow({ item, isRatingView, currentListId, pageType }: TableR
       {open && popupPos && createPortal(
         <div
           ref={popupRef}
-          className="fixed z-50 origin-bottom-right"
+          className={cn(
+            "fixed z-50",
+            isFirst ? "origin-top-right" : "origin-bottom-right"
+          )}
           style={{
-            bottom: popupPos.bottom,
+            ...(popupPos.top !== undefined
+              ? { top: popupPos.top }
+              : { bottom: popupPos.bottom }),
             left: popupPos.left,
             transform: "translateX(-100%)",
           }}

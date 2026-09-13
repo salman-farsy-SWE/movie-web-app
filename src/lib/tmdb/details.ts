@@ -1,8 +1,6 @@
 import { tmdbFetch, getTmdbImageUrl } from "./tmdb";
 import { getYouTubeTrailerKey, fetchMovieTrailerKey, fetchTvTrailerKey } from "./trailers";
-import { heroContents, rowItems, type MovieItem } from "@/data/mock-home";
-import { slugify } from "@/lib/utils";
-import type { Person } from "@/components/media/PersonCard";
+import type { MovieItem, Person } from "@/types";
 
 export interface MediaDetailsData {
   id: string;
@@ -73,15 +71,6 @@ function formatMoney(amount?: number): string {
   return `$${amount.toLocaleString()}`;
 }
 
-const fallbackPersonsList: Person[] = [
-  { id: "1", name: "John Doe", role: "Actor", image: "/assets/movie-placeholder.jpg" },
-  { id: "2", name: "Jane Smith", role: "Director", image: "/assets/movie-placeholder.jpg" },
-  { id: "3", name: "Michael Lee", role: "Producer", image: "/assets/movie-placeholder.jpg" },
-  { id: "4", name: "Emma Brown", role: "Actress", image: "/assets/movie-placeholder.jpg" },
-  { id: "5", name: "David Kim", role: "Writer", image: "/assets/movie-placeholder.jpg" },
-  { id: "6", name: "Sophia Wilson", role: "Cinematographer", image: "/assets/movie-placeholder.jpg" },
-];
-
 export async function getMediaDetails(
   slugOrId: string,
   isMovieParam?: boolean
@@ -93,26 +82,9 @@ export async function getMediaDetails(
     decoded = slugOrId;
   }
 
-  const allMockItems = [...heroContents, ...rowItems];
-  const matchedMockById = allMockItems.find(
-    (item) => "id" in item && item.id && (String(item.id) === decoded || String(item.id) === slugOrId)
-  );
-
-  const cleanQuery = (matchedMockById?.title || decoded).replace(/-/g, " ").trim();
+  const cleanQuery = decoded.replace(/-/g, " ").trim();
   const isNumeric = /^\d+$/.test(decoded.trim());
-
   let isMovie = isMovieParam;
-
-  if (isMovie === undefined && matchedMockById) {
-    if (
-      ("mediaType" in matchedMockById && matchedMockById.mediaType === "tv") ||
-      ("genre" in matchedMockById && matchedMockById.genre === "TV Show")
-    ) {
-      isMovie = false;
-    } else if ("mediaType" in matchedMockById && matchedMockById.mediaType === "movie") {
-      isMovie = true;
-    }
-  }
 
   // 1. Try fetching from TMDB
   try {
@@ -269,28 +241,20 @@ export async function getMediaDetails(
             image: undefined,
           };
 
+      const director = data.credits?.crew?.find((c: { job: string }) => c.job === "Director");
       const createdBy = !isMovie
         ? data.created_by && data.created_by.length > 0
           ? {
               name: data.created_by[0].name,
               image: getTmdbImageUrl(data.created_by[0].profile_path, "w200"),
             }
-          : {
-              name: "David Benioff",
-              image: "/assets/movie-placeholder.jpg",
-            }
-        : data.credits?.crew?.find((c: { job: string }) => c.job === "Director")
+          : undefined
+        : director
         ? {
-            name: data.credits.crew.find((c: { job: string }) => c.job === "Director").name,
-            image: getTmdbImageUrl(
-              data.credits.crew.find((c: { job: string }) => c.job === "Director").profile_path,
-              "w200"
-            ),
+            name: director.name,
+            image: getTmdbImageUrl(director.profile_path, "w200"),
           }
-        : {
-            name: "Christopher Nolan",
-            image: "/assets/movie-placeholder.jpg",
-          };
+        : undefined;
 
       const cast = data.credits?.cast && data.credits.cast.length > 0
         ? data.credits.cast.slice(0, 14).map((c: any) => ({
@@ -299,7 +263,7 @@ export async function getMediaDetails(
             role: c.character || "Actor",
             image: getTmdbImageUrl(c.profile_path, "w200"),
           }))
-        : fallbackPersonsList;
+        : [];
 
       const rawRecs =
         data.recommendations?.results?.length > 0
@@ -319,7 +283,7 @@ export async function getMediaDetails(
               mediaType: isMovie ? "movie" : "tv",
               rating: r.vote_average ? r.vote_average.toFixed(1) : "8.0",
             }))
-          : rowItems.slice(0, 14);
+          : [];
 
       return {
         id: String(tmdbId),
@@ -350,115 +314,32 @@ export async function getMediaDetails(
       };
     }
   } catch (err) {
-    console.error("TMDB details fetch failed, falling back to mock catalog:", err);
+    console.error("TMDB details fetch failed:", err);
   }
 
-  // 2. Fallback to local catalog
-  const targetSlug = slugify(slugOrId).toLowerCase();
-  const decodedSlug = slugify(decoded).toLowerCase();
-  const cleanQueryLower = cleanQuery.toLowerCase();
-
-  const matchedMock =
-    matchedMockById ||
-    allMockItems.find((item) => {
-      if ("id" in item && item.id && (String(item.id) === decoded || String(item.id) === slugOrId)) {
-        return true;
-      }
-      const itemTitleSlug = slugify(item.title).toLowerCase();
-      if (targetSlug && itemTitleSlug === targetSlug) return true;
-      if (decodedSlug && itemTitleSlug === decodedSlug) return true;
-      const itemTitleLower = item.title.toLowerCase();
-      if (
-        cleanQueryLower &&
-        (itemTitleLower.includes(cleanQueryLower) || cleanQueryLower.includes(itemTitleLower))
-      ) {
-        return true;
-      }
-      return false;
-    });
-
-  if (isMovie === undefined) {
-    if (
-      (matchedMock && "mediaType" in matchedMock && matchedMock.mediaType === "tv") ||
-      (matchedMock && "genre" in matchedMock && matchedMock.genre === "TV Show")
-    ) {
-      isMovie = false;
-    } else {
-      isMovie = true;
-    }
-  }
-
+  // Fallback if TMDB lookup fails
   const title =
-    matchedMock?.title ||
     cleanQuery.replace(/\b\w/g, (l) => l.toUpperCase()) ||
     (isMovie ? "Movie Details" : "TV Shows Details");
 
-  const overview =
-    (matchedMock && "description" in matchedMock && (matchedMock as any).description) ||
-    "Nine noble families wage war against each other in order to gain control over the mythical land.";
-  const genres =
-    matchedMock && "genres" in matchedMock && Array.isArray(matchedMock.genres)
-      ? matchedMock.genres
-      : matchedMock && "genre" in matchedMock && typeof matchedMock.genre === "string"
-      ? matchedMock.genre.split("/").map((g) => g.trim())
-      : isMovie
-      ? ["Action", "Sci-Fi", "Drama"]
-      : ["Drama", "Adventure", "Fantasy"];
-
-  const releaseDate = matchedMock?.year
-    ? `1 Jan, ${matchedMock.year}`
-    : isMovie
-    ? "7 Nov, 2014"
-    : "17 Apr, 2011";
-
-  const rating = matchedMock?.rating ? parseFloat(matchedMock.rating) : 8.4;
-  const image = matchedMock?.image || "/assets/movie-placeholder.jpg";
-
-  const country =
-    matchedMock && "country" in matchedMock && matchedMock.country
-      ? matchedMock.country
-      : "United States, United Kingdom";
-
-  const language =
-    matchedMock && "language" in matchedMock && matchedMock.language
-      ? matchedMock.language
-      : "English";
-
-  const itemId =
-    matchedMock && "id" in matchedMock && matchedMock.id
-      ? matchedMock.id
-      : slugOrId;
-
   return {
-    id: itemId,
+    id: String(slugOrId),
     title,
-    overview,
-    releaseDate,
-    genres,
-    duration: isMovie ? "2h 49m" : "55m",
-    rating,
-    voteCount: "34,000",
-    popularity: "256.42",
-    backdropImage: image,
-    posterImage: image,
-    trailerKey: matchedMock?.trailerKey || null,
-    country,
-    language,
-    budget: isMovie ? "$165M" : undefined,
-    revenue: isMovie ? "$700M" : undefined,
-    numberOfEpisodes: !isMovie ? 73 : undefined,
-    numberOfSeasons: !isMovie ? 8 : undefined,
-    studio: {
-      name: "Legendary Pictures",
-      image: undefined,
-    },
-    createdBy: {
-      name: isMovie ? "Christopher Nolan" : "David Benioff",
-      image: "/assets/movie-placeholder.jpg",
-    },
-    cast: fallbackPersonsList,
-    recommendations: rowItems.slice(0, 14),
-    isMovie,
+    overview: "Details are currently unavailable.",
+    releaseDate: "N/A",
+    genres: isMovie ? ["Movie"] : ["TV Show"],
+    duration: isMovie ? "N/A" : undefined,
+    rating: 0,
+    voteCount: "0",
+    popularity: "0",
+    backdropImage: "/assets/movie-placeholder.jpg",
+    posterImage: "/assets/movie-placeholder.jpg",
+    trailerKey: null,
+    country: "N/A",
+    language: "en",
+    cast: [],
+    recommendations: [],
+    isMovie: isMovie ?? true,
   };
 }
 
@@ -541,17 +422,18 @@ export async function getPersonDetails(
         })
         .sort((a: any, b: any) => (b.vote_count || 0) - (a.vote_count || 0));
 
-      const knownForCredits: MovieItem[] = rawCredits.length > 0
-        ? rawCredits.slice(0, 14).map((m: any) => ({
-            id: String(m.id),
-            title: m.title || m.name,
-            genre: m.media_type === "tv" ? "TV Show" : "Movie",
-            image: getTmdbImageUrl(m.poster_path || m.backdrop_path, "w500"),
-            rating: m.vote_average ? m.vote_average.toFixed(1) : "8.0",
-            mediaType: m.media_type === "tv" ? "tv" : "movie",
-            trailerKey: null,
-          }))
-        : rowItems.slice(0, 14);
+      const knownForCredits: MovieItem[] =
+        rawCredits.length > 0
+          ? rawCredits.slice(0, 14).map((m: any) => ({
+              id: String(m.id),
+              title: m.title || m.name,
+              genre: m.media_type === "tv" ? "TV Show" : "Movie",
+              image: getTmdbImageUrl(m.poster_path || m.backdrop_path, "w500"),
+              rating: m.vote_average ? m.vote_average.toFixed(1) : "8.0",
+              mediaType: m.media_type === "tv" ? "tv" : "movie",
+              trailerKey: null,
+            }))
+          : [];
 
       // Fetch co-stars and crew collaborators from top 4 media items in parallel
       const topMedia = rawCredits.slice(0, 4);
@@ -619,7 +501,7 @@ export async function getPersonDetails(
         alsoKnownAs: Array.isArray(data.also_known_as) ? data.also_known_as : [],
         totalCredits: totalCreditsCount > 0 ? totalCreditsCount : undefined,
         knownForCredits,
-        collaborators: collaborators.length > 0 ? collaborators.slice(0, 14) : fallbackPersonsList,
+        collaborators: collaborators.length > 0 ? collaborators.slice(0, 14) : [],
       };
     }
   } catch (error) {
@@ -637,8 +519,8 @@ export async function getPersonDetails(
     popularity: "N/A",
     knownFor: "Movies",
     image: "/assets/movie-placeholder.jpg",
-    knownForCredits: rowItems.slice(0, 14),
-    collaborators: fallbackPersonsList,
+    knownForCredits: [],
+    collaborators: [],
   };
 }
 

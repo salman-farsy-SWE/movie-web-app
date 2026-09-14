@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FaStar, FaRegStar } from "react-icons/fa6";
@@ -33,33 +33,34 @@ export function WatchlistPopup({ media, currentListId, pageType, onClose }: Watc
     const toggleListItem = useUserCollectionsStore((state) => state.toggleListItem);
     const removeItemFromList = useUserCollectionsStore((state) => state.removeItemFromList);
     const isItemInList = useUserCollectionsStore((state) => state.isItemInList);
+    const syncCustomListsFromTmdb = useUserCollectionsStore((state) => state.syncCustomListsFromTmdb);
 
     const openRating = useUIStore((state) => state.openRating);
     const openCreate = useUIStore((state) => state.openCreateList);
 
     const mediaId = media?.id;
-    const mediaTitle = media?.title?.trim().toLowerCase();
+    const mediaTitle = media?.title;
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            syncCustomListsFromTmdb();
+        }
+    }, [isAuthenticated, syncCustomListsFromTmdb]);
 
     const isFav = useUserCollectionsStore((state) =>
-        isAuthenticated && mediaId !== undefined
-            ? state.favorites.some(
-                (f) =>
-                    String(f.id) === String(mediaId) ||
-                    Boolean(mediaTitle && f.title && f.title.trim().toLowerCase() === mediaTitle)
-            )
+        isAuthenticated && (mediaId !== undefined || mediaTitle)
+            ? state.isFavorite(mediaId ?? "", mediaTitle)
             : false
     );
     const inWatchlist = useUserCollectionsStore((state) =>
-        isAuthenticated && mediaId !== undefined
-            ? state.watchlist.some(
-                (w) =>
-                    String(w.id) === String(mediaId) ||
-                    Boolean(mediaTitle && w.title && w.title.trim().toLowerCase() === mediaTitle)
-            )
+        isAuthenticated && (mediaId !== undefined || mediaTitle)
+            ? state.isInWatchlist(mediaId ?? "", mediaTitle)
             : false
     );
     const storeRating = useUserCollectionsStore((state) =>
-        isAuthenticated && mediaId !== undefined ? state.ratings[String(mediaId)]?.rating : undefined
+        isAuthenticated && (mediaId !== undefined || mediaTitle)
+            ? state.getUserRating(mediaId ?? "", mediaTitle)
+            : undefined
     );
     const userRating = isAuthenticated ? (storeRating ?? media?.userRating) : undefined;
 
@@ -94,8 +95,8 @@ export function WatchlistPopup({ media, currentListId, pageType, onClose }: Watc
     const handleRemoveFavorite = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (!requireAuth()) return;
-        if (mediaId !== undefined) {
-            removeFavorite(mediaId);
+        if (mediaId !== undefined || mediaTitle) {
+            removeFavorite(mediaId ?? "", mediaTitle);
         }
         if (onClose) onClose();
     };
@@ -111,8 +112,8 @@ export function WatchlistPopup({ media, currentListId, pageType, onClose }: Watc
     const handleRemoveWatchlist = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (!requireAuth()) return;
-        if (mediaId !== undefined) {
-            removeWatchlist(mediaId);
+        if (mediaId !== undefined || mediaTitle) {
+            removeWatchlist(mediaId ?? "", mediaTitle);
         }
         if (onClose) onClose();
     };
@@ -120,8 +121,8 @@ export function WatchlistPopup({ media, currentListId, pageType, onClose }: Watc
     const handleRemoveRating = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (!requireAuth()) return;
-        if (mediaId !== undefined) {
-            removeUserRating(mediaId, media?.mediaType);
+        if (mediaId !== undefined || mediaTitle) {
+            removeUserRating(mediaId ?? "", media?.mediaType, mediaTitle);
         }
         if (onClose) onClose();
     };

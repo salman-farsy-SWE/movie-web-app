@@ -47,23 +47,23 @@ export interface UserCollectionsState {
   isStale: (key: "favorites" | "watchlist" | "ratings" | "customLists" | "collectionIds" | string, ttlMs?: number) => boolean;
 
   // Favorites
-  isFavorite: (id: string | number) => boolean;
+  isFavorite: (id: string | number, title?: string) => boolean;
   toggleFavorite: (item: CollectionMediaItem) => Promise<boolean>;
   setFavoriteStatus: (item: CollectionMediaItem, favorite: boolean) => void;
-  removeFavorite: (id: string | number) => void;
+  removeFavorite: (id: string | number, title?: string) => void;
   syncFavoritesFromTmdb: (force?: boolean) => Promise<void>;
 
   // Watchlist
-  isInWatchlist: (id: string | number) => boolean;
+  isInWatchlist: (id: string | number, title?: string) => boolean;
   toggleWatchlist: (item: CollectionMediaItem) => Promise<boolean>;
   setWatchlistStatus: (item: CollectionMediaItem, inWatchlist: boolean) => void;
-  removeWatchlist: (id: string | number) => void;
+  removeWatchlist: (id: string | number, title?: string) => void;
   syncWatchlistFromTmdb: (force?: boolean) => Promise<void>;
 
   // Ratings
-  getUserRating: (id: string | number) => number | undefined;
+  getUserRating: (id: string | number, title?: string) => number | undefined;
   setUserRating: (item: CollectionMediaItem, rating: number) => Promise<void>;
-  removeUserRating: (id: string | number, mediaType?: "movie" | "tv") => Promise<void>;
+  removeUserRating: (id: string | number, mediaType?: "movie" | "tv", title?: string) => Promise<void>;
   syncRatingsFromTmdb: (force?: boolean) => Promise<void>;
 
   // Custom Lists
@@ -106,22 +106,38 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
       // ==========================================
       // Favorites (Coalesced & Sequenced)
       // ==========================================
-      isFavorite: (id) => {
+      isFavorite: (id, title) => {
         const idStr = String(id);
-        return get().favorites.some((item) => String(item.id) === idStr);
+        const titleLower = (title || (typeof id === "string" ? id : "")).trim().toLowerCase();
+        return get().favorites.some((item) => {
+          if (String(item.id) === idStr) return true;
+          if (titleLower && item.title && item.title.trim().toLowerCase() === titleLower) return true;
+          return false;
+        });
       },
 
       setFavoriteStatus: (item, favorite) => {
         const idStr = String(item.id);
+        const itemTitleLower = item.title ? item.title.trim().toLowerCase() : "";
         set((state) => {
-          const existing = state.favorites.find((f) => String(f.id) === idStr);
+          const existing = state.favorites.find(
+            (f) =>
+              String(f.id) === idStr ||
+              (itemTitleLower && f.title && f.title.trim().toLowerCase() === itemTitleLower)
+          );
           const fullItem = existing ? { ...existing, ...item } : item;
           const exists = Boolean(existing);
           if (favorite && !exists) {
             return { favorites: [fullItem, ...state.favorites] };
           }
           if (!favorite && exists) {
-            return { favorites: state.favorites.filter((f) => String(f.id) !== idStr) };
+            return {
+              favorites: state.favorites.filter(
+                (f) =>
+                  String(f.id) !== idStr &&
+                  (!itemTitleLower || !f.title || f.title.trim().toLowerCase() !== itemTitleLower)
+              ),
+            };
           }
           return state;
         });
@@ -129,16 +145,25 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
 
       toggleFavorite: async (item) => {
         const idStr = String(item.id);
-        const existing = get().favorites.find((f) => String(f.id) === idStr);
+        const itemTitleLower = item.title ? item.title.trim().toLowerCase() : "";
+        const existing = get().favorites.find(
+          (f) =>
+            String(f.id) === idStr ||
+            (itemTitleLower && f.title && f.title.trim().toLowerCase() === itemTitleLower)
+        );
         const fullItem = existing ? { ...existing, ...item } : item;
-        const currentlyFavorited = get().isFavorite(item.id);
+        const currentlyFavorited = Boolean(existing);
         const newFavoriteState = !currentlyFavorited;
 
         // 1. Instant Optimistic Local State Update
         set((state) => {
           if (currentlyFavorited) {
             return {
-              favorites: state.favorites.filter((f) => String(f.id) !== idStr),
+              favorites: state.favorites.filter(
+                (f) =>
+                  String(f.id) !== idStr &&
+                  (!itemTitleLower || !f.title || f.title.trim().toLowerCase() !== itemTitleLower)
+              ),
             };
           }
           return {
@@ -165,12 +190,20 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
             onRollback: (failedValue) => {
               // Rollback only if the current state still equals the failed value
               set((state) => {
-                const isCurrentlyFav = state.favorites.some((f) => String(f.id) === idStr);
+                const isCurrentlyFav = state.favorites.some(
+                  (f) =>
+                    String(f.id) === idStr ||
+                    (itemTitleLower && f.title && f.title.trim().toLowerCase() === itemTitleLower)
+                );
                 if (isCurrentlyFav === failedValue) {
                   return {
                     favorites: failedValue
-                      ? state.favorites.filter((f) => String(f.id) !== idStr)
-                      : [item, ...state.favorites],
+                      ? state.favorites.filter(
+                          (f) =>
+                            String(f.id) !== idStr &&
+                            (!itemTitleLower || !f.title || f.title.trim().toLowerCase() !== itemTitleLower)
+                        )
+                      : [fullItem, ...state.favorites],
                   };
                 }
                 return state;
@@ -182,18 +215,27 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
         return newFavoriteState;
       },
 
-      removeFavorite: (id) => {
+      removeFavorite: (id, title) => {
         const idStr = String(id);
-        const item = get().favorites.find((f) => String(f.id) === idStr);
+        const titleLower = (title || (typeof id === "string" ? id : "")).trim().toLowerCase();
+        const item = get().favorites.find(
+          (f) =>
+            String(f.id) === idStr ||
+            (titleLower && f.title && f.title.trim().toLowerCase() === titleLower)
+        );
 
         set((state) => ({
-          favorites: state.favorites.filter((f) => String(f.id) !== idStr),
+          favorites: state.favorites.filter(
+            (f) =>
+              String(f.id) !== idStr &&
+              (!titleLower || !f.title || f.title.trim().toLowerCase() !== titleLower)
+          ),
         }));
 
         if (item) {
           const mediaType: "movie" | "tv" =
             item.mediaType === "tv" || item.isMovie === false ? "tv" : "movie";
-          const key = `fav:${mediaType}:${idStr}`;
+          const key = `fav:${mediaType}:${item.id || idStr}`;
 
           operationQueue
             .syncState({
@@ -201,7 +243,7 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
               desiredValue: false,
               syncFn: async () => {
                 return await toggleTmdbFavoriteAction({
-                  mediaId: id,
+                  mediaId: item.id,
                   mediaType,
                   favorite: false,
                 });
@@ -218,13 +260,38 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
         try {
           const res = await syncTmdbFavoritesAction();
           if (res.success) {
-            set((state) => ({
-              favorites: res.favorites,
-              lastSyncedAt: {
-                ...state.lastSyncedAt,
-                favorites: Date.now(),
-              },
-            }));
+            set((state) => {
+              const favMap = new Map<string, CollectionMediaItem>();
+              res.favorites.forEach((item) => {
+                favMap.set(String(item.id), item);
+              });
+              state.favorites.forEach((item) => {
+                const idKey = String(item.id);
+                const existing = favMap.get(idKey);
+                if (!existing) {
+                  if (item.title || item.posterImage) {
+                    favMap.set(idKey, item);
+                  }
+                } else {
+                  favMap.set(idKey, {
+                    ...existing,
+                    ...item,
+                    ...existing,
+                    title: existing.title || item.title || "",
+                    posterImage: existing.posterImage || item.posterImage,
+                    backdropImage: existing.backdropImage || item.backdropImage,
+                  });
+                }
+              });
+
+              return {
+                favorites: Array.from(favMap.values()),
+                lastSyncedAt: {
+                  ...state.lastSyncedAt,
+                  favorites: Date.now(),
+                },
+              };
+            });
           }
         } catch {}
       },
@@ -232,22 +299,38 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
       // ==========================================
       // Watchlist (Coalesced & Sequenced)
       // ==========================================
-      isInWatchlist: (id) => {
+      isInWatchlist: (id, title) => {
         const idStr = String(id);
-        return get().watchlist.some((item) => String(item.id) === idStr);
+        const titleLower = (title || (typeof id === "string" ? id : "")).trim().toLowerCase();
+        return get().watchlist.some((item) => {
+          if (String(item.id) === idStr) return true;
+          if (titleLower && item.title && item.title.trim().toLowerCase() === titleLower) return true;
+          return false;
+        });
       },
 
       setWatchlistStatus: (item, inWatchlist) => {
         const idStr = String(item.id);
+        const itemTitleLower = item.title ? item.title.trim().toLowerCase() : "";
         set((state) => {
-          const existing = state.watchlist.find((w) => String(w.id) === idStr);
+          const existing = state.watchlist.find(
+            (w) =>
+              String(w.id) === idStr ||
+              (itemTitleLower && w.title && w.title.trim().toLowerCase() === itemTitleLower)
+          );
           const fullItem = existing ? { ...existing, ...item } : item;
           const exists = Boolean(existing);
           if (inWatchlist && !exists) {
             return { watchlist: [fullItem, ...state.watchlist] };
           }
           if (!inWatchlist && exists) {
-            return { watchlist: state.watchlist.filter((w) => String(w.id) !== idStr) };
+            return {
+              watchlist: state.watchlist.filter(
+                (w) =>
+                  String(w.id) !== idStr &&
+                  (!itemTitleLower || !w.title || w.title.trim().toLowerCase() !== itemTitleLower)
+              ),
+            };
           }
           return state;
         });
@@ -255,16 +338,25 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
 
       toggleWatchlist: async (item) => {
         const idStr = String(item.id);
-        const existing = get().watchlist.find((w) => String(w.id) === idStr);
+        const itemTitleLower = item.title ? item.title.trim().toLowerCase() : "";
+        const existing = get().watchlist.find(
+          (w) =>
+            String(w.id) === idStr ||
+            (itemTitleLower && w.title && w.title.trim().toLowerCase() === itemTitleLower)
+        );
         const fullItem = existing ? { ...existing, ...item } : item;
-        const currentlyInWatchlist = get().isInWatchlist(item.id);
+        const currentlyInWatchlist = Boolean(existing);
         const newWatchlistState = !currentlyInWatchlist;
 
         // 1. Instant Optimistic Local State Update
         set((state) => {
           if (currentlyInWatchlist) {
             return {
-              watchlist: state.watchlist.filter((w) => String(w.id) !== idStr),
+              watchlist: state.watchlist.filter(
+                (w) =>
+                  String(w.id) !== idStr &&
+                  (!itemTitleLower || !w.title || w.title.trim().toLowerCase() !== itemTitleLower)
+              ),
             };
           }
           return {
@@ -290,11 +382,19 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
             },
             onRollback: (failedValue) => {
               set((state) => {
-                const isCurrentlyInWl = state.watchlist.some((w) => String(w.id) === idStr);
+                const isCurrentlyInWl = state.watchlist.some(
+                  (w) =>
+                    String(w.id) === idStr ||
+                    (itemTitleLower && w.title && w.title.trim().toLowerCase() === itemTitleLower)
+                );
                 if (isCurrentlyInWl === failedValue) {
                   return {
                     watchlist: failedValue
-                      ? state.watchlist.filter((w) => String(w.id) !== idStr)
+                      ? state.watchlist.filter(
+                          (w) =>
+                            String(w.id) !== idStr &&
+                            (!itemTitleLower || !w.title || w.title.trim().toLowerCase() !== itemTitleLower)
+                        )
                       : [fullItem, ...state.watchlist],
                   };
                 }
@@ -307,18 +407,27 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
         return newWatchlistState;
       },
 
-      removeWatchlist: (id) => {
+      removeWatchlist: (id, title) => {
         const idStr = String(id);
-        const item = get().watchlist.find((w) => String(w.id) === idStr);
+        const titleLower = (title || (typeof id === "string" ? id : "")).trim().toLowerCase();
+        const item = get().watchlist.find(
+          (w) =>
+            String(w.id) === idStr ||
+            (titleLower && w.title && w.title.trim().toLowerCase() === titleLower)
+        );
 
         set((state) => ({
-          watchlist: state.watchlist.filter((w) => String(w.id) !== idStr),
+          watchlist: state.watchlist.filter(
+            (w) =>
+              String(w.id) !== idStr &&
+              (!titleLower || !w.title || w.title.trim().toLowerCase() !== titleLower)
+          ),
         }));
 
         if (item) {
           const mediaType: "movie" | "tv" =
             item.mediaType === "tv" || item.isMovie === false ? "tv" : "movie";
-          const key = `wl:${mediaType}:${idStr}`;
+          const key = `wl:${mediaType}:${item.id || idStr}`;
 
           operationQueue
             .syncState({
@@ -326,7 +435,7 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
               desiredValue: false,
               syncFn: async () => {
                 return await toggleTmdbWatchlistAction({
-                  mediaId: id,
+                  mediaId: item.id,
                   mediaType,
                   watchlist: false,
                 });
@@ -343,13 +452,38 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
         try {
           const res = await syncTmdbWatchlistAction();
           if (res.success) {
-            set((state) => ({
-              watchlist: res.watchlist,
-              lastSyncedAt: {
-                ...state.lastSyncedAt,
-                watchlist: Date.now(),
-              },
-            }));
+            set((state) => {
+              const wlMap = new Map<string, CollectionMediaItem>();
+              res.watchlist.forEach((item) => {
+                wlMap.set(String(item.id), item);
+              });
+              state.watchlist.forEach((item) => {
+                const idKey = String(item.id);
+                const existing = wlMap.get(idKey);
+                if (!existing) {
+                  if (item.title || item.posterImage) {
+                    wlMap.set(idKey, item);
+                  }
+                } else {
+                  wlMap.set(idKey, {
+                    ...existing,
+                    ...item,
+                    ...existing,
+                    title: existing.title || item.title || "",
+                    posterImage: existing.posterImage || item.posterImage,
+                    backdropImage: existing.backdropImage || item.backdropImage,
+                  });
+                }
+              });
+
+              return {
+                watchlist: Array.from(wlMap.values()),
+                lastSyncedAt: {
+                  ...state.lastSyncedAt,
+                  watchlist: Date.now(),
+                },
+              };
+            });
           }
         } catch {}
       },
@@ -357,32 +491,57 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
       // ==========================================
       // Ratings (Coalesced & Sequenced)
       // ==========================================
-      getUserRating: (id) => {
+      getUserRating: (id, title) => {
         const idStr = String(id);
-        return get().ratings[idStr]?.rating;
+        const direct = get().ratings[idStr]?.rating;
+        if (direct !== undefined) return direct;
+        const titleLower = (title || (typeof id === "string" ? id : "")).trim().toLowerCase();
+        if (titleLower) {
+          const match = Object.values(get().ratings).find(
+            (r) => r.item?.title && r.item.title.trim().toLowerCase() === titleLower
+          );
+          if (match) return match.rating;
+        }
+        return undefined;
       },
 
       setUserRating: async (item, rating) => {
         const idStr = String(item.id);
-        const prevRating = get().ratings[idStr];
-        const existingItem = prevRating?.item;
+        const itemTitleLower = item.title ? item.title.trim().toLowerCase() : "";
 
-        // 1. Instant Optimistic Local State Update
+        // Find existing rating by ID or title
+        let prevRatingKey = idStr;
+        let prevRating = get().ratings[idStr];
+        if (!prevRating && itemTitleLower) {
+          const matchingEntry = Object.entries(get().ratings).find(
+            ([, val]) => val.item?.title && val.item.title.trim().toLowerCase() === itemTitleLower
+          );
+          if (matchingEntry) {
+            prevRatingKey = matchingEntry[0];
+            prevRating = matchingEntry[1];
+          }
+        }
+
+        const existingItem = prevRating?.item;
         const updatedItem: CollectionMediaItem = {
           ...(existingItem || {}),
           ...item,
           userRating: rating,
         };
-        set((state) => ({
-          ratings: {
-            ...state.ratings,
-            [idStr]: {
-              rating,
-              item: updatedItem,
-              ratedAt: new Date().toISOString(),
-            },
-          },
-        }));
+
+        // 1. Instant Optimistic Local State Update
+        set((state) => {
+          const newRatings = { ...state.ratings };
+          if (prevRatingKey !== idStr) {
+            delete newRatings[prevRatingKey];
+          }
+          newRatings[idStr] = {
+            rating,
+            item: updatedItem,
+            ratedAt: new Date().toISOString(),
+          };
+          return { ratings: newRatings };
+        });
 
         // 2. Coalesced and Sequenced TMDB Sync
         const mediaType: "movie" | "tv" =
@@ -404,7 +563,10 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
               set((state) => {
                 const newRatings = { ...state.ratings };
                 if (prevRating) {
-                  newRatings[idStr] = prevRating;
+                  newRatings[prevRatingKey] = prevRating;
+                  if (prevRatingKey !== idStr) {
+                    delete newRatings[idStr];
+                  }
                 } else {
                   delete newRatings[idStr];
                 }
@@ -415,13 +577,28 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
           .catch(() => {});
       },
 
-      removeUserRating: async (id, mediaType = "movie") => {
+      removeUserRating: async (id, mediaType = "movie", title?: string) => {
         const idStr = String(id);
-        const prevRating = get().ratings[idStr];
+        const titleLower = (title || (typeof id === "string" ? id : "")).trim().toLowerCase();
+        let prevRating: { rating: number; item: CollectionMediaItem; ratedAt: string } | undefined =
+          get().ratings[idStr];
+
+        if (!prevRating && titleLower) {
+          prevRating = Object.values(get().ratings).find(
+            (r) => r.item?.title && r.item.title.trim().toLowerCase() === titleLower
+          );
+        }
 
         set((state) => {
           const newRatings = { ...state.ratings };
           delete newRatings[idStr];
+          if (titleLower) {
+            Object.entries(newRatings).forEach(([k, v]) => {
+              if (v.item?.title && v.item.title.trim().toLowerCase() === titleLower) {
+                delete newRatings[k];
+              }
+            });
+          }
           return { ratings: newRatings };
         });
 
@@ -448,13 +625,30 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
         try {
           const res = await syncTmdbRatingsAction();
           if (res.success) {
-            set((state) => ({
-              ratings: res.ratings,
-              lastSyncedAt: {
-                ...state.lastSyncedAt,
-                ratings: Date.now(),
-              },
-            }));
+            set((state) => {
+              const mergedRatings = { ...state.ratings };
+              Object.entries(res.ratings).forEach(([idStr, val]) => {
+                const existing = mergedRatings[idStr];
+                mergedRatings[idStr] = {
+                  rating: val.rating,
+                  item: {
+                    ...(existing?.item || {}),
+                    ...val.item,
+                    title: val.item.title || existing?.item?.title || "",
+                    posterImage: val.item.posterImage || existing?.item?.posterImage,
+                  },
+                  ratedAt: val.ratedAt || existing?.ratedAt || new Date().toISOString(),
+                };
+              });
+
+              return {
+                ratings: mergedRatings,
+                lastSyncedAt: {
+                  ...state.lastSyncedAt,
+                  ratings: Date.now(),
+                },
+              };
+            });
           }
         } catch {}
       },
@@ -1091,16 +1285,20 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
             set((state) => {
               const currentFavMap = new Map<string, CollectionMediaItem>();
               state.favorites.forEach((f) => currentFavMap.set(String(f.id), f));
-              const newFavorites: CollectionMediaItem[] = res.favoriteIds.map((id) => {
+              res.favoriteIds.forEach((id) => {
                 const idStr = String(id);
-                return currentFavMap.get(idStr) || { id: Number(id) || id, title: "" };
+                if (!currentFavMap.has(idStr)) {
+                  currentFavMap.set(idStr, { id: Number(id) || id, title: "" });
+                }
               });
 
               const currentWlMap = new Map<string, CollectionMediaItem>();
               state.watchlist.forEach((w) => currentWlMap.set(String(w.id), w));
-              const newWatchlist: CollectionMediaItem[] = res.watchlistIds.map((id) => {
+              res.watchlistIds.forEach((id) => {
                 const idStr = String(id);
-                return currentWlMap.get(idStr) || { id: Number(id) || id, title: "" };
+                if (!currentWlMap.has(idStr)) {
+                  currentWlMap.set(idStr, { id: Number(id) || id, title: "" });
+                }
               });
 
               const newRatings: Record<string, { rating: number; item: CollectionMediaItem; ratedAt: string }> = { ...state.ratings };
@@ -1108,11 +1306,12 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
                 const existing = state.ratings[idStr];
                 newRatings[idStr] = {
                   rating: info.rating,
-                  item: existing?.item || {
+                  item: {
+                    ...(existing?.item || {}),
                     id: Number(idStr) || idStr,
-                    title: info.title || "",
-                    mediaType: info.mediaType || "movie",
-                    isMovie: info.mediaType !== "tv",
+                    title: existing?.item?.title || info.title || "",
+                    mediaType: info.mediaType || existing?.item?.mediaType || "movie",
+                    isMovie: (info.mediaType || existing?.item?.mediaType) !== "tv",
                     userRating: info.rating,
                   },
                   ratedAt: existing?.ratedAt || new Date().toISOString(),
@@ -1120,8 +1319,8 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
               });
 
               return {
-                favorites: newFavorites,
-                watchlist: newWatchlist,
+                favorites: Array.from(currentFavMap.values()),
+                watchlist: Array.from(currentWlMap.values()),
                 ratings: newRatings,
                 lastSyncedAt: {
                   ...state.lastSyncedAt,

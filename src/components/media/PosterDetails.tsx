@@ -94,10 +94,10 @@ export function PosterDetails({
     }), [mediaId, title, data?.posterImage, posterImage, data?.backdropImage, bgImage, rating, releaseDate, isMovie, genre]);
 
     const isFav = useUserCollectionsStore((state) =>
-        isAuthenticated && state.favorites.some((f) => String(f.id) === String(mediaId))
+        isAuthenticated ? state.isFavorite(mediaId, title) : false
     );
     const userRating = useUserCollectionsStore((state) =>
-        isAuthenticated ? state.ratings[String(mediaId)]?.rating : undefined
+        isAuthenticated ? state.getUserRating(mediaId, title) : undefined
     );
 
     // Sync TMDB account state if authenticated and item is from TMDB
@@ -108,11 +108,11 @@ export function PosterDetails({
         getTmdbAccountStateAction(data.id, isMovie ? "movie" : "tv")
             .then((state) => {
                 if (isCancelled || !state) return;
-                if (typeof state.favorite === "boolean") {
-                    setFavoriteStatus(mediaItem, state.favorite);
+                if (state.favorite === true) {
+                    setFavoriteStatus(mediaItem, true);
                 }
-                if (typeof state.watchlist === "boolean") {
-                    setWatchlistStatus(mediaItem, state.watchlist);
+                if (state.watchlist === true) {
+                    setWatchlistStatus(mediaItem, true);
                 }
                 if (typeof state.rated === "object" && typeof state.rated.value === "number") {
                     setUserRating(mediaItem, state.rated.value);

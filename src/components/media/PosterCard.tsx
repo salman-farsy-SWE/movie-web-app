@@ -39,7 +39,7 @@ export function PosterCard({
 
     const mediaId = id || title;
     const isFav = useUserCollectionsStore((state) =>
-        isAuthenticated && state.favorites.some((f) => String(f.id) === String(mediaId))
+        isAuthenticated ? state.isFavorite(mediaId, title) : false
     );
     const toggleFavorite = useUserCollectionsStore((state) => state.toggleFavorite);
 

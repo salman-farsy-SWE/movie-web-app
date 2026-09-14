@@ -130,7 +130,7 @@ export async function toggleTmdbWatchlistAction({
 
     const numericId = Math.floor(Number(mediaId));
     if (isNaN(numericId) || numericId <= 0) {
-      return { success: false, watchlist: !watchlist, isTmdbSynced: false, error: "Invalid media ID" };
+      return { success: true, watchlist, isTmdbSynced: false };
     }
 
     if (!sessionId) {

@@ -497,6 +497,7 @@ export function UserCollectionPage({
       ) : (
         <Item
           data={paginatedItems}
+          totalCount={processedItems.length}
           isLoading={isLoading || !isHydrated || isPending}
           emptyMessage={emptyMessage}
           currentListId={isListDetails ? (currentList?.id || param2) : undefined}

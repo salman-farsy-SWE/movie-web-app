@@ -12,6 +12,7 @@ interface FavoriteItemsProps {
   isLoading?: boolean;
   currentListId?: string | number;
   pageType?: "favorite" | "watchlist" | "rating" | "list";
+  totalCount?: number;
   onClear?: () => void;
 }
 
@@ -22,9 +23,11 @@ export function Item({
   isLoading = false,
   currentListId,
   pageType,
+  totalCount,
   onClear,
 }: FavoriteItemsProps) {
   const items = data;
+  const count = totalCount !== undefined ? totalCount : items.length;
 
   const isRatingView = headers.some(
     (h) => h.toLowerCase() === "your rating"
@@ -32,6 +35,19 @@ export function Item({
 
   return (
     <div className="w-full mt-6 sm:mt-8 md:mt-10">
+      {/* Items Count Bar */}
+      {!isLoading && (
+        <div className="flex items-center justify-between mb-3.5 sm:mb-4 px-1 font-inter">
+          <div className="flex items-center gap-2">
+            <span className="lg:text-sm text-[13px] font-medium text-light-genre-font dark:text-genre-font">
+              Total Items:
+            </span>
+            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full lg:text-sm md:text-[13px] text-xs font-semibold bg-black/5 dark:bg-white/10 text-black/85 dark:text-white/90 border border-black/10 dark:border-white/10">
+              {count} {count === 1 ? "Item" : "Items"}
+            </span>
+          </div>
+        </div>
+      )}
       {/* Desktop Table Header */}
       <div className="hidden md:grid grid-cols-[76px_minmax(220px,1.6fr)_120px_130px_110px_48px] lg:grid-cols-[84px_minmax(260px,1.6fr)_140px_150px_120px_52px] items-center gap-4 lg:gap-6 px-5 sm:px-6 py-3.5 mb-3 rounded-xl bg-black/[0.03] dark:bg-white/[0.03] border border-black/5 dark:border-white/5 font-inter font-medium text-xs lg:text-[13px] text-light-table-heading-font dark:text-table-heading-font uppercase tracking-wider select-none">
         <div className="text-center">{headers[0] || "Poster"}</div>

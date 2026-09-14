@@ -31,7 +31,10 @@ function RatingModalContent({ targetMedia, onClose }: RatingModalContentProps) {
   const getUserRating = useUserCollectionsStore((state) => state.getUserRating);
   const removeUserRating = useUserCollectionsStore((state) => state.removeUserRating);
 
-  const existingRating = targetMedia?.id !== undefined ? (getUserRating(targetMedia.id) ?? targetMedia.userRating) : targetMedia?.userRating;
+  const existingRating =
+    targetMedia?.id !== undefined || targetMedia?.title
+      ? (getUserRating(targetMedia?.id ?? "", targetMedia?.title) ?? targetMedia?.userRating)
+      : targetMedia?.userRating;
   const [rating, setRating] = useState<number>(existingRating ?? 0);
   const [hover, setHover] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,10 +63,12 @@ function RatingModalContent({ targetMedia, onClose }: RatingModalContentProps) {
 
   const handleRemove = async () => {
     if (!targetMedia?.id || isSubmitting) return;
+    if ((!targetMedia?.id && !targetMedia?.title) || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
       await removeUserRating(targetMedia.id, targetMedia.mediaType);
+      await removeUserRating(targetMedia?.id ?? "", targetMedia?.mediaType, targetMedia?.title);
       onClose();
     } catch {
       setIsSubmitting(false);

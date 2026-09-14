@@ -86,11 +86,21 @@ export async function generateMetadata({
     openGraph: {
       title: `${meta.title} | Movie Trails`,
       description: meta.description,
+      type: "website",
+      images: [
+        {
+          url: "/opengraph-image",
+          width: 1200,
+          height: 630,
+          alt: `${meta.title} | Movie Trails`,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: `${meta.title} | Movie Trails`,
       description: meta.description,
+      images: ["/twitter-image"],
     },
   };
 }

@@ -15,11 +15,12 @@ export type CollectionPageType = "favorite" | "watchlist" | "rating" | "list" | 
 interface WatchlistPopupProps {
     media?: CollectionMediaItem;
     currentListId?: string | number;
+    isOwner?: boolean;
     pageType?: CollectionPageType;
     onClose?: () => void;
 }
 
-export function WatchlistPopup({ media, currentListId, pageType, onClose }: WatchlistPopupProps) {
+export function WatchlistPopup({ media, currentListId, isOwner, pageType, onClose }: WatchlistPopupProps) {
     const pathname = usePathname() || "";
     const router = useRouter();
     const { isAuthenticated } = useAuth();
@@ -214,7 +215,7 @@ export function WatchlistPopup({ media, currentListId, pageType, onClose }: Watc
                 </button>
             )}
 
-            {resolvedPageType === "list" && currentListId !== undefined && (
+            {resolvedPageType === "list" && currentListId !== undefined && isOwner !== false && isAuthenticated && (
                 <button
                     type="button"
                     onClick={handleRemoveFromCurrentList}

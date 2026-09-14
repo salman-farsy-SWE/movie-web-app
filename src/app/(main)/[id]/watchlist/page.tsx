@@ -9,6 +9,25 @@ export const metadata: Metadata = {
         index: false,
         follow: false,
     },
+    openGraph: {
+        title: "Watchlist | Movie Trails",
+        description: "Track movies and TV shows you want to watch on Movie Trails.",
+        type: "website",
+        images: [
+            {
+                url: "/opengraph-image",
+                width: 1200,
+                height: 630,
+                alt: "Watchlist | Movie Trails",
+            },
+        ],
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Watchlist | Movie Trails",
+        description: "Track movies and TV shows you want to watch on Movie Trails.",
+        images: ["/twitter-image"],
+    },
 };
 
 export default async function WatchlistPage({

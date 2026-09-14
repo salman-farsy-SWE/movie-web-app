@@ -189,7 +189,7 @@ export function List({ basePath, lists, emptyMessage, isLoading = false, onClear
         list={shareList}
         customUrl={
           shareList && typeof window !== "undefined"
-            ? `${window.location.origin}${basePath.replace(/\/+$/, "")}/${shareList.slug || shareList.id}`
+            ? `${window.location.origin}/list/${shareList.id}`
             : undefined
         }
       />
@@ -241,7 +241,7 @@ export function List({ basePath, lists, emptyMessage, isLoading = false, onClear
               mostRecentItem?.backdropImage ||
               list.backdrop ||
               DEFAULT_BACKDROP;
-            const href = `${basePath.replace(/\/+$/, "")}/${list.slug || list.id}`;
+            const href = `/list/${list.id}`;
 
             return (
               <div key={list.id} className="flex flex-col w-full">

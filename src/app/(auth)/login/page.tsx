@@ -5,8 +5,27 @@ import { redirect } from "next/navigation";
 import { headers, cookies } from "next/headers";
 
 export const metadata: Metadata = {
-    title: "Login - Movie Trails",
+    title: "Login",
     description: "Log in to your Movie Trails account to manage your watchlist, ratings, and custom lists.",
+    openGraph: {
+        title: "Login | Movie Trails",
+        description: "Log in to your Movie Trails account to manage your watchlist, ratings, and custom lists.",
+        type: "website",
+        images: [
+            {
+                url: "/opengraph-image",
+                width: 1200,
+                height: 630,
+                alt: "Login | Movie Trails",
+            },
+        ],
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Login | Movie Trails",
+        description: "Log in to your Movie Trails account to manage your watchlist, ratings, and custom lists.",
+        images: ["/twitter-image"],
+    },
 };
 
 export default async function LoginPage({

@@ -35,12 +35,28 @@ export const metadata: Metadata = {
     title: "Movie Trails | Watch, Discover & Track Movies",
     description:
       "Discover watch movies, TV shows trailers. Explore genres, trending and top rated. build your custom collections and track your entertainment.",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Movie Trails | Watch, Discover & Track Movies",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Movie Trails | Watch, Discover & Track Movies",
     description:
       "Discover watch movies, TV shows trailers. Explore genres, trending and top rated. build your custom collections and track your entertainment.",
+    images: [
+      {
+        url: "/twitter-image",
+        width: 1200,
+        height: 630,
+        alt: "Movie Trails | Watch, Discover & Track Movies",
+      },
+    ],
   },
   icons: {
     icon: [

@@ -46,13 +46,22 @@ export async function generateMetadata({
           title: `${title} | Movie Trails`,
           description,
           type: "profile",
-          images: image ? [{ url: image, alt: personData.name }] : [],
+          images: image
+            ? [{ url: image, alt: personData.name }]
+            : [
+                {
+                  url: "/opengraph-image",
+                  width: 1200,
+                  height: 630,
+                  alt: `${title} | Movie Trails`,
+                },
+              ],
         },
         twitter: {
           card: "summary_large_image",
           title: `${title} | Movie Trails`,
           description,
-          images: image ? [image] : [],
+          images: image ? [image] : ["/twitter-image"],
         },
       };
     } else {
@@ -72,20 +81,50 @@ export async function generateMetadata({
           title: `${title} | Movie Trails`,
           description,
           type: isMovie ? "video.movie" : "video.tv_show",
-          images: image ? [{ url: image, alt: data.title }] : [],
+          images: image
+            ? [{ url: image, alt: data.title }]
+            : [
+                {
+                  url: "/opengraph-image",
+                  width: 1200,
+                  height: 630,
+                  alt: `${title} | Movie Trails`,
+                },
+              ],
         },
         twitter: {
           card: "summary_large_image",
           title: `${title} | Movie Trails`,
           description,
-          images: image ? [image] : [],
+          images: image ? [image] : ["/twitter-image"],
         },
       };
     }
   } catch {
+    const fallbackTitle = formattedParam === "persons" ? "Person Details" : "Media Details";
+    const fallbackDesc = "Discover entertainment details on Movie Trails.";
     return {
-      title: formattedParam === "persons" ? "Person Details" : "Media Details",
-      description: "Discover entertainment details on Movie Trails.",
+      title: fallbackTitle,
+      description: fallbackDesc,
+      openGraph: {
+        title: `${fallbackTitle} | Movie Trails`,
+        description: fallbackDesc,
+        type: "website",
+        images: [
+          {
+            url: "/opengraph-image",
+            width: 1200,
+            height: 630,
+            alt: `${fallbackTitle} | Movie Trails`,
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${fallbackTitle} | Movie Trails`,
+        description: fallbackDesc,
+        images: ["/twitter-image"],
+      },
     };
   }
 }

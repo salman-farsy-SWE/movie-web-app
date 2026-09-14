@@ -9,6 +9,25 @@ export const metadata: Metadata = {
         index: false,
         follow: false,
     },
+    openGraph: {
+        title: "My Lists | Movie Trails",
+        description: "Organize and manage your custom movie and TV show lists on Movie Trails.",
+        type: "website",
+        images: [
+            {
+                url: "/opengraph-image",
+                width: 1200,
+                height: 630,
+                alt: "My Lists | Movie Trails",
+            },
+        ],
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "My Lists | Movie Trails",
+        description: "Organize and manage your custom movie and TV show lists on Movie Trails.",
+        images: ["/twitter-image"],
+    },
 };
 
 export default async function ListsPage({

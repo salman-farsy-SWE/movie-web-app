@@ -27,19 +27,47 @@ export async function generateMetadata({
                 title: `${title} | Movie Trails`,
                 description,
                 type: "video.movie",
-                images: image ? [{ url: image, alt: data.title }] : [],
+                images: image
+                    ? [{ url: image, alt: data.title }]
+                    : [
+                          {
+                              url: "/opengraph-image",
+                              width: 1200,
+                              height: 630,
+                              alt: `${title} | Movie Trails`,
+                          },
+                      ],
             },
             twitter: {
                 card: "summary_large_image",
                 title: `${title} | Movie Trails`,
                 description,
-                images: image ? [image] : [],
+                images: image ? [image] : ["/twitter-image"],
             },
         };
     } catch {
         return {
             title: "Movie Details",
             description: "Watch trailers, discover cast and details on Movie Trails.",
+            openGraph: {
+                title: "Movie Details | Movie Trails",
+                description: "Watch trailers, discover cast and details on Movie Trails.",
+                type: "video.movie",
+                images: [
+                    {
+                        url: "/opengraph-image",
+                        width: 1200,
+                        height: 630,
+                        alt: "Movie Details | Movie Trails",
+                    },
+                ],
+            },
+            twitter: {
+                card: "summary_large_image",
+                title: "Movie Details | Movie Trails",
+                description: "Watch trailers, discover cast and details on Movie Trails.",
+                images: ["/twitter-image"],
+            },
         };
     }
 }

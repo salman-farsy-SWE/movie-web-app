@@ -17,12 +17,13 @@ interface TableRowProps {
   isLast?: boolean;
   isRatingView?: boolean;
   currentListId?: string | number;
+  isOwner?: boolean;
   pageType?: CollectionPageType;
 }
 
 const DEFAULT_POSTER_IMAGE = "/assets/movie-placeholder.jpg";
 
-export function TableRow({ item, isFirst = false, isRatingView, currentListId, pageType }: TableRowProps) {
+export function TableRow({ item, isFirst = false, isRatingView, currentListId, isOwner, pageType }: TableRowProps) {
   const [hasError, setHasError] = useState(false);
   const [open, setOpen] = useState(false);
   const [popupPos, setPopupPos] = useState<{ top?: number; bottom?: number; left: number } | null>(null);
@@ -169,6 +170,7 @@ export function TableRow({ item, isFirst = false, isRatingView, currentListId, p
             <WatchlistPopup
               media={mediaItem}
               currentListId={currentListId}
+              isOwner={isOwner}
               pageType={pageType}
               onClose={() => setOpen(false)}
             />

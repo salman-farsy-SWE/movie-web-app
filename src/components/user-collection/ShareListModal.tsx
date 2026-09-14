@@ -60,7 +60,16 @@ export function ShareListModal({
   // Compute shareable URL
   const currentUrl = useSyncExternalStore(
     emptySubscribe,
-    () => customUrl || (typeof window !== "undefined" ? window.location.href : ""),
+    () => {
+      if (customUrl) return customUrl;
+      if (typeof window !== "undefined") {
+        if (list?.id) {
+          return `${window.location.origin}/list/${list.id}`;
+        }
+        return window.location.href;
+      }
+      return "";
+    },
     () => customUrl || ""
   );
 

@@ -17,7 +17,7 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { slugify } from "@/lib/utils";
 import { useUserCollectionsStore } from "@/stores/useUserCollectionsStore";
 import { getTmdbListDetailsAction } from "@/actions/collections";
-import type { TableItem, CustomList, CollectionType, FilterContextType } from "@/types";
+import type { TableItem, CustomList, CollectionType, FilterContextType, UserList } from "@/types";
 import { useHydrated } from "@/hooks/useHydrated";
 import { Button } from "@/components/ui/button";
 import { ShareListModal } from "@/components/user-collection/ShareListModal";
@@ -53,6 +53,9 @@ export function UserCollectionPage({
   const [filterOpen, setFilterOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [fetchedList, setFetchedList] = useState<UserList | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
   const isHydrated = useHydrated();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -60,7 +63,10 @@ export function UserCollectionPage({
   const { isPending } = useSortFilterTransition();
   const { goBack } = useSmartBack();
 
+  const isListDetails = type === "list" && Boolean(param2);
+
   const isUserMismatch = useMemo(() => {
+    if (isListDetails) return false;
     if (!isAuthenticated || !user || !param) return false;
     const rawParam = decodeURIComponent(param).trim().toLowerCase();
     const slugParam = slugify(param).toLowerCase();
@@ -78,7 +84,7 @@ export function UserCollectionPage({
       valid.add(slugify(user.name).toLowerCase());
     }
     return !valid.has(rawParam) && !valid.has(slugParam);
-  }, [isAuthenticated, user, param]);
+  }, [isListDetails, isAuthenticated, user, param]);
 
   const openEdit = useUIStore((state) => state.openEditList);
 
@@ -91,10 +97,6 @@ export function UserCollectionPage({
   const deleteCustomList = useUserCollectionsStore((state) => state.deleteCustomList);
   const syncCustomListsFromTmdb = useUserCollectionsStore((state) => state.syncCustomListsFromTmdb);
 
-  const hasParam = Boolean(param);
-  const hasParam2 = Boolean(param2);
-  const isListDetails = type === "list" && hasParam && hasParam2;
-
   const searchQuery = (searchParams.get("q") || searchParams.get("search") || "").toLowerCase().trim();
   const sortBy = searchParams.get("sort_by") || "";
   const pageParam = Number(searchParams.get("page")) || 1;
@@ -105,10 +107,50 @@ export function UserCollectionPage({
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated || isUserMismatch) return;
     let isCancelled = false;
 
     const syncAction = async () => {
+      // 1. If viewing list details (public or private custom list)
+      if (isListDetails && param2) {
+        const rawListId = param2.replace(/^list-/, "");
+        const storeState = useUserCollectionsStore.getState();
+        const existing =
+          storeState.getListBySlugOrId(param2) ||
+          storeState.customLists.find(
+            (l) => l.slug === param2 || String(l.id) === param2 || String(l.id) === rawListId
+          );
+
+        if (!existing && !fetchedList) {
+          setIsLoading(true);
+        }
+
+        try {
+          const res = await getTmdbListDetailsAction(rawListId);
+          if (!isCancelled) {
+            if (res.success && res.list) {
+              setFetchedList(res.list);
+              if (isAuthenticated) {
+                updateListDetails(res.list);
+              }
+            } else {
+              setFetchError(res.error || "List not found");
+            }
+          }
+        } catch {
+          if (!isCancelled) {
+            setFetchError("Failed to fetch list details");
+          }
+        } finally {
+          if (!isCancelled) {
+            setIsLoading(false);
+          }
+        }
+        return;
+      }
+
+      // 2. Personal collections dashboard / lists overview (requires authentication)
+      if (!isAuthenticated || isUserMismatch) return;
+
       const storeState = useUserCollectionsStore.getState();
       const isStale =
         type === "favorite"
@@ -117,8 +159,6 @@ export function UserCollectionPage({
           ? storeState.isStale("watchlist")
           : type === "rating"
           ? storeState.isStale("ratings")
-          : isListDetails
-          ? false
           : storeState.isStale("customLists");
 
       const hasLocalData =
@@ -128,8 +168,6 @@ export function UserCollectionPage({
           ? storeState.watchlist.length > 0
           : type === "rating"
           ? Object.keys(storeState.ratings).length > 0
-          : isListDetails
-          ? Boolean(storeState.getListBySlugOrId(param2 || ""))
           : storeState.customLists.length > 0;
 
       if (isStale && !hasLocalData) {
@@ -144,15 +182,7 @@ export function UserCollectionPage({
         } else if (type === "rating") {
           await useUserCollectionsStore.getState().syncRatingsFromTmdb();
         } else if (type === "list") {
-          if (isListDetails && param2) {
-            const rawListId = param2.replace(/^list-/, "");
-            const res = await getTmdbListDetailsAction(rawListId);
-            if (!isCancelled && res.success && res.list) {
-              updateListDetails(res.list);
-            }
-          } else {
-            await syncCustomListsFromTmdb();
-          }
+          await syncCustomListsFromTmdb();
         }
       } catch (err) {
         console.warn("Collection background sync warning:", err);
@@ -168,13 +198,52 @@ export function UserCollectionPage({
     return () => {
       isCancelled = true;
     };
-  }, [type, isListDetails, param2, isAuthenticated, isUserMismatch, syncCustomListsFromTmdb, updateListDetails]);
+  }, [
+    type,
+    isListDetails,
+    param2,
+    isAuthenticated,
+    isUserMismatch,
+    syncCustomListsFromTmdb,
+    updateListDetails,
+    fetchedList,
+  ]);
 
   useClickOutsideClose({
     enabled: filterOpen,
     selectors: [".filter-container", ".filter-btn", ".year-popover"],
     onClose: () => setFilterOpen(false),
   });
+
+  const currentList = useMemo(() => {
+    if (!isListDetails || !param2) return null;
+    const rawId = param2.replace(/^list-/, "");
+    return (
+      getListBySlugOrId(param2) ||
+      customLists.find((l) => l.slug === param2 || String(l.id) === param2 || String(l.id) === rawId) ||
+      fetchedList ||
+      null
+    );
+  }, [isListDetails, param2, customLists, getListBySlugOrId, fetchedList]);
+
+  const isOwner = useMemo(() => {
+    if (!isAuthenticated || !user || !currentList) return false;
+    const inUserLists = customLists.some(
+      (l) => String(l.id) === String(currentList.id) || l.slug === currentList.slug
+    );
+    if (inUserLists) return true;
+
+    const curatorHandle = currentList.curator?.handle?.replace(/^@/, "").toLowerCase();
+    const curatorName = currentList.curator?.name?.toLowerCase();
+    const username = user.username?.toLowerCase();
+    const userName = user.name?.toLowerCase();
+    const userId = String(user.id).toLowerCase();
+
+    if (curatorHandle && (curatorHandle === username || curatorHandle === userId)) return true;
+    if (curatorName && (curatorName === userName || curatorName === username)) return true;
+
+    return false;
+  }, [isAuthenticated, user, currentList, customLists]);
 
   const rawItems: TableItem[] = useMemo(() => {
     if (!isHydrated) return [];
@@ -214,9 +283,11 @@ export function UserCollectionPage({
     }
 
     if (isListDetails && param2) {
+      const rawId = param2.replace(/^list-/, "");
       const foundList =
         getListBySlugOrId(param2) ||
-        customLists.find((l) => l.slug === param2 || String(l.id) === param2);
+        customLists.find((l) => l.slug === param2 || String(l.id) === param2 || String(l.id) === rawId) ||
+        fetchedList;
       const itemsToUse = foundList?.items || [];
 
       return itemsToUse.map((item) => ({
@@ -230,7 +301,7 @@ export function UserCollectionPage({
     }
 
     return [];
-  }, [isHydrated, type, favorites, watchlist, ratings, customLists, isListDetails, param2, getListBySlugOrId]);
+  }, [isHydrated, type, favorites, watchlist, ratings, customLists, isListDetails, param2, getListBySlugOrId, fetchedList]);
 
   const isVisibilityActive = type === "list" && !isListDetails && mediaFilter && mediaFilter !== "all";
   const isMediaFilterActive = (type !== "list" || isListDetails) && mediaFilter && mediaFilter !== "all";
@@ -310,15 +381,6 @@ export function UserCollectionPage({
       : "You haven't created any lists yet.";
   }
 
-  const currentList = useMemo(() => {
-    if (!isListDetails || !param2) return null;
-    return (
-      getListBySlugOrId(param2) ||
-      customLists.find((l) => l.slug === param2 || String(l.id) === param2) ||
-      null
-    );
-  }, [isListDetails, param2, customLists, getListBySlugOrId]);
-
   const listDisplayTitle = currentList?.title || (param2 ? param2.replace(/^list-/, "").replace(/-/g, " ") : "");
   const isListPrivate = currentList?.isPrivate ?? false;
 
@@ -327,7 +389,11 @@ export function UserCollectionPage({
     const listId = currentList.id;
     setDeleteModalOpen(false);
     deleteCustomList(listId);
-    router.push(`/${slugify(param)}/list`);
+    if (isAuthenticated && user) {
+      router.push(`/${slugify(user.id)}/list`);
+    } else {
+      router.push("/movies");
+    }
   };
 
   const filterContext: FilterContextType = useMemo(() => {
@@ -344,8 +410,66 @@ export function UserCollectionPage({
     return "Search your lists...";
   }, [type, isListDetails, listDisplayTitle]);
 
-  if (isHydrated && !isAuthLoading && (!isAuthenticated || isUserMismatch)) {
+  if (!isListDetails && isHydrated && !isAuthLoading && (!isAuthenticated || isUserMismatch)) {
     return null;
+  }
+
+  // Private list barrier for unauthenticated / non-owner visitors
+  if (isListDetails && isHydrated && !isLoading && currentList && currentList.isPrivate && !isOwner) {
+    return (
+      <section className="container-1440 mt-[72px]">
+        <div className="flex flex-col items-center justify-center min-h-[55vh] text-center px-4">
+          <div className="flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20 mb-4">
+            <Lock className="w-7 h-7 sm:w-8 sm:h-8" />
+          </div>
+          <h1 className="font-akshar text-2xl sm:text-3xl font-semibold text-black dark:text-white">
+            This List is Private
+          </h1>
+          <p className="mt-2 text-sm sm:text-base text-light-genre-font dark:text-genre-font max-w-md font-inter">
+            The creator of this list has set its visibility to private. Only the list owner can view its contents.
+          </p>
+          <div className="flex items-center gap-3 mt-6">
+            <Button
+              onClick={() => goBack(isAuthenticated && user ? `/${slugify(user.id)}/list` : "/movies")}
+              variant="outline"
+              className="h-10 px-5 rounded-full font-inter text-xs font-medium cursor-pointer"
+            >
+              Go Back
+            </Button>
+            {!isAuthenticated && (
+              <Button
+                onClick={() => router.push(`/login?redirect=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname : "")}`)}
+                className="h-10 px-5 rounded-full bg-light-create-new-btn dark:bg-create-new-btn text-white font-inter text-xs font-medium cursor-pointer"
+              >
+                Sign In
+              </Button>
+            )}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // List Not Found State
+  if (isListDetails && isHydrated && !isLoading && fetchError && !currentList) {
+    return (
+      <section className="container-1440 mt-[72px]">
+        <div className="flex flex-col items-center justify-center min-h-[55vh] text-center px-4">
+          <h1 className="font-akshar text-2xl sm:text-3xl font-semibold text-black dark:text-white">
+            List Not Found
+          </h1>
+          <p className="mt-2 text-sm sm:text-base text-light-genre-font dark:text-genre-font max-w-md font-inter">
+            We couldn't find the requested list. It may have been deleted or the link might be incorrect.
+          </p>
+          <Button
+            onClick={() => goBack(isAuthenticated && user ? `/${slugify(user.id)}/list` : "/movies")}
+            className="mt-6 h-10 px-5 rounded-full bg-light-create-new-btn dark:bg-create-new-btn text-white font-inter text-xs font-medium cursor-pointer"
+          >
+            Explore Movies
+          </Button>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -361,10 +485,15 @@ export function UserCollectionPage({
               slug: param2,
             }
           }
+          customUrl={
+            typeof window !== "undefined" && param2
+              ? `${window.location.origin}/list/${currentList?.id || param2}`
+              : undefined
+          }
         />
       )}
 
-      {isListDetails && currentList && (
+      {isListDetails && currentList && isOwner && (
         <DeleteListModal
           open={deleteModalOpen}
           onClose={() => setDeleteModalOpen(false)}
@@ -378,8 +507,14 @@ export function UserCollectionPage({
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 flex-wrap max-w-full">
             <button
               type="button"
-              aria-label="Go back to lists"
-              onClick={() => goBack(param ? `/${slugify(param)}/list` : "/list")}
+              aria-label="Go back"
+              onClick={() => {
+                if (isAuthenticated && user) {
+                  goBack(param ? `/${slugify(param)}/list` : `/${slugify(user.id)}/list`);
+                } else {
+                  goBack("/movies");
+                }
+              }}
               className="group flex items-center gap-[4px] cursor-pointer select-none transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-trails-red rounded-md text-left"
             >
               <ChevronLeft className="w-[28px] h-[28px] text-black dark:text-white group-hover:text-black/75 dark:group-hover:text-white/90 transition-transform duration-200 group-hover:-translate-x-1 shrink-0" />
@@ -401,7 +536,7 @@ export function UserCollectionPage({
                 </span>
               )}
 
-              {currentList && (
+              {isOwner && currentList && (
                 <Button
                   type="button"
                   variant="outline"
@@ -413,7 +548,7 @@ export function UserCollectionPage({
                 </Button>
               )}
 
-              {!isListPrivate && (
+              {(!isListPrivate || isOwner) && (
                 <Button
                   type="button"
                   onClick={() => setShareModalOpen(true)}
@@ -424,7 +559,7 @@ export function UserCollectionPage({
                 </Button>
               )}
 
-              {currentList && (
+              {isOwner && currentList && (
                 <Button
                   type="button"
                   variant="ghost"
@@ -489,7 +624,7 @@ export function UserCollectionPage({
 
       {type === "list" && !isListDetails ? (
         <List
-          basePath={`/${param}/list`}
+          basePath={param ? `/${param}/list` : "/list"}
           lists={paginatedLists}
           isLoading={isLoading || !isHydrated || isPending}
           emptyMessage={emptyMessage}
@@ -501,6 +636,7 @@ export function UserCollectionPage({
           isLoading={isLoading || !isHydrated || isPending}
           emptyMessage={emptyMessage}
           currentListId={isListDetails ? (currentList?.id || param2) : undefined}
+          isOwner={isOwner}
           pageType={type}
           headers={
             type === "rating"

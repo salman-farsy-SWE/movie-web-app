@@ -9,6 +9,25 @@ export const metadata: Metadata = {
         index: false,
         follow: false,
     },
+    openGraph: {
+        title: "My Ratings | Movie Trails",
+        description: "View and manage your movie and TV show ratings on Movie Trails.",
+        type: "website",
+        images: [
+            {
+                url: "/opengraph-image",
+                width: 1200,
+                height: 630,
+                alt: "My Ratings | Movie Trails",
+            },
+        ],
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "My Ratings | Movie Trails",
+        description: "View and manage your movie and TV show ratings on Movie Trails.",
+        images: ["/twitter-image"],
+    },
 };
 
 export default async function RatingPage({

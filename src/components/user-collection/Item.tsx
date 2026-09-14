@@ -11,6 +11,7 @@ interface FavoriteItemsProps {
   emptyMessage?: string;
   isLoading?: boolean;
   currentListId?: string | number;
+  isOwner?: boolean;
   pageType?: "favorite" | "watchlist" | "rating" | "list";
   totalCount?: number;
   onClear?: () => void;
@@ -22,6 +23,7 @@ export function Item({
   emptyMessage = "No items found in this collection.",
   isLoading = false,
   currentListId,
+  isOwner,
   pageType,
   totalCount,
   onClear,
@@ -92,6 +94,7 @@ export function Item({
               isLast={i === items.length - 1}
               isRatingView={isRatingView}
               currentListId={currentListId}
+              isOwner={isOwner}
               pageType={pageType}
             />
           ))}

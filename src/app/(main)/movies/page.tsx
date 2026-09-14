@@ -14,12 +14,29 @@ export const metadata: Metadata = {
     title: "Explore Movies | Movie Trails",
     description:
       "Discover popular, top-rated, and newly released movies. Filter by genre, release year, rating, country, and duration.",
+    type: "website",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Explore Movies | Movie Trails",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Explore Movies | Movie Trails",
     description:
       "Discover popular, top-rated, and newly released movies. Filter by genre, release year, rating, country, and duration.",
+    images: [
+      {
+        url: "/twitter-image",
+        width: 1200,
+        height: 630,
+        alt: "Explore Movies | Movie Trails",
+      },
+    ],
   },
 };
 

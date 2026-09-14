@@ -20,6 +20,22 @@ export function proxy(request: NextRequest) {
   requestHeaders.set("x-pathname", pathname);
   requestHeaders.set("x-url", `${pathname}${search}`);
 
+  // Redirect user-scoped list URLs (e.g. /:id/list/:listId) to anonymous /list/:listId
+  const userListMatch = pathname.match(/^\/([^/]+)\/list\/([^/?#]+)/);
+  if (userListMatch && userListMatch[2]) {
+    const listId = userListMatch[2];
+    const targetUrl = new URL(`/list/${listId}${search}`, request.url);
+    return NextResponse.redirect(targetUrl);
+  }
+
+  // Redirect /lists/:listId to /list/:listId
+  const pluralListMatch = pathname.match(/^\/lists\/([^/?#]+)/);
+  if (pluralListMatch && pluralListMatch[1]) {
+    const listId = pluralListMatch[1];
+    const targetUrl = new URL(`/list/${listId}${search}`, request.url);
+    return NextResponse.redirect(targetUrl);
+  }
+
   // Check if the user is visiting a protected user collection or profile page
   if (isProtectedRoute(pathname)) {
     if (!sessionId) {

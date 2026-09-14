@@ -10,6 +10,17 @@ export default async function UserCollectionLayout({
   children: React.ReactNode;
   params: Promise<{ id: string }>;
 }) {
+  try {
+    const headerList = await headers();
+    const pathname = headerList.get("x-pathname") || "";
+    const listMatch = pathname.match(/^\/[^/]+\/list\/([^/?#]+)/);
+    if (listMatch && listMatch[1]) {
+      redirect(`/list/${listMatch[1]}`);
+    }
+  } catch (e: any) {
+    if (e?.digest?.startsWith("NEXT_REDIRECT")) throw e;
+  }
+
   const user = await getCurrentUser();
 
   if (!user) {

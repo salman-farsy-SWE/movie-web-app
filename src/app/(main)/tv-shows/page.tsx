@@ -15,12 +15,29 @@ export const metadata: Metadata = {
     title: "Explore TV Shows | Movie Trails",
     description:
       "Discover trending and top-rated TV shows, series, and miniseries. Filter by genre, release year, network, country, and rating.",
+    type: "website",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Explore TV Shows | Movie Trails",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Explore TV Shows | Movie Trails",
     description:
       "Discover trending and top-rated TV shows, series, and miniseries. Filter by genre, release year, network, country, and rating.",
+    images: [
+      {
+        url: "/twitter-image",
+        width: 1200,
+        height: 630,
+        alt: "Explore TV Shows | Movie Trails",
+      },
+    ],
   },
 };
 

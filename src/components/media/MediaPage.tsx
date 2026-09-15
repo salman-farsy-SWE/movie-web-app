@@ -144,7 +144,10 @@ export function MediaPage({
       return "Trending " + (param === "tv-shows" ? "TV Shows" : param?.replace(/-/g, " "));
     }
     if (type === "top-rated") {
-      return "Top Rated " + (param === "tv-shows" ? "TV Shows" : param?.replace(/-/g, " "));
+      if (param === "tv-shows") return "Top Rated TV Shows";
+      if (param === "movies") return "Top Rated Movies";
+      if (param === "all") return "Top Rated";
+      return "Top Rated " + (param?.replace(/-/g, " ") || "");
     }
     if (type === "search") {
       if (searchQuery) return `Search - Results for "${searchQuery}"`;

@@ -7,7 +7,7 @@ import { slugify } from "@/lib/utils";
 import { getMediaDetails } from "@/lib/tmdb";
 import { notFound } from "next/navigation";
 
-const VALID_TOP_RATED_CATEGORIES = ["movies", "tv-shows"];
+const VALID_TOP_RATED_CATEGORIES = ["movies", "tv-shows", "all"];
 
 export async function generateMetadata({
     params,

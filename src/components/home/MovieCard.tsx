@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { memo, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import { Volume2, VolumeX } from "lucide-react";
@@ -33,7 +33,7 @@ function formatTime(seconds: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export function MovieCard({
+export const MovieCard = memo(function MovieCard({
   id,
   title,
   genre = "Movie",
@@ -54,7 +54,7 @@ export function MovieCard({
   const numericRating = typeof rating === "number" ? rating : (rating ? Number(rating) || undefined : undefined);
   const releaseStr = releaseDate !== undefined ? String(releaseDate) : undefined;
 
-  const mediaItem: CollectionMediaItem = {
+  const mediaItem: CollectionMediaItem = useMemo(() => ({
     id: mediaId,
     title,
     posterImage: image,
@@ -63,7 +63,7 @@ export function MovieCard({
     releaseDate: releaseStr,
     mediaType: resolvedMediaType,
     isMovie: resolvedMediaType !== "tv",
-  };
+  }), [mediaId, title, image, genre, numericRating, releaseStr, resolvedMediaType]);
   const [open, setOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [showTrailer, setShowTrailer] = useState(false);
@@ -81,22 +81,15 @@ export function MovieCard({
   const timelineRef = useRef<HTMLDivElement>(null);
   const isDraggingTimelineRef = useRef(false);
 
-  const openRef = useRef(open);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   const dragThreshold = 5;
   const [popupPos, setPopupPos] = useState<{ bottom: number; left: number } | null>(null);
 
   const exactTrailerKey = trailerKey;
 
-
-
-  useEffect(() => {
-    openRef.current = open;
-  }, [open]);
-
   useEffect(() => {
     if (hovered && exactTrailerKey && !hasEnded) {
-      const timer = setTimeout(() => setShowTrailer(true), 0);
+      const timer = setTimeout(() => setShowTrailer(true), 350);
       return () => clearTimeout(timer);
     }
   }, [hovered, exactTrailerKey, hasEnded]);
@@ -280,8 +273,9 @@ export function MovieCard({
   }, [open]);
 
   useEffect(() => {
+    if (!open) return;
+
     const onDown = (e: PointerEvent) => {
-      if (!openRef.current) return;
       if (popupRef.current?.contains(e.target as Node)) return;
       if (btnRef.current?.contains(e.target as Node)) return;
       dragStartRef.current = { x: e.clientX, y: e.clientY };
@@ -302,7 +296,6 @@ export function MovieCard({
     };
 
     const onClick = (e: MouseEvent) => {
-      if (!openRef.current) return;
       if (
         popupRef.current &&
         !popupRef.current.contains(e.target as Node) &&
@@ -324,7 +317,7 @@ export function MovieCard({
       document.removeEventListener("pointerup", onUp);
       document.removeEventListener("click", onClick);
     };
-  }, []);
+  }, [open]);
 
   const [hasError, setHasError] = useState(false);
 
@@ -532,4 +525,4 @@ export function MovieCard({
       </div>
     </article>
   );
-}
+});

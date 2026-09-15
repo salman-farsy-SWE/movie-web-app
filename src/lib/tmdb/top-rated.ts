@@ -25,7 +25,7 @@ export async function getTopRatedContent(
   pageSize: number = 24
 ): Promise<TopRatedMediaResult | null> {
   const isTv = category === "tv-shows";
-  const endpoint = isTv ? "/tv/top_rated" : "/movie/top_rated";
+  const isAll = category === "all";
 
   try {
     const [movieGenreMap, tvGenreMap] = await Promise.all([
@@ -39,6 +39,66 @@ export async function getTopRatedContent(
     const thirdTmdbPage = firstTmdbPage + 2;
     const offset = startItem % 20;
 
+    if (isAll) {
+      const [m1, m2, m3, t1, t2, t3] = await Promise.all([
+        tmdbFetch<TmdbMovieListResponse>("/movie/top_rated", {
+          language: "en-US",
+          page: firstTmdbPage.toString(),
+        }),
+        tmdbFetch<TmdbMovieListResponse>("/movie/top_rated", {
+          language: "en-US",
+          page: secondTmdbPage.toString(),
+        }).catch(() => null),
+        tmdbFetch<TmdbMovieListResponse>("/movie/top_rated", {
+          language: "en-US",
+          page: thirdTmdbPage.toString(),
+        }).catch(() => null),
+        tmdbFetch<TmdbTvListResponse>("/tv/top_rated", {
+          language: "en-US",
+          page: firstTmdbPage.toString(),
+        }),
+        tmdbFetch<TmdbTvListResponse>("/tv/top_rated", {
+          language: "en-US",
+          page: secondTmdbPage.toString(),
+        }).catch(() => null),
+        tmdbFetch<TmdbTvListResponse>("/tv/top_rated", {
+          language: "en-US",
+          page: thirdTmdbPage.toString(),
+        }).catch(() => null),
+      ]);
+
+      const moviesList = [
+        ...(m1?.results || []),
+        ...(m2?.results || []),
+        ...(m3?.results || []),
+      ].map((item) => mapTmdbToMovieItem(item, movieGenreMap, tvGenreMap));
+
+      const tvList = [
+        ...(t1?.results || []),
+        ...(t2?.results || []),
+        ...(t3?.results || []),
+      ].map((item) => mapTmdbToMovieItem(item, movieGenreMap, tvGenreMap));
+
+      const interleaved: MovieItem[] = [];
+      const maxLength = Math.max(moviesList.length, tvList.length);
+      for (let i = 0; i < maxLength; i++) {
+        if (i < moviesList.length) interleaved.push(moviesList[i]);
+        if (i < tvList.length) interleaved.push(tvList[i]);
+      }
+
+      const deduplicatedMovies = deduplicateByTitleAndId(interleaved);
+      const selected = deduplicatedMovies.slice(offset, offset + pageSize).slice(0, pageSize);
+      const totalResults = Math.max(m1?.total_results ?? 0, t1?.total_results ?? 0);
+      const totalPages = Math.min(Math.ceil((totalResults || deduplicatedMovies.length) / pageSize), 500);
+
+      return {
+        movies: selected,
+        totalPages: Math.max(1, totalPages),
+        currentPage: page,
+      };
+    }
+
+    const endpoint = isTv ? "/tv/top_rated" : "/movie/top_rated";
     const [data1, data2, data3] = await Promise.all([
       tmdbFetch<TmdbMovieListResponse | TmdbTvListResponse>(endpoint, {
         language: "en-US",

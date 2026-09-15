@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Heart } from "lucide-react";
 import { WatchlistPopup } from "@/components/WatchlistPopup";
@@ -14,7 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const DEFAULT_POSTER_IMAGE = "/assets/movie-placeholder.jpg";
 
-export function PosterCard({
+export const PosterCard = memo(function PosterCard({
     id,
     title,
     image,
@@ -50,7 +50,7 @@ export function PosterCard({
     const numericRating = typeof rating === "number" ? rating : (rating ? Number(rating) || undefined : undefined);
     const releaseStr = releaseDate !== undefined ? String(releaseDate) : undefined;
 
-    const mediaItem: CollectionMediaItem = {
+    const mediaItem: CollectionMediaItem = useMemo(() => ({
         id: mediaId,
         title,
         posterImage: image,
@@ -59,14 +59,13 @@ export function PosterCard({
         genre,
         mediaType,
         isMovie: mediaType !== "tv",
-    };
+    }), [mediaId, title, image, numericRating, releaseStr, genre, mediaType]);
 
     const imgSrc = hasError || !image ? DEFAULT_POSTER_IMAGE : image;
 
 
     const popupRef = useRef<HTMLDivElement>(null);
     const btnRef = useRef<HTMLButtonElement>(null);
-    const openRef = useRef(open);
     const dragStartRef = useRef<{ x: number; y: number } | null>(null);
     const dragThreshold = 5;
 
@@ -90,10 +89,6 @@ export function PosterCard({
     })();
 
     useEffect(() => {
-        openRef.current = open;
-    }, [open]);
-
-    useEffect(() => {
         if (!open || !btnRef.current) {
             setPopupPos(null);
             return;
@@ -115,8 +110,9 @@ export function PosterCard({
     }, [open]);
 
     useEffect(() => {
+        if (!open) return;
+
         const onDown = (e: PointerEvent) => {
-            if (!openRef.current) return;
             if (popupRef.current?.contains(e.target as Node)) return;
             if (btnRef.current?.contains(e.target as Node)) return;
 
@@ -140,7 +136,6 @@ export function PosterCard({
         };
 
         const onClick = (e: MouseEvent) => {
-            if (!openRef.current) return;
             if (
                 popupRef.current &&
                 !popupRef.current.contains(e.target as Node) &&
@@ -162,7 +157,7 @@ export function PosterCard({
             document.removeEventListener("pointerup", onUp);
             document.removeEventListener("click", onClick);
         };
-    }, []);
+    }, [open]);
 
     return (
         <div className="flex flex-col items-end relative">
@@ -259,4 +254,4 @@ export function PosterCard({
             />
         </div>
     );
-}
+});

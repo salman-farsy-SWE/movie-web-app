@@ -101,7 +101,8 @@ export function PersonDetails({
         const checkOverflow = () => {
             if (!el) return;
             if (!isBioExpanded) {
-                setHasMoreBio(el.scrollHeight > el.clientHeight);
+                const isOverflow = el.scrollHeight > el.clientHeight;
+                setHasMoreBio((prev) => (prev !== isOverflow ? isOverflow : prev));
             }
         };
 

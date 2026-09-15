@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { TableItem } from "@/types/items";
 import { Rating } from "@/components/Rating";
@@ -23,7 +23,7 @@ interface TableRowProps {
 
 const DEFAULT_POSTER_IMAGE = "/assets/movie-placeholder.jpg";
 
-export function TableRow({ item, isFirst = false, isRatingView, currentListId, isOwner, pageType }: TableRowProps) {
+export const TableRow = memo(function TableRow({ item, isFirst = false, isRatingView, currentListId, isOwner, pageType }: TableRowProps) {
   const [hasError, setHasError] = useState(false);
   const [open, setOpen] = useState(false);
   const [popupPos, setPopupPos] = useState<{ top?: number; bottom?: number; left: number } | null>(null);
@@ -31,7 +31,6 @@ export function TableRow({ item, isFirst = false, isRatingView, currentListId, i
   const popupRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const mobileBtnRef = useRef<HTMLButtonElement>(null);
-  const openRef = useRef(open);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   const dragThreshold = 5;
 
@@ -44,7 +43,7 @@ export function TableRow({ item, isFirst = false, isRatingView, currentListId, i
   const href = `${isTv ? "/tv-shows" : "/movies"}/${itemSlug}`;
 
   const mediaId = item?.id || item?.name;
-  const mediaItem: CollectionMediaItem = {
+  const mediaItem: CollectionMediaItem = useMemo(() => ({
     id: mediaId,
     title: item?.name || "",
     posterImage: item?.image,
@@ -53,11 +52,7 @@ export function TableRow({ item, isFirst = false, isRatingView, currentListId, i
     releaseDate: item?.released,
     mediaType: isTv ? "tv" : "movie",
     isMovie: !isTv,
-  };
-
-  useEffect(() => {
-    openRef.current = open;
-  }, [open]);
+  }), [mediaId, item?.name, item?.image, item?.rating, item?.yourRating, item?.released, isTv]);
 
   useEffect(() => {
     if (!open) return;
@@ -97,8 +92,9 @@ export function TableRow({ item, isFirst = false, isRatingView, currentListId, i
   }, [open, isFirst]);
 
   useEffect(() => {
+    if (!open) return;
+
     const onDown = (e: PointerEvent) => {
-      if (!openRef.current) return;
       if (popupRef.current?.contains(e.target as Node)) return;
       if (
         (btnRef.current && btnRef.current.contains(e.target as Node)) ||
@@ -124,7 +120,6 @@ export function TableRow({ item, isFirst = false, isRatingView, currentListId, i
     };
 
     const onClick = (e: MouseEvent) => {
-      if (!openRef.current) return;
       if (
         popupRef.current &&
         !popupRef.current.contains(e.target as Node) &&
@@ -146,7 +141,7 @@ export function TableRow({ item, isFirst = false, isRatingView, currentListId, i
       document.removeEventListener("pointerup", onUp);
       document.removeEventListener("click", onClick);
     };
-  }, []);
+  }, [open]);
 
   return (
     <>
@@ -332,4 +327,4 @@ export function TableRow({ item, isFirst = false, isRatingView, currentListId, i
       </div>
     </>
   );
-}
+});

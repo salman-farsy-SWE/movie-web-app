@@ -45,6 +45,8 @@ export async function getTrendingAll(
             .join("/"),
           image: getTmdbImageUrl(item.backdrop_path, "w780"),
           trailerKey,
+          isMovie,
+          mediaType: (isMovie ? "movie" : "tv") as "movie" | "tv",
         };
       })
     );
@@ -104,6 +106,8 @@ export async function getTopRatedAll(
             .join("/"),
           image: getTmdbImageUrl(item.backdrop_path, "w780"),
           trailerKey,
+          isMovie,
+          mediaType: (isMovie ? "movie" : "tv") as "movie" | "tv",
         };
       })
     );

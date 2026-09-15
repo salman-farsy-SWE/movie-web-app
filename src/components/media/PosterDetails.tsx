@@ -96,6 +96,9 @@ export function PosterDetails({
     const isFav = useUserCollectionsStore((state) =>
         isAuthenticated ? state.isFavorite(mediaId, title) : false
     );
+    const inWatchlist = useUserCollectionsStore((state) =>
+        isAuthenticated ? state.isInWatchlist(mediaId, title) : false
+    );
     const userRating = useUserCollectionsStore((state) =>
         isAuthenticated ? state.getUserRating(mediaId, title) : undefined
     );
@@ -104,6 +107,15 @@ export function PosterDetails({
     useEffect(() => {
         mediaItemRef.current = mediaItem;
     }, [mediaItem]);
+
+    const isFavRef = useRef(isFav);
+    const inWatchlistRef = useRef(inWatchlist);
+    const userRatingRef = useRef(userRating);
+    useEffect(() => {
+        isFavRef.current = isFav;
+        inWatchlistRef.current = inWatchlist;
+        userRatingRef.current = userRating;
+    }, [isFav, inWatchlist, userRating]);
 
     // Sync TMDB account state if authenticated and item is from TMDB (without clobbering in-flight mutations)
     const itemId = data?.id;
@@ -115,19 +127,17 @@ export function PosterDetails({
             .then((state) => {
                 if (isCancelled || !state) return;
                 const currentItem = mediaItemRef.current;
-                const mediaType: "movie" | "tv" = isMovie ? "movie" : "tv";
-                const favKey = `fav:${mediaType}:${itemId}`;
-                const wlKey = `wl:${mediaType}:${itemId}`;
-                const rateKey = `rate:${mediaType}:${itemId}`;
 
-                if (typeof state.favorite === "boolean") {
+                if (typeof state.favorite === "boolean" && state.favorite !== isFavRef.current) {
                     setFavoriteStatus(currentItem, state.favorite);
                 }
-                if (typeof state.watchlist === "boolean") {
+                if (typeof state.watchlist === "boolean" && state.watchlist !== inWatchlistRef.current) {
                     setWatchlistStatus(currentItem, state.watchlist);
                 }
                 if (typeof state.rated === "object" && state.rated !== null && typeof state.rated.value === "number") {
-                    setUserRatingStatus(currentItem, state.rated.value);
+                    if (state.rated.value !== userRatingRef.current) {
+                        setUserRatingStatus(currentItem, state.rated.value);
+                    }
                 }
             })
             .catch(() => {});
@@ -151,7 +161,8 @@ export function PosterDetails({
         const checkOverflow = () => {
             if (!el) return;
             if (!isOverviewExpanded) {
-                setHasMoreOverview(el.scrollHeight > el.clientHeight);
+                const isOverflow = el.scrollHeight > el.clientHeight;
+                setHasMoreOverview((prev) => (prev !== isOverflow ? isOverflow : prev));
             }
         };
 
@@ -178,12 +189,9 @@ export function PosterDetails({
     }, [overview, isOverviewExpanded]);
 
     useEffect(() => {
-        open2Ref.current = open2;
-    }, [open2]);
+        if (!open2) return;
 
-    useEffect(() => {
         const onDown = (e: PointerEvent) => {
-            if (!open2Ref.current) return;
             if (popupRef.current?.contains(e.target as Node)) return;
             if (btnRef.current?.contains(e.target as Node)) return;
 
@@ -207,7 +215,6 @@ export function PosterDetails({
         };
 
         const onClick = (e: MouseEvent) => {
-            if (!open2Ref.current) return;
             if (
                 popupRef.current &&
                 !popupRef.current.contains(e.target as Node) &&
@@ -229,7 +236,7 @@ export function PosterDetails({
             document.removeEventListener("pointerup", onUp);
             document.removeEventListener("click", onClick);
         };
-    }, []);
+    }, [open2]);
 
     return (
         <section className="relative xl:mt-[19px] lg:mt-[17px] md:mt-[15px] mt-[13px] left-1/2 right-1/2 w-screen -translate-x-1/2">

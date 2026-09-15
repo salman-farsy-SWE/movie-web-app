@@ -55,10 +55,6 @@ export function List({ basePath, lists, emptyMessage, isLoading = false, onClear
   }, [isAuthenticated, syncCustomListsFromTmdb]);
 
   useEffect(() => {
-    openIndexRef.current = openIndex;
-  }, [openIndex]);
-
-  useEffect(() => {
     if (openIndex === null) return;
 
     const update = () => {
@@ -80,10 +76,11 @@ export function List({ basePath, lists, emptyMessage, isLoading = false, onClear
   }, [openIndex]);
 
   useEffect(() => {
+    if (openIndex === null) return;
+
     const onDown = (e: PointerEvent) => {
-      if (openIndexRef.current === null) return;
       if (popupRef.current?.contains(e.target as Node)) return;
-      const currentBtn = btnRefs.current[openIndexRef.current];
+      const currentBtn = btnRefs.current[openIndex];
       if (currentBtn && currentBtn.contains(e.target as Node)) return;
 
       dragStartRef.current = { x: e.clientX, y: e.clientY };
@@ -104,8 +101,7 @@ export function List({ basePath, lists, emptyMessage, isLoading = false, onClear
     };
 
     const onClick = (e: MouseEvent) => {
-      if (openIndexRef.current === null) return;
-      const currentBtn = btnRefs.current[openIndexRef.current];
+      const currentBtn = btnRefs.current[openIndex];
       if (
         popupRef.current &&
         !popupRef.current.contains(e.target as Node) &&
@@ -126,7 +122,7 @@ export function List({ basePath, lists, emptyMessage, isLoading = false, onClear
       document.removeEventListener("pointerup", onUp);
       document.removeEventListener("click", onClick);
     };
-  }, []);
+  }, [openIndex]);
 
   const activeList = openIndex !== null ? displayedLists[openIndex] : null;
 

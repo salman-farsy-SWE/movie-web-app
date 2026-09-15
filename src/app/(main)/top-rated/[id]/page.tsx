@@ -4,7 +4,7 @@ import { slugify } from "@/lib/utils";
 import { getTopRatedContent } from "@/lib/tmdb";
 import { notFound } from "next/navigation";
 
-const VALID_TOP_RATED_CATEGORIES = ["movies", "tv-shows"];
+const VALID_TOP_RATED_CATEGORIES = ["movies", "tv-shows", "all"];
 
 export async function generateMetadata({
   params,
@@ -17,10 +17,14 @@ export async function generateMetadata({
   const isMovie = formattedParam === "movies";
   const title = isMovie
     ? "Top Rated Movies"
-    : "Top Rated TV Shows";
+    : formattedParam === "tv-shows"
+    ? "Top Rated TV Shows"
+    : "Top Rated";
   const description = isMovie
     ? "Browse the highest rated and critically acclaimed movies of all time on Movie Trails."
-    : "Explore the highest rated TV shows, series, and miniseries as rated by viewers.";
+    : formattedParam === "tv-shows"
+    ? "Explore the highest rated TV shows, series, and miniseries as rated by viewers."
+    : "Explore the highest rated movies and TV shows of all time on Movie Trails.";
 
   return {
     title,

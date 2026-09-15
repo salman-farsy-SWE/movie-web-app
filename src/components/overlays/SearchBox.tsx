@@ -77,7 +77,6 @@ export function SearchBox() {
 
     setOpen(false);
     setTimeout(() => {
-      router.push(`/search/${slugify(trimmed.toLowerCase())}`);
       router.push(`/search?q=${encodeURIComponent(trimmed)}`);
     }, 50);
   };
@@ -85,7 +84,6 @@ export function SearchBox() {
   const handleSelectMovie = (title: string) => {
     setOpen(false);
     setTimeout(() => {
-      router.push(`/search/${slugify(title.toLowerCase())}`);
       router.push(`/search?q=${encodeURIComponent(title)}`);
     }, 50);
   };

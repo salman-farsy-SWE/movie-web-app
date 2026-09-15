@@ -15,7 +15,7 @@ import { ChevronLeft, Lock, Globe, Share2, Pencil, Trash2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { slugify } from "@/lib/utils";
-import { useUserCollectionsStore } from "@/stores/useUserCollectionsStore";
+import { useUserCollectionsStore, type CollectionMediaItem } from "@/stores/useUserCollectionsStore";
 import { getTmdbListDetailsAction } from "@/actions/collections";
 import type { TableItem, CustomList, CollectionType, FilterContextType, UserList } from "@/types";
 import { useHydrated } from "@/hooks/useHydrated";
@@ -39,6 +39,7 @@ interface UserCollectionPageProps {
   param2?: string;
   type: CollectionType;
   hidePagination?: boolean;
+  initialList?: UserList | null;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -49,11 +50,12 @@ export function UserCollectionPage({
   param2,
   type,
   hidePagination,
+  initialList,
 }: UserCollectionPageProps) {
   const [filterOpen, setFilterOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [fetchedList, setFetchedList] = useState<UserList | null>(null);
+  const [fetchedList, setFetchedList] = useState<UserList | null>(initialList ?? null);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   const isHydrated = useHydrated();
@@ -92,10 +94,8 @@ export function UserCollectionPage({
   const watchlist = useUserCollectionsStore((state) => state.watchlist);
   const ratings = useUserCollectionsStore((state) => state.ratings);
   const customLists = useUserCollectionsStore((state) => state.customLists);
-  const updateListDetails = useUserCollectionsStore((state) => state.updateListDetails);
   const getListBySlugOrId = useUserCollectionsStore((state) => state.getListBySlugOrId);
   const deleteCustomList = useUserCollectionsStore((state) => state.deleteCustomList);
-  const syncCustomListsFromTmdb = useUserCollectionsStore((state) => state.syncCustomListsFromTmdb);
 
   const searchQuery = (searchParams.get("q") || searchParams.get("search") || "").toLowerCase().trim();
   const sortBy = searchParams.get("sort_by") || "";
@@ -120,24 +120,43 @@ export function UserCollectionPage({
             (l) => l.slug === param2 || String(l.id) === param2 || String(l.id) === rawListId
           );
 
-        if (!existing && !fetchedList) {
-          setIsLoading(true);
+        // If we already have the confirmed list from initialList, sync store and avoid redundant fetch
+        if (initialList) {
+          if (isAuthenticated) {
+            storeState.updateListDetails(initialList);
+          }
+          return;
         }
+
+        // For local unsynced custom lists (custom-list-*), we can trust existing local state
+        if (param2.startsWith("custom-list-") && existing?.items?.length) {
+          return;
+        }
+
+        // Auto-sync custom lists in background if authenticated and empty
+        if (isAuthenticated && storeState.customLists.length === 0) {
+          storeState.syncCustomListsFromTmdb().catch(() => {});
+        }
+
+        setIsLoading(true);
 
         try {
           const res = await getTmdbListDetailsAction(rawListId);
           if (!isCancelled) {
             if (res.success && res.list) {
               setFetchedList(res.list);
+              setFetchError(null);
               if (isAuthenticated) {
-                updateListDetails(res.list);
+                storeState.updateListDetails(res.list);
               }
             } else {
+              setFetchedList(null);
               setFetchError(res.error || "List not found");
             }
           }
         } catch {
           if (!isCancelled) {
+            setFetchedList(null);
             setFetchError("Failed to fetch list details");
           }
         } finally {
@@ -176,13 +195,13 @@ export function UserCollectionPage({
 
       try {
         if (type === "favorite") {
-          await useUserCollectionsStore.getState().syncFavoritesFromTmdb();
+          await storeState.syncFavoritesFromTmdb(true);
         } else if (type === "watchlist") {
-          await useUserCollectionsStore.getState().syncWatchlistFromTmdb();
+          await storeState.syncWatchlistFromTmdb(true);
         } else if (type === "rating") {
-          await useUserCollectionsStore.getState().syncRatingsFromTmdb();
+          await storeState.syncRatingsFromTmdb(true);
         } else if (type === "list") {
-          await syncCustomListsFromTmdb();
+          await storeState.syncCustomListsFromTmdb(true);
         }
       } catch (err) {
         console.warn("Collection background sync warning:", err);
@@ -204,9 +223,7 @@ export function UserCollectionPage({
     param2,
     isAuthenticated,
     isUserMismatch,
-    syncCustomListsFromTmdb,
-    updateListDetails,
-    fetchedList,
+    initialList,
   ]);
 
   useClickOutsideClose({
@@ -217,20 +234,63 @@ export function UserCollectionPage({
 
   const currentList = useMemo(() => {
     if (!isListDetails || !param2) return null;
+    if (fetchError) return null;
+
     const rawId = param2.replace(/^list-/, "");
-    return (
+    const storeList =
       getListBySlugOrId(param2) ||
-      customLists.find((l) => l.slug === param2 || String(l.id) === param2 || String(l.id) === rawId) ||
-      fetchedList ||
-      null
-    );
-  }, [isListDetails, param2, customLists, getListBySlugOrId, fetchedList]);
+      customLists.find((l) => l.slug === param2 || String(l.id) === param2 || String(l.id) === rawId);
+
+    const activeFetched = fetchedList || initialList;
+
+    if (!storeList && !activeFetched) return null;
+    if (!storeList) return activeFetched;
+    if (!activeFetched) return storeList;
+
+    // When storeList is present, it is the reactive source of truth for user mutations (item additions/removals, title/description/privacy edits)
+    const listItems = storeList.items !== undefined ? storeList.items : (activeFetched.items || []);
+    const posters = listItems
+      .map((i) => i.posterImage)
+      .filter(Boolean) as string[];
+
+    return {
+      ...activeFetched,
+      ...storeList,
+      title: storeList.title || activeFetched.title,
+      description: storeList.description !== undefined ? storeList.description : activeFetched.description,
+      isPrivate: storeList.isPrivate !== undefined ? storeList.isPrivate : (activeFetched.isPrivate ?? false),
+      language: storeList.language || activeFetched.language || "en",
+      items: listItems,
+      itemCount: listItems.length,
+      posters:
+        posters.length > 0
+          ? posters.slice(0, 4)
+          : (storeList.posters && storeList.posters.length > 0 ? storeList.posters : (activeFetched.posters || ["/assets/movie-placeholder.jpg"])),
+      backdrop:
+        listItems[0]?.backdropImage ||
+        storeList.backdrop ||
+        activeFetched.backdrop ||
+        "/assets/movie-placeholder.jpg",
+    };
+  }, [isListDetails, param2, customLists, getListBySlugOrId, fetchedList, initialList, fetchError]);
 
   const isOwner = useMemo(() => {
     if (!isAuthenticated || !user || !currentList) return false;
-    const inUserLists = customLists.some(
-      (l) => String(l.id) === String(currentList.id) || l.slug === currentList.slug
-    );
+    const currentIdStr = String(currentList.id || "").toLowerCase();
+    const currentRawId = currentIdStr.replace(/^list-/, "");
+    const inUserLists = customLists.some((l) => {
+      const lIdStr = String(l.id || "").toLowerCase();
+      const lRawId = lIdStr.replace(/^list-/, "");
+      return (
+        lIdStr === currentIdStr ||
+        lRawId === currentRawId ||
+        l.slug === currentList.slug ||
+        (param2 &&
+          (lIdStr === param2.toLowerCase() ||
+            lRawId === param2.replace(/^list-/, "").toLowerCase() ||
+            l.slug === param2.toLowerCase()))
+      );
+    });
     if (inUserLists) return true;
 
     const curatorHandle = currentList.curator?.handle?.replace(/^@/, "").toLowerCase();
@@ -239,11 +299,14 @@ export function UserCollectionPage({
     const userName = user.name?.toLowerCase();
     const userId = String(user.id).toLowerCase();
 
-    if (curatorHandle && (curatorHandle === username || curatorHandle === userId)) return true;
-    if (curatorName && (curatorName === userName || curatorName === username)) return true;
+    if (curatorHandle && (curatorHandle === username || curatorHandle === userId || curatorHandle === slugify(username || "") || curatorHandle === slugify(userName || "") || curatorHandle === "user")) return true;
+    if (curatorName && (curatorName === userName || curatorName === username || curatorName === slugify(username || "") || curatorName === slugify(userName || "") || curatorName === "user")) return true;
+
+    // Any private list successfully loaded while authenticated belongs to this user session
+    if (currentList.isPrivate) return true;
 
     return false;
-  }, [isAuthenticated, user, currentList, customLists]);
+  }, [isAuthenticated, user, currentList, customLists, param2]);
 
   const rawItems: TableItem[] = useMemo(() => {
     if (!isHydrated) return [];
@@ -282,14 +345,8 @@ export function UserCollectionPage({
       }));
     }
 
-    if (isListDetails && param2) {
-      const rawId = param2.replace(/^list-/, "");
-      const foundList =
-        getListBySlugOrId(param2) ||
-        customLists.find((l) => l.slug === param2 || String(l.id) === param2 || String(l.id) === rawId) ||
-        fetchedList;
-      const itemsToUse = foundList?.items || [];
-
+    if (isListDetails) {
+      const itemsToUse = currentList?.items || [];
       return itemsToUse.map((item) => ({
         id: String(item.id),
         image: item.posterImage || "/assets/movie-placeholder.jpg",
@@ -301,7 +358,7 @@ export function UserCollectionPage({
     }
 
     return [];
-  }, [isHydrated, type, favorites, watchlist, ratings, customLists, isListDetails, param2, getListBySlugOrId, fetchedList]);
+  }, [isHydrated, type, favorites, watchlist, ratings, isListDetails, currentList]);
 
   const isVisibilityActive = type === "list" && !isListDetails && mediaFilter && mediaFilter !== "all";
   const isMediaFilterActive = (type !== "list" || isListDetails) && mediaFilter && mediaFilter !== "all";
@@ -390,7 +447,7 @@ export function UserCollectionPage({
     setDeleteModalOpen(false);
     deleteCustomList(listId);
     if (isAuthenticated && user) {
-      router.push(`/${slugify(user.id)}/list`);
+      router.push(param ? `/${param}/list` : `/${user.id}/list`);
     } else {
       router.push("/movies");
     }
@@ -430,7 +487,7 @@ export function UserCollectionPage({
           </p>
           <div className="flex items-center gap-3 mt-6">
             <Button
-              onClick={() => goBack(isAuthenticated && user ? `/${slugify(user.id)}/list` : "/movies")}
+              onClick={() => goBack(param ? `/${param}/list` : (isAuthenticated && user ? `/${user.id}/list` : "/movies"))}
               variant="outline"
               className="h-10 px-5 rounded-full font-inter text-xs font-medium cursor-pointer"
             >
@@ -459,10 +516,10 @@ export function UserCollectionPage({
             List Not Found
           </h1>
           <p className="mt-2 text-sm sm:text-base text-light-genre-font dark:text-genre-font max-w-md font-inter">
-            We couldn't find the requested list. It may have been deleted or the link might be incorrect.
+            We couldn&apos;t find the requested list. It may have been deleted or the link might be incorrect.
           </p>
           <Button
-            onClick={() => goBack(isAuthenticated && user ? `/${slugify(user.id)}/list` : "/movies")}
+            onClick={() => goBack(param ? `/${param}/list` : (isAuthenticated && user ? `/${user.id}/list` : "/movies"))}
             className="mt-6 h-10 px-5 rounded-full bg-light-create-new-btn dark:bg-create-new-btn text-white font-inter text-xs font-medium cursor-pointer"
           >
             Explore Movies
@@ -486,8 +543,8 @@ export function UserCollectionPage({
             }
           }
           customUrl={
-            typeof window !== "undefined" && param2
-              ? `${window.location.origin}/list/${currentList?.id || param2}`
+            typeof window !== "undefined" && (currentList?.id || param2)
+              ? `${window.location.origin}/list/${String(currentList?.id || param2).replace(/^list-/, "")}`
               : undefined
           }
         />
@@ -509,8 +566,10 @@ export function UserCollectionPage({
               type="button"
               aria-label="Go back"
               onClick={() => {
-                if (isAuthenticated && user) {
-                  goBack(param ? `/${slugify(param)}/list` : `/${slugify(user.id)}/list`);
+                if (param) {
+                  goBack(`/${param}/list`);
+                } else if (isAuthenticated && user) {
+                  goBack(`/${user.id}/list`);
                 } else {
                   goBack("/movies");
                 }
@@ -548,7 +607,7 @@ export function UserCollectionPage({
                 </Button>
               )}
 
-              {(!isListPrivate || isOwner) && (
+              {!isListPrivate && (
                 <Button
                   type="button"
                   onClick={() => setShareModalOpen(true)}
@@ -619,12 +678,19 @@ export function UserCollectionPage({
       <CollectionActiveFilters isListView={type === "list" && !isListDetails} />
 
       {isListDetails && (
-        <Breadcrumb type={type} subRoute2={listDisplayTitle} />
+        <div className="flex flex-col gap-1 mb-2">
+          <Breadcrumb type={type} subRoute2={listDisplayTitle} />
+          {currentList?.description && (
+            <p className="ml-2 -mt-1 mb-1 font-inter text-xs sm:text-sm text-light-genre-font dark:text-genre-font max-w-3xl leading-relaxed">
+              {currentList.description}
+            </p>
+          )}
+        </div>
       )}
 
       {type === "list" && !isListDetails ? (
         <List
-          basePath={param ? `/${param}/list` : "/list"}
+          basePath={param ? `/${param}/list` : (user?.id ? `/${user.id}/list` : "/list")}
           lists={paginatedLists}
           isLoading={isLoading || !isHydrated || isPending}
           emptyMessage={emptyMessage}

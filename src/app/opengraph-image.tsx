@@ -19,17 +19,31 @@ export default async function Image() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#06080E",
+          backgroundColor: "#0B0E17",
           backgroundImage:
-            "radial-gradient(circle at 50% 35%, rgba(232, 83, 85, 0.28) 0%, rgba(88, 166, 255, 0.16) 45%, rgba(6, 8, 14, 0.98) 85%)",
+            "linear-gradient(135deg, #0B0E17 0%, #151928 50%, #0B0E17 100%)",
           color: "white",
-          fontFamily: "sans-serif",
           position: "relative",
-          padding: "40px",
-          boxSizing: "border-box",
+          padding: "48px",
         }}
       >
-        {/* Subtle decorative grid/border frame */}
+        {/* Subtle decorative background glow box */}
+        <div
+          style={{
+            position: "absolute",
+            top: "20%",
+            left: "25%",
+            width: "50%",
+            height: "50%",
+            backgroundColor: "#E85355",
+            opacity: 0.12,
+            filter: "blur(80px)",
+            borderRadius: "50%",
+            display: "flex",
+          }}
+        />
+
+        {/* Outer decorative border frame */}
         <div
           style={{
             position: "absolute",
@@ -49,12 +63,12 @@ export default async function Image() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            marginBottom: "20px",
+            marginBottom: "16px",
           }}
         >
           <svg
-            width="104"
-            height="104"
+            width="96"
+            height="96"
             viewBox="0 0 512 512"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -96,13 +110,12 @@ export default async function Image() {
         {/* Brand Name Title */}
         <div
           style={{
-            fontSize: 62,
-            fontWeight: 900,
+            fontSize: 60,
+            fontWeight: 800,
             letterSpacing: "-0.03em",
             marginBottom: "12px",
             color: "#FFFFFF",
             display: "flex",
-            textShadow: "0 0 40px rgba(232, 83, 85, 0.4)",
           }}
         >
           Movie Trails
@@ -111,68 +124,71 @@ export default async function Image() {
         {/* Tagline Description */}
         <div
           style={{
-            fontSize: 24,
-            fontWeight: 500,
+            fontSize: 22,
+            fontWeight: 400,
             color: "#94A3B8",
             textAlign: "center",
-            maxWidth: "820px",
-            marginBottom: "36px",
+            maxWidth: "800px",
+            marginBottom: "32px",
             lineHeight: 1.4,
             display: "flex",
           }}
         >
-          Discover &amp; Watch Movies, TV Shows, HD Trailers and Custom Watchlists
+          Discover & Watch Movies, TV Shows, HD Trailers and Custom Watchlists
         </div>
 
         {/* Feature Badges */}
         <div
           style={{
             display: "flex",
-            gap: "14px",
+            gap: "16px",
             alignItems: "center",
           }}
         >
           <div
             style={{
-              padding: "10px 20px",
+              padding: "10px 22px",
               backgroundColor: "rgba(232, 83, 85, 0.15)",
-              border: "1px solid rgba(232, 83, 85, 0.35)",
+              border: "1px solid rgba(232, 83, 85, 0.4)",
               borderRadius: "9999px",
               color: "#FFA8AF",
-              fontSize: 17,
+              fontSize: 16,
               fontWeight: 600,
               display: "flex",
+              alignItems: "center",
             }}
           >
-            🎬 Movies &amp; TV Series
+            Movies & TV Shows
           </div>
           <div
             style={{
-              padding: "10px 20px",
+              padding: "10px 22px",
               backgroundColor: "rgba(88, 166, 255, 0.15)",
-              border: "1px solid rgba(88, 166, 255, 0.35)",
+              border: "1px solid rgba(88, 166, 255, 0.4)",
               borderRadius: "9999px",
               color: "#A5D0FF",
-              fontSize: 17,
+              fontSize: 16,
               fontWeight: 600,
               display: "flex",
+              alignItems: "center",
             }}
           >
-            🍿 Official Trailers
+            Official HD Trailers
           </div>
           <div
             style={{
-              padding: "10px 20px",
+              padding: "10px 22px",
               backgroundColor: "rgba(255, 255, 255, 0.08)",
-              border: "1px solid rgba(255, 255, 255, 0.18)",
+              border: "1px solid rgba(255, 255, 255, 0.2)",
               borderRadius: "9999px",
               color: "#E2E8F0",
-              fontSize: 17,
+              fontSize: 16,
               fontWeight: 600,
               display: "flex",
+              alignItems: "center",
             }}
           >
-            ⭐ Track &amp; Curate
+            Track & Curate
           </div>
         </div>
       </div>
@@ -182,4 +198,3 @@ export default async function Image() {
     }
   );
 }
-

@@ -63,13 +63,13 @@ function getAuthParams(): { headers: HeadersInit; apiKeyParam?: string } {
 async function tmdbAuthFetch(
   url: string,
   init?: RequestInit,
-  retries: number = 2
+  retries: number = 3
 ): Promise<Response> {
   let attempt = 0;
   while (attempt <= retries) {
     try {
       const res = await fetch(url, { ...init, cache: "no-store" });
-      if (res.status === 429 && attempt < retries) {
+      if ((res.status === 429 || (res.status >= 500 && res.status <= 504)) && attempt < retries) {
         const retryAfterHeader = res.headers.get("Retry-After");
         const delayMs = retryAfterHeader
           ? Number(retryAfterHeader) * 1000
@@ -599,6 +599,14 @@ export async function getAccountLists(
           const idStr = String(r.id);
           if (!seenIds.has(idStr)) {
             seenIds.add(idStr);
+            const isPub =
+              typeof r.public === "boolean"
+                ? r.public
+                : typeof r.public === "number"
+                ? r.public === 1
+                : typeof (r as Record<string, unknown>).is_public === "boolean"
+                ? (r as Record<string, unknown>).is_public
+                : undefined;
             allResults.push({
               id: Number(r.id) || 0,
               name: (r.name as string) || "",
@@ -606,7 +614,7 @@ export async function getAccountLists(
               favorite_count: (r.favorite_count as number) || (r.likes_count as number) || 0,
               item_count: (r.item_count as number) ?? (r.number_of_items as number) ?? 0,
               iso_639_1: (r.iso_639_1 as string) || "en",
-              list_type: r.public !== undefined ? (r.public ? "public" : "private") : ((r.list_type as string) || "public"),
+              list_type: isPub !== undefined ? (isPub ? "public" : "private") : ((r.list_type as string) || "public"),
               poster_path: (r.poster_path as string | null) || null,
               backdrop_path: (r.backdrop_path as string | null) || null,
             });
@@ -628,6 +636,14 @@ export async function getAccountLists(
           const idStr = String(r.id);
           if (!seenIds.has(idStr)) {
             seenIds.add(idStr);
+            const isPub =
+              typeof r.public === "boolean"
+                ? r.public
+                : typeof r.public === "number"
+                ? r.public === 1
+                : typeof (r as Record<string, unknown>).is_public === "boolean"
+                ? (r as Record<string, unknown>).is_public
+                : undefined;
             allResults.push({
               id: Number(r.id) || 0,
               name: (r.name as string) || "",
@@ -635,7 +651,7 @@ export async function getAccountLists(
               favorite_count: (r.favorite_count as number) || (r.likes_count as number) || 0,
               item_count: (r.item_count as number) ?? (r.number_of_items as number) ?? 0,
               iso_639_1: (r.iso_639_1 as string) || "en",
-              list_type: (r.list_type as string) || "public",
+              list_type: isPub !== undefined ? (isPub ? "public" : "private") : ((r.list_type as string) || "public"),
               poster_path: (r.poster_path as string | null) || null,
               backdrop_path: (r.backdrop_path as string | null) || null,
             });
@@ -663,21 +679,27 @@ export async function getListDetails(
   const cleanId = String(listId).replace(/^list-/, "").trim();
   if (!cleanId || isNaN(Number(cleanId))) return null;
 
-  // Try v4 endpoint first for richer metadata
+  const sessionParam = sessionId ? `session_id=${encodeURIComponent(sessionId)}` : "";
+  const queryParts = [sessionParam, apiKeyParam].filter(Boolean).join("&");
+
+  let v4Public: boolean | undefined = undefined;
+  let v4Items: TmdbMediaResult[] | null = null;
+  let v4Data: Record<string, unknown> | null = null;
+
+  // 1. Try v4 endpoint first (v4 provides accurate public/private flag and supports modern movie/tv lists)
   try {
-    const sessionParam = sessionId ? `session_id=${encodeURIComponent(sessionId)}` : "";
-    const queryParts = [sessionParam, apiKeyParam].filter(Boolean).join("&");
     const v4Url = queryParts
       ? `https://api.themoviedb.org/4/list/${cleanId}?${queryParts}`
       : `https://api.themoviedb.org/4/list/${cleanId}`;
 
-    const res = await tmdbAuthFetch(v4Url, {
+    const resV4 = await tmdbAuthFetch(v4Url, {
       headers,
     });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data && (data.results || data.items || data.name)) {
+    if (resV4.ok) {
+      const data = await resV4.json();
+      if (data && (data.results !== undefined || data.items !== undefined || data.name)) {
+        v4Data = data;
         const allItems: TmdbMediaResult[] = [...(data.results || data.items || [])];
         const totalPages = Math.min(data.total_pages || 1, 50);
         if (totalPages > 1) {
@@ -700,49 +722,99 @@ export async function getListDetails(
           }
         }
 
+        v4Items = allItems;
+        v4Public =
+          typeof data.public === "boolean"
+            ? data.public
+            : typeof data.public === "number"
+            ? data.public === 1
+            : typeof data.public === "string"
+            ? data.public === "true" || data.public === "1" || data.public === "public"
+            : undefined;
+      }
+    }
+  } catch {}
+
+  // 2. Fallback / supplementary check via v3 endpoint
+  try {
+    const base = `https://api.themoviedb.org/3/list/${cleanId}`;
+    const v3Url = queryParts ? `${base}?${queryParts}` : base;
+
+    const resV3 = await tmdbAuthFetch(v3Url, {
+      headers,
+    });
+
+    if (resV3.ok) {
+      const data = await resV3.json();
+      if (data && (data.items || data.results || data.name)) {
+        const v3Items = (data.items || data.results || []) as TmdbMediaResult[];
+        const resolvedItems = (v4Items && v4Items.length > 0) ? v4Items : v3Items;
+        let resolvedPublic = v4Public;
+        if (resolvedPublic === undefined) {
+          if (typeof data.public === "boolean") {
+            resolvedPublic = data.public;
+          } else if (typeof data.public === "number") {
+            resolvedPublic = data.public === 1;
+          } else if (typeof data.public === "string") {
+            resolvedPublic = data.public === "true" || data.public === "1" || data.public === "public";
+          } else if (sessionId) {
+            try {
+              const probeUrl = apiKeyParam ? `${base}?${apiKeyParam}` : base;
+              const probeRes = await tmdbAuthFetch(probeUrl, { headers });
+              resolvedPublic = probeRes.ok;
+            } catch {
+              resolvedPublic = false;
+            }
+          } else {
+            resolvedPublic = true;
+          }
+        }
+
         const creatorName =
-          data.created_by?.username ||
-          data.created_by?.name ||
-          (typeof data.created_by === "string" ? data.created_by : undefined);
+          (typeof data.created_by === "string" ? data.created_by : undefined) ||
+          (v4Data?.created_by as { username?: string; name?: string })?.username ||
+          (v4Data?.created_by as { username?: string; name?: string })?.name;
 
         return {
-          id: data.id || cleanId,
-          name: data.name || "",
-          description: data.description || "",
+          id: data.id || v4Data?.id || cleanId,
+          name: data.name || (v4Data?.name as string) || "",
+          description: data.description || (v4Data?.description as string) || "",
           created_by: creatorName,
-          favorite_count: data.favorite_count || data.likes_count || 0,
-          item_count: data.total_results ?? data.item_count ?? (data.number_of_items as number | undefined) ?? allItems.length,
-          iso_639_1: data.iso_639_1,
-          public: typeof data.public === "boolean" ? data.public : (typeof data.public === "number" ? Boolean(data.public) : undefined),
-          poster_path: data.poster_path,
-          backdrop_path: data.backdrop_path,
-          items: allItems,
+          favorite_count: data.favorite_count || (v4Data?.favorite_count as number) || 0,
+          item_count: data.item_count ?? (v4Data?.total_results as number) ?? resolvedItems.length,
+          iso_639_1: data.iso_639_1 || (v4Data?.iso_639_1 as string) || "en",
+          public: resolvedPublic,
+          poster_path: data.poster_path || (v4Data?.poster_path as string | null) || null,
+          backdrop_path: data.backdrop_path || (v4Data?.backdrop_path as string | null) || null,
+          items: resolvedItems,
         };
       }
     }
   } catch {}
 
-  // Fallback to v3 endpoint
-  const sessionParam = sessionId ? `session_id=${encodeURIComponent(sessionId)}` : "";
-  const queryParts = [sessionParam, apiKeyParam].filter(Boolean).join("&");
-  const base = `https://api.themoviedb.org/3/list/${cleanId}`;
-  const url = queryParts ? `${base}?${queryParts}` : base;
+  // If v3 failed but v4 succeeded, return v4 result
+  if (v4Data) {
+    const creatorName =
+      (v4Data.created_by as { username?: string; name?: string })?.username ||
+      (v4Data.created_by as { username?: string; name?: string })?.name ||
+      (typeof v4Data.created_by === "string" ? v4Data.created_by : undefined);
 
-  try {
-    const res = await tmdbAuthFetch(url, {
-      headers,
-    });
-
-    if (!res.ok) return null;
-    const data = await res.json();
     return {
-      ...data,
-      public: typeof data.public === "boolean" ? data.public : (typeof data.public === "number" ? Boolean(data.public) : undefined),
-      items: (data.items || data.results || []) as TmdbMediaResult[],
-    } as TmdbListDetailsResponse;
-  } catch {
-    return null;
+      id: (v4Data.id as string | number) || cleanId,
+      name: (v4Data.name as string) || "",
+      description: (v4Data.description as string) || "",
+      created_by: creatorName,
+      favorite_count: (v4Data.favorite_count as number) || (v4Data.likes_count as number) || 0,
+      item_count: (v4Data.total_results as number) ?? (v4Data.item_count as number) ?? (v4Items?.length || 0),
+      iso_639_1: (v4Data.iso_639_1 as string) || "en",
+      public: v4Public,
+      poster_path: (v4Data.poster_path as string | null) || null,
+      backdrop_path: (v4Data.backdrop_path as string | null) || null,
+      items: v4Items || [],
+    };
   }
+
+  return null;
 }
 
 /**
@@ -929,10 +1001,36 @@ export async function deleteList(
   if (!cleanId || isNaN(Number(cleanId))) {
     return { success: true };
   }
-  const base = `https://api.themoviedb.org/3/list/${cleanId}?session_id=${encodeURIComponent(sessionId)}`;
-  const url = apiKeyParam ? `${base}&${apiKeyParam}` : base;
 
+  const sessionParam = sessionId ? `session_id=${encodeURIComponent(sessionId)}` : "";
+  const queryParts = [sessionParam, apiKeyParam].filter(Boolean).join("&");
+
+  // 1. Try v4 endpoint (supports modern lists)
   try {
+    const v4Url = queryParts
+      ? `https://api.themoviedb.org/4/list/${cleanId}?${queryParts}`
+      : `https://api.themoviedb.org/4/list/${cleanId}`;
+
+    const resV4 = await tmdbAuthFetch(v4Url, {
+      method: "DELETE",
+      headers,
+    });
+
+    const dataV4 = await resV4.json().catch(() => null);
+    if (
+      (resV4.ok && (dataV4?.success === true || resV4.status === 200 || dataV4?.status_code === 12 || dataV4?.status_code === 13)) ||
+      resV4.status === 404 ||
+      dataV4?.status_code === 34
+    ) {
+      return { success: true, status_message: dataV4?.status_message };
+    }
+  } catch {}
+
+  // 2. Fallback to v3 endpoint
+  try {
+    const base = `https://api.themoviedb.org/3/list/${cleanId}?session_id=${encodeURIComponent(sessionId)}`;
+    const url = apiKeyParam ? `${base}&${apiKeyParam}` : base;
+
     const res = await tmdbAuthFetch(url, {
       method: "DELETE",
       headers,
@@ -940,7 +1038,9 @@ export async function deleteList(
 
     const data = await res.json().catch(() => null);
     const isSuccess = Boolean(
-      res.ok && (data?.success === true || res.status === 200 || data?.status_code === 12 || data?.status_code === 13)
+      (res.ok && (data?.success === true || res.status === 200 || data?.status_code === 12 || data?.status_code === 13)) ||
+      res.status === 404 ||
+      data?.status_code === 34
     );
     return { success: isSuccess, status_message: data?.status_message };
   } catch {

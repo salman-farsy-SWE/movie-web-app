@@ -58,11 +58,19 @@ export function sortCustomLists(lists: CustomList[], sortBy: string): CustomList
     case "items-desc":
     case "items.desc":
     case "most-items":
-      return sorted.sort((a, b) => (b.items?.length || 0) - (a.items?.length || 0));
+      return sorted.sort((a, b) => {
+        const countB = b.itemCount ?? b.items?.length ?? 0;
+        const countA = a.itemCount ?? a.items?.length ?? 0;
+        return countB - countA;
+      });
     case "items-asc":
     case "items.asc":
     case "fewest-items":
-      return sorted.sort((a, b) => (a.items?.length || 0) - (b.items?.length || 0));
+      return sorted.sort((a, b) => {
+        const countB = b.itemCount ?? b.items?.length ?? 0;
+        const countA = a.itemCount ?? a.items?.length ?? 0;
+        return countA - countB;
+      });
     default:
       return sorted;
   }

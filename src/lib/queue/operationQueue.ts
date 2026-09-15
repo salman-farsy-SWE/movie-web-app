@@ -175,6 +175,32 @@ class OperationQueueManager {
   }
 
   
+  isKeyPending(key: string): boolean {
+    if (this.promiseChains.has(key)) return true;
+    const entry = this.stateCoalescers.get(key);
+    return Boolean(entry && (entry.inFlight || entry.pending));
+  }
+
+  getPendingDesiredValue<T = unknown>(key: string): T | undefined {
+    const entry = this.stateCoalescers.get(key);
+    if (entry?.pending) {
+      return entry.pending.desiredValue as T;
+    }
+    return undefined;
+  }
+
+  hasPendingPrefix(prefix: string): boolean {
+    for (const key of this.promiseChains.keys()) {
+      if (key.startsWith(prefix)) return true;
+    }
+    for (const [key, entry] of this.stateCoalescers.entries()) {
+      if (key.startsWith(prefix) && (entry.inFlight || entry.pending)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   cancelListOperations(listId: string | number) {
     const idStr = String(listId);
     const cleanId = idStr.replace(/^list-/, "");
@@ -191,3 +217,4 @@ class OperationQueueManager {
 }
 
 export const operationQueue = new OperationQueueManager();
+

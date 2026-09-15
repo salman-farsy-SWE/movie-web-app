@@ -22,6 +22,7 @@ import {
   triggerRouteProgressStart,
   triggerRouteProgressDone,
 } from "@/components/navigation/RouteProgressBar";
+import { toast } from "@/lib/toast";
 
 interface AuthContextType {
   user: TmdbAccount | null;
@@ -126,6 +127,7 @@ export function AuthProvider({
         if (response.success && response.user) {
           setUser(response.user);
           useUserCollectionsStore.getState().syncAllFromTmdb(true);
+          toast.login(response.user.name || response.user.username || username);
         }
         return response;
       } catch (error) {
@@ -161,6 +163,7 @@ export function AuthProvider({
     setUser(null);
     useUserCollectionsStore.getState().reset();
     setIsLoading(false);
+    toast.logout();
 
     if (wasProtected) {
       if (typeof window !== "undefined") {

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { UserCollectionPage } from "@/components/user-collection/UserCollectionPage";
 import { slugify } from "@/lib/utils";
 import { getListDetails } from "@/lib/tmdb/auth";
+import { getTmdbListDetailsAction } from "@/actions/collections";
+import type { UserList } from "@/types";
 
 export async function generateMetadata({
   params,
@@ -22,6 +24,13 @@ export async function generateMetadata({
       if (details.description) {
         description = details.description;
       }
+      if (details.backdrop_path) {
+        backdropUrl = `https://image.tmdb.org/t/p/w1280${details.backdrop_path}`;
+      } else if (details.items && details.items[0]?.backdrop_path) {
+        backdropUrl = `https://image.tmdb.org/t/p/w1280${details.items[0].backdrop_path}`;
+      } else if (details.poster_path) {
+        backdropUrl = `https://image.tmdb.org/t/p/w780${details.poster_path}`;
+      }
     } else {
       const cleanTitle = decodeURIComponent(listId)
         .replace(/[-_]/g, " ")
@@ -35,6 +44,11 @@ export async function generateMetadata({
     title = `${cleanTitle} - Custom List`;
   }
 
+  const validImage =
+    backdropUrl && !backdropUrl.startsWith("/assets/")
+      ? backdropUrl
+      : undefined;
+
   return {
     title,
     description,
@@ -42,20 +56,26 @@ export async function generateMetadata({
       title: `${title} | Movie Trails`,
       description,
       type: "website",
-      images: [
-        {
-          url: backdropUrl || "/opengraph-image",
-          width: 1200,
-          height: 630,
-          alt: `${title} | Movie Trails`,
-        },
-      ],
+      url: `/list/${rawId}`,
+      siteName: "Movie Trails",
+      ...(validImage
+        ? {
+            images: [
+              {
+                url: validImage,
+                width: 1200,
+                height: 630,
+                alt: `${title} | Movie Trails`,
+              },
+            ],
+          }
+        : {}),
     },
     twitter: {
       card: "summary_large_image",
       title: `${title} | Movie Trails`,
       description,
-      images: [backdropUrl || "/twitter-image"],
+      ...(validImage ? { images: [validImage] } : {}),
     },
   };
 }
@@ -66,12 +86,22 @@ export default async function AnonymousListPage({
   params: Promise<{ listId: string }>;
 }) {
   const { listId } = await params;
+  const rawId = listId.replace(/^list-/, "");
   const formattedListId = slugify(listId);
+
+  let initialList: UserList | null = null;
+  try {
+    const res = await getTmdbListDetailsAction(rawId);
+    if (res.success && res.list) {
+      initialList = res.list;
+    }
+  } catch {}
 
   return (
     <UserCollectionPage
       type="list"
       param2={formattedListId}
+      initialList={initialList}
     />
   );
 }

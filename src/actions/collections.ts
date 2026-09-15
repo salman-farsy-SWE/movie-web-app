@@ -26,6 +26,7 @@ import {
   type TmdbListDetailsResponse,
 } from "@/lib/tmdb/auth";
 import { getTmdbImageUrl } from "@/lib/tmdb/tmdb";
+import { getMediaDetails } from "@/lib/tmdb/details";
 import type { CollectionMediaItem } from "@/stores/useUserCollectionsStore";
 import type { UserList } from "@/types";
 
@@ -33,8 +34,13 @@ const SESSION_COOKIE_NAME = "tmdb_session_id";
 
 function mapTmdbResultToCollectionItem(
   m: TmdbMediaResult,
-  isMovie: boolean
+  fallbackIsMovie: boolean
 ): CollectionMediaItem {
+  const isTv =
+    m.media_type === "tv" ||
+    (!m.title && Boolean(m.name || m.first_air_date));
+  const isMovie = m.media_type === "movie" ? true : isTv ? false : fallbackIsMovie;
+
   return {
     id: m.id,
     title: m.title || m.original_title || m.name || m.original_name || "",
@@ -47,6 +53,7 @@ function mapTmdbResultToCollectionItem(
     mediaType: isMovie ? "movie" : "tv",
   };
 }
+
 
 async function fetchAllTmdbPages(
   fetchFn: (page: number) => Promise<{ results: TmdbMediaResult[]; total_pages: number }>
@@ -89,7 +96,14 @@ export async function toggleTmdbFavoriteAction({
     const cookieStore = await cookies();
     const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
-    const numericId = Math.floor(Number(mediaId));
+    let numericId = Math.floor(Number(mediaId));
+    if (isNaN(numericId) || numericId <= 0) {
+      try {
+        const details = await getMediaDetails(String(mediaId), mediaType === "movie");
+        numericId = Math.floor(Number(details.id));
+      } catch {}
+    }
+
     if (isNaN(numericId) || numericId <= 0) {
       return { success: true, favorite, isTmdbSynced: false };
     }
@@ -128,7 +142,14 @@ export async function toggleTmdbWatchlistAction({
     const cookieStore = await cookies();
     const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
-    const numericId = Math.floor(Number(mediaId));
+    let numericId = Math.floor(Number(mediaId));
+    if (isNaN(numericId) || numericId <= 0) {
+      try {
+        const details = await getMediaDetails(String(mediaId), mediaType === "movie");
+        numericId = Math.floor(Number(details.id));
+      } catch {}
+    }
+
     if (isNaN(numericId) || numericId <= 0) {
       return { success: true, watchlist, isTmdbSynced: false };
     }
@@ -167,7 +188,14 @@ export async function setTmdbRatingAction({
     const cookieStore = await cookies();
     const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
-    const numericId = Math.floor(Number(mediaId));
+    let numericId = Math.floor(Number(mediaId));
+    if (isNaN(numericId) || numericId <= 0) {
+      try {
+        const details = await getMediaDetails(String(mediaId), mediaType === "movie");
+        numericId = Math.floor(Number(details.id));
+      } catch {}
+    }
+
     if (isNaN(numericId) || numericId <= 0) {
       return { success: false, isTmdbSynced: false, error: "Invalid media ID" };
     }
@@ -199,7 +227,14 @@ export async function removeTmdbRatingAction({
     const cookieStore = await cookies();
     const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
-    const numericId = Math.floor(Number(mediaId));
+    let numericId = Math.floor(Number(mediaId));
+    if (isNaN(numericId) || numericId <= 0) {
+      try {
+        const details = await getMediaDetails(String(mediaId), mediaType === "movie");
+        numericId = Math.floor(Number(details.id));
+      } catch {}
+    }
+
     if (isNaN(numericId) || numericId <= 0) {
       return { success: false, isTmdbSynced: false, error: "Invalid media ID" };
     }
@@ -429,73 +464,73 @@ export async function syncTmdbListsAction(): Promise<{
 
     const allListResults = Array.from(listMapById.values());
 
-    const tmdbLists: UserList[] = await Promise.all(
-      allListResults.map(async (l) => {
-        let details: TmdbListDetailsResponse | null = null;
-        try {
-          details = await getListDetails(l.id, sessionId);
-        } catch {}
+    const tmdbListPromises = allListResults.map(async (l): Promise<UserList> => {
+      let details: TmdbListDetailsResponse | null = null;
+      try {
+        details = await getListDetails(l.id, sessionId);
+      } catch {}
 
-        const rawItems = details?.items || [];
-        const items = rawItems.map((item) => {
-          const isTvItem =
-            item.media_type === "tv" ||
-            (!item.title && Boolean(item.name || item.first_air_date));
-          return mapTmdbResultToCollectionItem(item, !isTvItem);
-        });
+      const rawItems = details?.items || [];
+      const items = rawItems.map((item) => {
+        const isTvItem =
+          item.media_type === "tv" ||
+          (!item.title && Boolean(item.name || item.first_air_date));
+        return mapTmdbResultToCollectionItem(item, !isTvItem);
+      });
 
-        const posters = items
-          .map((i) => i.posterImage)
-          .filter(Boolean) as string[];
+      const posters = items
+        .map((i) => i.posterImage)
+        .filter(Boolean) as string[];
 
-        const detailsBackdrop = details?.backdrop_path || null;
-        const mostRecentItem = items[0];
-        const coverBackdrop =
-          mostRecentItem?.backdropImage ||
-          getTmdbImageUrl(detailsBackdrop || l.backdrop_path, "original") ||
-          (l.poster_path ? getTmdbImageUrl(l.poster_path, "w500") : null) ||
-          "/assets/movie-placeholder.jpg";
+      const detailsBackdrop = details?.backdrop_path || null;
+      const mostRecentItem = items[0];
+      const coverBackdrop =
+        mostRecentItem?.backdropImage ||
+        getTmdbImageUrl(detailsBackdrop || l.backdrop_path, "original") ||
+        (l.poster_path ? getTmdbImageUrl(l.poster_path, "w500") : null) ||
+        "/assets/movie-placeholder.jpg";
 
-        const isPrivate =
-          details?.public !== undefined
-            ? !details.public
-            : (l.list_type === "private" ? true : false);
-        const listTitle = details?.name || l.name || "Untitled List";
-        const listDescription = details?.description || l.description || "";
-        const listLanguage = details?.iso_639_1 || l.iso_639_1 || "en";
+      const isPrivate =
+        details?.public !== undefined
+          ? !details.public
+          : l.list_type === "private";
+      const listTitle = details?.name || l.name || "Untitled List";
+      const listDescription = details?.description || l.description || "";
+      const listLanguage = details?.iso_639_1 || l.iso_639_1 || "en";
 
-        const computedPosters =
-          posters.length > 0
-            ? posters.slice(0, 4)
-            : l.poster_path
-            ? [getTmdbImageUrl(l.poster_path, "w500") || "/assets/movie-placeholder.jpg"]
-            : ["/assets/movie-placeholder.jpg"];
+      const computedPosters =
+        posters.length > 0
+          ? posters.slice(0, 4)
+          : l.poster_path
+          ? [getTmdbImageUrl(l.poster_path, "w500") || "/assets/movie-placeholder.jpg"]
+          : ["/assets/movie-placeholder.jpg"];
 
-        return {
-          id: String(l.id),
-          slug: `list-${l.id}`,
-          title: listTitle,
-          description: listDescription,
-          curator: {
-            name: details?.created_by || account.name || account.username || "User",
-            handle: `@${account.username || "user"}`,
-            avatar: "/assets/persons-image.jpg",
-          },
-          itemCount: details?.item_count ?? (l.item_count ?? items.length),
-          runtime: "—",
-          likesCount: details?.favorite_count || l.favorite_count || 0,
-          viewsCount: "1",
-          rating: 4.8,
-          tags: ["TMDB List"],
-          backdrop: coverBackdrop,
-          posters: computedPosters,
-          items,
-          isPrivate,
-          language: listLanguage,
-          updatedAt: "Synced from TMDB",
-        };
-      })
-    );
+      return {
+        id: String(l.id),
+        slug: `list-${l.id}`,
+        title: listTitle,
+        description: listDescription,
+        curator: {
+          name: details?.created_by || account.name || account.username || "User",
+          handle: `@${account.username || details?.created_by || "user"}`,
+          avatar: "/assets/persons-image.jpg",
+        },
+        itemCount: details?.item_count ?? (l.item_count ?? items.length),
+        runtime: "—",
+        likesCount: details?.favorite_count || l.favorite_count || 0,
+        viewsCount: "1",
+        rating: 4.8,
+        tags: isPrivate ? ["Private"] : ["Public"],
+        backdrop: coverBackdrop,
+        posters: computedPosters,
+        items,
+        isPrivate,
+        language: listLanguage,
+        updatedAt: "Synced from TMDB",
+      };
+    });
+
+    const tmdbLists = await Promise.all(tmdbListPromises);
 
     return {
       success: true,
@@ -543,19 +578,34 @@ export async function getTmdbListDetailsAction(listId: string | number): Promise
     const isPrivate =
       details.public !== undefined ? !details.public : false;
 
+    let curatorName = details.created_by || "User";
+    let curatorHandle = details.created_by ? `@${details.created_by}` : "@user";
+    if (sessionId) {
+      try {
+        const account = await getAccountDetails(sessionId);
+        if (account) {
+          if (!details.created_by || details.created_by === "User" || details.created_by === account.username) {
+            curatorName = account.name || account.username || "User";
+            curatorHandle = `@${account.username || "user"}`;
+          }
+        }
+      } catch {}
+    }
+
     const userList: UserList = {
       id: String(details.id),
       slug: `list-${details.id}`,
       title: details.name,
       description: details.description || "",
       curator: {
-        name: details.created_by || "User",
-        handle: `@${details.created_by || "user"}`,
+        name: curatorName,
+        handle: curatorHandle,
+        avatar: "/assets/persons-image.jpg",
       },
       itemCount: details.item_count ?? items.length,
       runtime: "—",
       likesCount: details.favorite_count || 0,
-      tags: [],
+      tags: isPrivate ? ["Private"] : ["Public"],
       backdrop: coverBackdrop,
       posters: posters.slice(0, 4),
       items,
@@ -628,7 +678,7 @@ export async function createTmdbListAction({
       runtime: "0m",
       likesCount: 0,
       viewsCount: "1",
-      tags: ["TMDB List"],
+      tags: isPrivate ? ["Private"] : ["Public"],
       backdrop: "/assets/movie-placeholder.jpg",
       posters: [],
       items: [],
@@ -746,16 +796,12 @@ export async function deleteTmdbListAction(
     }
 
     const idStr = String(listId);
-    if (
-      idStr.startsWith("custom-list-") ||
-      /^list-[1-9]$/.test(idStr) ||
-      /^[1-9]$/.test(idStr)
-    ) {
+    if (idStr.startsWith("custom-list-")) {
       return { success: true, isTmdbSynced: false };
     }
 
     const cleanListId = idStr.replace(/^list-/, "").trim();
-    if (isNaN(Number(cleanListId))) {
+    if (!cleanListId || isNaN(Number(cleanListId))) {
       return { success: false, isTmdbSynced: false, error: "Invalid list ID" };
     }
 
@@ -790,7 +836,18 @@ export async function toggleTmdbListItemAction({
     }
 
     const cleanListId = String(listId).replace(/^list-/, "").trim();
-    const numericMediaId = Math.floor(Number(mediaId));
+    if (String(listId).startsWith("custom-list-")) {
+      return { success: true };
+    }
+
+    let numericMediaId = Math.floor(Number(mediaId));
+    if (isNaN(numericMediaId) || numericMediaId <= 0) {
+      try {
+        const details = await getMediaDetails(String(mediaId), mediaType === "movie");
+        numericMediaId = Math.floor(Number(details.id));
+      } catch {}
+    }
+
     const validMediaType: "movie" | "tv" = mediaType === "tv" ? "tv" : "movie";
 
     if (isNaN(numericMediaId) || numericMediaId <= 0 || isNaN(Number(cleanListId))) {

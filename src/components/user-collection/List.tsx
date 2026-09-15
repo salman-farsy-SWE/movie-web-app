@@ -17,7 +17,7 @@ import type { UserList } from "@/types";
 import { ListCardSkeleton } from "@/components/skeletons/ListGridSkeleton";
 
 interface ListProps {
-  basePath: string;
+  basePath?: string;
   lists?: UserList[];
   emptyMessage?: string;
   isLoading?: boolean;
@@ -189,7 +189,7 @@ export function List({ basePath, lists, emptyMessage, isLoading = false, onClear
         list={shareList}
         customUrl={
           shareList && typeof window !== "undefined"
-            ? `${window.location.origin}/list/${shareList.id}`
+            ? `${window.location.origin}/list/${String(shareList.id).replace(/^list-/, "")}`
             : undefined
         }
       />
@@ -241,7 +241,7 @@ export function List({ basePath, lists, emptyMessage, isLoading = false, onClear
               mostRecentItem?.backdropImage ||
               list.backdrop ||
               DEFAULT_BACKDROP;
-            const href = `/list/${list.id}`;
+            const href = `/list/${String(list.id).replace(/^list-/, "")}`;
 
             return (
               <div key={list.id} className="flex flex-col w-full">

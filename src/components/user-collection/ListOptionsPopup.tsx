@@ -47,14 +47,14 @@ export function ListOptionsPopup({
 
       {isPrivate ? (
         <div
-          title="Private lists cannot be shared"
+          title="Private lists cannot be shared. Change privacy to Public to share."
           className="flex items-center justify-between px-3 py-2 opacity-50 w-full text-left text-[11px] sm:text-[12px] lg:text-[13px] text-white/60 cursor-not-allowed select-none"
         >
           <div className="flex items-center gap-2.5">
             <Share2 className="h-3.5 w-3.5 text-white/50" />
             <span className="truncate font-medium">Share list</span>
           </div>
-          <Lock className="h-3 w-3 text-white/50" />
+          <Lock className="h-3 w-3 text-amber-400/70" />
         </div>
       ) : (
         <button

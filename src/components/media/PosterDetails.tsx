@@ -46,7 +46,7 @@ export function PosterDetails({
     const toggleFavorite = useUserCollectionsStore((state) => state.toggleFavorite);
     const setFavoriteStatus = useUserCollectionsStore((state) => state.setFavoriteStatus);
     const setWatchlistStatus = useUserCollectionsStore((state) => state.setWatchlistStatus);
-    const setUserRating = useUserCollectionsStore((state) => state.setUserRating);
+    const setUserRatingStatus = useUserCollectionsStore((state) => state.setUserRatingStatus);
 
     const overviewRef = useRef<HTMLParagraphElement>(null);
     const btnRef = useRef<HTMLButtonElement>(null);
@@ -100,22 +100,34 @@ export function PosterDetails({
         isAuthenticated ? state.getUserRating(mediaId, title) : undefined
     );
 
-    // Sync TMDB account state if authenticated and item is from TMDB
+    const mediaItemRef = useRef(mediaItem);
     useEffect(() => {
-        if (!isAuthenticated || !data?.id) return;
+        mediaItemRef.current = mediaItem;
+    }, [mediaItem]);
+
+    // Sync TMDB account state if authenticated and item is from TMDB (without clobbering in-flight mutations)
+    const itemId = data?.id;
+    useEffect(() => {
+        if (!isAuthenticated || !itemId) return;
         let isCancelled = false;
 
-        getTmdbAccountStateAction(data.id, isMovie ? "movie" : "tv")
+        getTmdbAccountStateAction(itemId, isMovie ? "movie" : "tv")
             .then((state) => {
                 if (isCancelled || !state) return;
-                if (state.favorite === true) {
-                    setFavoriteStatus(mediaItem, true);
+                const currentItem = mediaItemRef.current;
+                const mediaType: "movie" | "tv" = isMovie ? "movie" : "tv";
+                const favKey = `fav:${mediaType}:${itemId}`;
+                const wlKey = `wl:${mediaType}:${itemId}`;
+                const rateKey = `rate:${mediaType}:${itemId}`;
+
+                if (typeof state.favorite === "boolean") {
+                    setFavoriteStatus(currentItem, state.favorite);
                 }
-                if (state.watchlist === true) {
-                    setWatchlistStatus(mediaItem, true);
+                if (typeof state.watchlist === "boolean") {
+                    setWatchlistStatus(currentItem, state.watchlist);
                 }
-                if (typeof state.rated === "object" && typeof state.rated.value === "number") {
-                    setUserRating(mediaItem, state.rated.value);
+                if (typeof state.rated === "object" && state.rated !== null && typeof state.rated.value === "number") {
+                    setUserRatingStatus(currentItem, state.rated.value);
                 }
             })
             .catch(() => {});
@@ -123,7 +135,8 @@ export function PosterDetails({
         return () => {
             isCancelled = true;
         };
-    }, [isAuthenticated, data?.id, isMovie, mediaItem, setFavoriteStatus, setWatchlistStatus, setUserRating]);
+    }, [isAuthenticated, itemId, isMovie, setFavoriteStatus, setWatchlistStatus, setUserRatingStatus]);
+
 
     const [prevOverview, setPrevOverview] = useState(overview);
     if (prevOverview !== overview) {

@@ -4,7 +4,7 @@ import { useEffect, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FaStar, FaRegStar } from "react-icons/fa6";
-import { Bookmark, Heart, Plus, Trash2, Edit3, List } from "lucide-react";
+import { Bookmark, Heart, Plus, Trash2, Edit3, Lock, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUserCollectionsStore, type CollectionMediaItem } from "@/stores/useUserCollectionsStore";
 import { useUIStore } from "@/stores/useUIStore";
@@ -363,15 +363,16 @@ export function WatchlistPopup({ media, currentListId, isOwner, pageType, onClos
                                         }
                                     }}
                                 >
-                                    <div className="flex items-center gap-2 min-w-0">
-                                        <List
-                                            className={cn(
-                                                "h-3.5 w-3.5 shrink-0 transition-colors",
-                                                inList
-                                                    ? "text-white/90"
-                                                    : "text-white/40 group-hover:text-white/70"
-                                            )}
-                                        />
+                                    <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
+                                        {list.isPrivate ? (
+                                            <span title="Private list" className="flex items-center">
+                                                <Lock className="h-3 w-3 shrink-0 text-amber-400/90" />
+                                            </span>
+                                        ) : (
+                                            <span title="Public list" className="flex items-center">
+                                                <Globe className="h-3 w-3 shrink-0 text-emerald-400/90" />
+                                            </span>
+                                        )}
                                         <span
                                             className={cn(
                                                 "truncate text-[11px] sm:text-[11.5px] lg:text-[12px] transition-colors select-none",

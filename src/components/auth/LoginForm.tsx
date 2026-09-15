@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { isProtectedRoute } from "@/lib/auth-routes";
 import { hasInternalHistory } from "@/components/navigation/NavigationTracker";
+import { toast } from "@/lib/toast";
 
 interface LoginFormProps {
   isModal?: boolean;
@@ -232,6 +233,7 @@ function LoginFormContent({ isModal = false }: LoginFormProps) {
   const handleTmdbPopupLogin = () => {
     setError(null);
     setIsPopupLoading(true);
+    toast.info("Connecting to TMDB...", { duration: 2500 });
 
     const width = 600;
     const height = 700;
@@ -287,6 +289,10 @@ function LoginFormContent({ isModal = false }: LoginFormProps) {
         }
       }
 
+      if (authenticatedUser) {
+        toast.login(authenticatedUser.name || authenticatedUser.username || "TMDB User");
+      }
+
       router.refresh();
       navigateBackOrReturn();
     };
@@ -295,7 +301,9 @@ function LoginFormContent({ isModal = false }: LoginFormProps) {
       if (isHandled) return;
       isHandled = true;
       cleanup();
-      setError(msg || "Authentication was cancelled or failed.");
+      const errText = msg || "Authentication was cancelled or failed.";
+      setError(errText);
+      toast.error(errText);
     };
 
     // 1. BroadcastChannel listener
@@ -387,11 +395,15 @@ function LoginFormContent({ isModal = false }: LoginFormProps) {
     const trimmedPass = password.trim();
 
     if (!trimmedUser) {
-      setError("Username is required");
+      const err = "Username is required";
+      setError(err);
+      toast.error(err);
       return;
     }
     if (!trimmedPass) {
-      setError("Password is required");
+      const err = "Password is required";
+      setError(err);
+      toast.error(err);
       return;
     }
 
@@ -402,10 +414,14 @@ function LoginFormContent({ isModal = false }: LoginFormProps) {
       if (result.success) {
         navigateBackOrReturn();
       } else {
-        setError(result.error || "Invalid username or password");
+        const errMsg = result.error || "Invalid username or password";
+        setError(errMsg);
+        toast.error(errMsg);
       }
     } catch {
-      setError("An unexpected error occurred. Please try again.");
+      const errMsg = "An unexpected error occurred. Please try again.";
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setIsLoading(false);
     }

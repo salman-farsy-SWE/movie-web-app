@@ -19,6 +19,7 @@ import {
 } from "react-icons/fa6";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from "@/lib/toast";
 
 export interface ShareListModalProps {
   open: boolean;
@@ -63,8 +64,10 @@ export function ShareListModal({
     () => {
       if (customUrl) return customUrl;
       if (typeof window !== "undefined") {
-        if (list?.id) {
-          return `${window.location.origin}/list/${list.id}`;
+        const idToUse = list?.id || list?.slug;
+        if (idToUse) {
+          const cleanId = String(idToUse).replace(/^list-/, "");
+          return `${window.location.origin}/list/${cleanId || idToUse}`;
         }
         return window.location.href;
       }
@@ -112,6 +115,7 @@ export function ShareListModal({
       }
 
       setCopied(true);
+      toast.success("List link copied to clipboard");
       if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
       copyTimeoutRef.current = setTimeout(() => {
         setCopied(false);

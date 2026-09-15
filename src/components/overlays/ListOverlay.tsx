@@ -5,13 +5,14 @@ import { useRouter, usePathname } from "next/navigation";
 import { useUIStore } from "@/stores/useUIStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserCollectionsStore } from "@/stores/useUserCollectionsStore";
-import { ChevronDown, X, Globe, Check, Search, Lock, Eye, Loader2 } from "lucide-react";
+import { ChevronDown, X, Globe, Check, Search, Lock, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { FILTER_LANGUAGES, TMDB_LANGUAGE_MAP } from "@/lib/tmdb";
 import { cn } from "@/lib/utils";
+import { toast } from "@/lib/toast";
 import type { UserList } from "@/types";
 
 const TMDB_LANGUAGES = FILTER_LANGUAGES.map((name) => ({
@@ -127,9 +128,9 @@ function ListOverlayContent({ editingList, onClose }: ListOverlayContentProps) {
 
       onClose();
     } catch (err) {
-      setErrorMessage(
-        err instanceof Error ? err.message : "Failed to save list."
-      );
+      const msg = err instanceof Error ? err.message : "Failed to save list.";
+      setErrorMessage(msg);
+      toast.error(msg);
       setIsSubmitting(false);
     }
   };
@@ -345,11 +346,11 @@ function ListOverlayContent({ editingList, onClose }: ListOverlayContentProps) {
               className={cn(
                 "flex items-center justify-center gap-2 h-9 rounded-md text-xs sm:text-sm font-inter font-medium border transition-colors cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
                 !isPrivate
-                  ? "bg-white dark:bg-[#333333] text-black dark:text-white shadow-xs border-black/5 dark:border-white/10"
+                  ? "bg-white dark:bg-[#333333] text-emerald-600 dark:text-emerald-400 font-semibold shadow-xs border-emerald-500/20"
                   : "border-transparent text-light-genre-font dark:text-genre-font hover:text-black dark:hover:text-white"
               )}
             >
-              <Eye className="w-4 h-4 shrink-0" />
+              <Globe className="w-4 h-4 shrink-0" />
               <span>Public</span>
             </button>
 
@@ -363,7 +364,7 @@ function ListOverlayContent({ editingList, onClose }: ListOverlayContentProps) {
               className={cn(
                 "flex items-center justify-center gap-2 h-9 rounded-md text-xs sm:text-sm font-inter font-medium border transition-colors cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
                 isPrivate
-                  ? "bg-white dark:bg-[#333333] text-black dark:text-white shadow-xs border-black/5 dark:border-white/10"
+                  ? "bg-white dark:bg-[#333333] text-amber-600 dark:text-amber-400 font-semibold shadow-xs border-amber-500/20"
                   : "border-transparent text-light-genre-font dark:text-genre-font hover:text-black dark:hover:text-white"
               )}
             >
@@ -375,8 +376,8 @@ function ListOverlayContent({ editingList, onClose }: ListOverlayContentProps) {
           {/* Privacy Hint */}
           <p className="font-inter text-[11px] sm:text-xs text-light-genre-font dark:text-genre-font">
             {isPrivate
-              ? "Only you can view and manage this list."
-              : "Anyone can discover and view this list."}
+              ? "Private list: Only you can view and manage this list. It cannot be shared."
+              : "Public list: Anyone with the link can view and share this list."}
           </p>
         </div>
 

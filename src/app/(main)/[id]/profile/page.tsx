@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getCurrentUser } from "@/actions/auth";
 import { ProfileSection } from "@/components/user-collection/ProfileSection";
 import { slugify } from "@/lib/utils";
 
@@ -8,12 +9,19 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const username = decodeURIComponent(id)
-    .replace(/[-_]/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  const user = await getCurrentUser();
+
+  const username =
+    user?.username ||
+    user?.name ||
+    (!isNaN(Number(id))
+      ? "User"
+      : decodeURIComponent(id)
+          .replace(/[-_]/g, " ")
+          .replace(/\b\w/g, (c) => c.toUpperCase()));
 
   const title = `${username}'s Profile`;
-  const description = "Manage your profile, account preferences, and collections on Movie Trails.";
+  const description = "Manage your profile, account settings, and collections on Movie Trails.";
 
   return {
     title,

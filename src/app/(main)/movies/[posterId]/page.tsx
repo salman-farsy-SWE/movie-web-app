@@ -20,6 +20,9 @@ export async function generateMetadata({
             `Watch trailer, cast, rating and release information for ${data.title} on Movie Trails.`;
         const image = data.backdropImage || data.posterImage;
 
+        const validImage =
+            image && !image.startsWith("/assets/") ? image : undefined;
+
         return {
             title,
             description,
@@ -37,12 +40,25 @@ export async function generateMetadata({
                               alt: `${title} | Movie Trails`,
                           },
                       ],
+                ...(validImage
+                    ? {
+                          images: [
+                              {
+                                  url: validImage,
+                                  width: 1200,
+                                  height: 630,
+                                  alt: data.title,
+                              },
+                          ],
+                      }
+                    : {}),
             },
             twitter: {
                 card: "summary_large_image",
                 title: `${title} | Movie Trails`,
                 description,
                 images: image ? [image] : ["/twitter-image"],
+                ...(validImage ? { images: [validImage] } : {}),
             },
         };
     } catch {

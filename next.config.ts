@@ -77,11 +77,6 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
       {
-        source: "/list/:listId",
-        destination: "/me/list/:listId",
-        permanent: false,
-      },
-      {
         source: "/rating",
         destination: "/me/rating",
         permanent: false,

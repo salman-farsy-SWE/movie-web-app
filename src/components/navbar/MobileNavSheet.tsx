@@ -147,7 +147,7 @@ export function MobileNavSheet({
     return pathname === href || pathname.startsWith(href + "/");
   };
 
-  const userSlug = user?.id || user?.username || "me";
+  const userSlug = user?.id ? String(user.id) : (user?.username || "");
   const displayName = user?.name || user?.username || "User";
 
   const userLibraryItems = [
@@ -200,7 +200,7 @@ export function MobileNavSheet({
                     textSizeClassName="text-sm"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-black dark:text-white truncate">
+                    <p className="text-sm font-medium text-black dark:text-white truncate">
                       {displayName}
                     </p>
                     {user.username && (

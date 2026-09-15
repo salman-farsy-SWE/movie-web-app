@@ -38,6 +38,10 @@ export async function generateMetadata({
           ? personData.bio.slice(0, 160) + "..."
           : `Explore filmography, biography, and photos of ${personData.name} on Movie Trails.`;
       const image = personData.image && personData.image !== "/assets/movie-placeholder.jpg" ? personData.image : undefined;
+      const validImage =
+        personData.image && !personData.image.startsWith("/assets/")
+          ? personData.image
+          : undefined;
 
       return {
         title,
@@ -56,12 +60,25 @@ export async function generateMetadata({
                   alt: `${title} | Movie Trails`,
                 },
               ],
+          ...(validImage
+            ? {
+                images: [
+                  {
+                    url: validImage,
+                    width: 1200,
+                    height: 630,
+                    alt: personData.name,
+                  },
+                ],
+              }
+            : {}),
         },
         twitter: {
           card: "summary_large_image",
           title: `${title} | Movie Trails`,
           description,
           images: image ? [image] : ["/twitter-image"],
+          ...(validImage ? { images: [validImage] } : {}),
         },
       };
     } else {
@@ -73,6 +90,8 @@ export async function generateMetadata({
         data.overview ||
         `Watch trailers, cast information, and details for ${data.title} on Movie Trails.`;
       const image = data.backdropImage || data.posterImage;
+      const validImage =
+        image && !image.startsWith("/assets/") ? image : undefined;
 
       return {
         title,
@@ -91,12 +110,25 @@ export async function generateMetadata({
                   alt: `${title} | Movie Trails`,
                 },
               ],
+          ...(validImage
+            ? {
+                images: [
+                  {
+                    url: validImage,
+                    width: 1200,
+                    height: 630,
+                    alt: data.title,
+                  },
+                ],
+              }
+            : {}),
         },
         twitter: {
           card: "summary_large_image",
           title: `${title} | Movie Trails`,
           description,
           images: image ? [image] : ["/twitter-image"],
+          ...(validImage ? { images: [validImage] } : {}),
         },
       };
     }

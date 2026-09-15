@@ -6,6 +6,7 @@ import { FcApproval } from "react-icons/fc";
 import { MdFavorite } from "react-icons/md";
 import { ExternalLink, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "@/lib/toast";
 import type { PersonDetailsData } from "@/lib/tmdb";
 
 export type PersonDetailsProps = {
@@ -130,6 +131,7 @@ export function PersonDetails({
         if (!personId) return;
         navigator.clipboard.writeText(personId);
         setCopiedId(true);
+        toast.success("Person ID copied to clipboard");
         setTimeout(() => setCopiedId(false), 2000);
     };
 

@@ -21,7 +21,7 @@ interface ProfileDropdownProps {
 export function ProfileDropdown({ user, onClose, className, showName = true }: ProfileDropdownProps) {
   const { logout } = useAuth();
   const pathname = usePathname();
-  const userSlug = user.id || user.username || "me";
+  const userSlug = user.id ? String(user.id) : (user.username || "");
   const displayName = user.name || user.username || "User";
 
   const handleLogout = async () => {

@@ -1,16 +1,29 @@
 import type { Metadata } from "next";
-import { Akshar, Inter, Poppins, Monda  } from "next/font/google";
+import { Akshar, Inter, Poppins, Monda } from "next/font/google";
 import "@/app/globals.css";
 import ThemeWrapper from "@/providers/ThemeWrapper";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 import { getCurrentUser } from "@/actions/auth";
 import { RouteProgressBar } from "@/components/navigation/RouteProgressBar";
+import { ToastContainer } from "@/components/ui/ToastContainer";
+
+const getBaseUrl = (): string => {
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    const url = process.env.NEXT_PUBLIC_APP_URL.trim();
+    return url.startsWith("http") ? url : `https://${url}`;
+  }
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.trim()}`;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL.trim()}`;
+  }
+  return "https://movie-trails.vercel.app";
+};
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "https://movietrails.vercel.app"
-  ),
+  metadataBase: new URL(getBaseUrl()),
   title: {
     default: "Movie Trails | Watch, Discover & Track Movies",
     template: "%s | Movie Trails",
@@ -35,28 +48,12 @@ export const metadata: Metadata = {
     title: "Movie Trails | Watch, Discover & Track Movies",
     description:
       "Discover watch movies, TV shows trailers. Explore genres, trending and top rated. build your custom collections and track your entertainment.",
-    images: [
-      {
-        url: "/opengraph-image",
-        width: 1200,
-        height: 630,
-        alt: "Movie Trails | Watch, Discover & Track Movies",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Movie Trails | Watch, Discover & Track Movies",
     description:
       "Discover watch movies, TV shows trailers. Explore genres, trending and top rated. build your custom collections and track your entertainment.",
-    images: [
-      {
-        url: "/twitter-image",
-        width: 1200,
-        height: 630,
-        alt: "Movie Trails | Watch, Discover & Track Movies",
-      },
-    ],
   },
   icons: {
     icon: [
@@ -109,6 +106,7 @@ export default async function RootLayout({
           <AuthProvider initialUser={user}>
             <RouteProgressBar />
             {children}
+            <ToastContainer />
           </AuthProvider>
         </ThemeWrapper>
       </body>

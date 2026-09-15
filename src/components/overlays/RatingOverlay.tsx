@@ -62,13 +62,11 @@ function RatingModalContent({ targetMedia, onClose }: RatingModalContentProps) {
   };
 
   const handleRemove = async () => {
-    if (!targetMedia?.id || isSubmitting) return;
     if ((!targetMedia?.id && !targetMedia?.title) || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
-      await removeUserRating(targetMedia.id, targetMedia.mediaType);
-      await removeUserRating(targetMedia?.id ?? "", targetMedia?.mediaType, targetMedia?.title);
+      await removeUserRating(targetMedia.id, targetMedia.mediaType, targetMedia.title);
       onClose();
     } catch {
       setIsSubmitting(false);

@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/actions/auth";
 import { headers } from "next/headers";
 import { slugify } from "@/lib/utils";
+import { isProtectedRoute } from "@/lib/auth-routes";
 
 export default async function UserCollectionLayout({
   children,
@@ -10,26 +11,26 @@ export default async function UserCollectionLayout({
   children: React.ReactNode;
   params: Promise<{ id: string }>;
 }) {
+  let pathname = "";
+  let returnUrl = "";
   try {
     const headerList = await headers();
-    const pathname = headerList.get("x-pathname") || "";
-    const listMatch = pathname.match(/^\/[^/]+\/list\/([^/?#]+)/);
-    if (listMatch && listMatch[1]) {
-      redirect(`/list/${listMatch[1]}`);
-    }
-  } catch (e: any) {
-    if (e?.digest?.startsWith("NEXT_REDIRECT")) throw e;
+    pathname = headerList.get("x-pathname") || "";
+    returnUrl = headerList.get("x-url") || pathname;
+  } catch {}
+
+  // List details route (e.g. /:id/list/:listId or /list/:listId) is public and handled by the page component
+  const isListDetailsRoute =
+    /^\/[^/]+\/lists?\/[^/?#]+/.test(pathname) ||
+    (pathname ? !isProtectedRoute(pathname) : false);
+
+  if (isListDetailsRoute) {
+    return <>{children}</>;
   }
 
   const user = await getCurrentUser();
 
   if (!user) {
-    let returnUrl = "";
-    try {
-      const headerList = await headers();
-      returnUrl = headerList.get("x-url") || headerList.get("x-pathname") || "";
-    } catch {}
-
     if (
       returnUrl &&
       returnUrl.startsWith("/") &&

@@ -536,6 +536,9 @@ export function PosterDetails({
                         )}
                         <AddButton
                             ref={btnRef}
+                            aria-label={`Add ${title} to watchlist`}
+                            aria-haspopup="dialog"
+                            aria-expanded={open2}
                             onMouseEnter={() => {
                                 if (!isAuthenticated) {
                                     router.prefetch("/login");

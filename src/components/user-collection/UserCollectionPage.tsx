@@ -203,9 +203,7 @@ export function UserCollectionPage({
         } else if (type === "list") {
           await storeState.syncCustomListsFromTmdb(true);
         }
-      } catch (err) {
-        console.warn("Collection background sync warning:", err);
-      } finally {
+      } catch {} finally {
         if (!isCancelled) {
           setIsLoading(false);
         }

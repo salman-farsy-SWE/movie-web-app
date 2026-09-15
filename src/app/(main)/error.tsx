@@ -1,21 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function MainError({
-  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error("Route error boundary caught error:", error);
-  }, [error]);
-
   return (
     <div className="min-h-[calc(100vh-180px)] pt-[72px] flex flex-col items-center justify-center px-4 py-16 text-center">
       <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-trails-red/10 dark:bg-trails-red/20 border border-trails-red/20 dark:border-trails-red/30 flex items-center justify-center mb-6 text-trails-red shadow-lg">
@@ -27,8 +21,7 @@ export default function MainError({
       </h1>
 
       <p className="font-poppins text-sm sm:text-base text-black/60 dark:text-white/60 max-w-md mb-8">
-        {error.message ||
-          "We ran into an unexpected issue communicating with movie services. Please try again."}
+        An unexpected error occurred while loading this page. Please try again or return to the home page.
       </p>
 
       <div className="flex flex-wrap items-center justify-center gap-3">

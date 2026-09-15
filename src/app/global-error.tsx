@@ -1,18 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
-
 export default function GlobalError({
-  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error("Global uncaught error:", error);
-  }, [error]);
-
   return (
     <html lang="en">
       <body className="min-h-screen bg-[#141414] text-white flex items-center justify-center p-4 font-sans antialiased">

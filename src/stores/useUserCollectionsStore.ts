@@ -935,9 +935,7 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
               isPrivate,
             });
           })
-          .catch((err) => {
-            console.warn("Background TMDB list update error:", err);
-          });
+          .catch(() => {});
 
         return updatedList;
       },
@@ -1001,9 +999,7 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
             const tmdbDeleteId = String(resolvedId).replace(/^list-/, "");
             return await deleteTmdbListAction(tmdbDeleteId);
           })
-          .catch((err) => {
-            console.warn("Background TMDB list deletion:", err);
-          });
+          .catch(() => {});
 
         return true;
       },
@@ -1124,9 +1120,7 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
               }));
             },
           })
-          .catch((err) => {
-            console.warn("Background TMDB toggle item:", err);
-          });
+          .catch(() => {});
       },
 
       addItemToList: async (listId, item) => {
@@ -1150,37 +1144,40 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
 
       clearCustomList: async (listId) => {
         const idStr = String(listId);
-        const list = get().getListBySlugOrId(idStr);
+        const cleanIdStr = idStr.replace(/^list-/, "");
 
+        const list = get().customLists.find((l) => {
+          const lIdStr = String(l.id);
+          return lIdStr === idStr || lIdStr === cleanIdStr;
+        });
         if (!list) return;
 
-        // 1. Immediately clear in store
+        // 1. Optimistic update
         set((state) => ({
           customLists: state.customLists.map((l) => {
-            if (l.id !== list.id) return l;
-            return {
-              ...l,
-              items: [],
-              itemCount: 0,
-              posters: ["/assets/movie-placeholder.jpg"],
-              backdrop: "/assets/movie-placeholder.jpg",
-              updatedAt: "Just now",
-            };
+            const lIdStr = String(l.id);
+            if (lIdStr === idStr || lIdStr === cleanIdStr) {
+              return {
+                ...l,
+                itemCount: 0,
+                items: [],
+                backdropPath: undefined,
+              };
+            }
+            return l;
           }),
         }));
 
-        toast.list("Cleared List", `Removed all items from ${list.title}`);
+        toast.list("Cleared List", list.title);
 
-        // 2. Sequenced clear in TMDB
+        // 2. Sequenced TMDB Clear
         const targetListId = list.id;
         operationQueue
           .enqueue(`list-clear:${targetListId}`, async () => {
             const resolvedListId = await operationQueue.resolveListId(targetListId);
             return await clearTmdbListAction(resolvedListId);
           })
-          .catch((err) => {
-            console.warn("Background TMDB clear list:", err);
-          });
+          .catch(() => {});
       },
 
       isItemInList: (listId, itemId, itemTitle) => {
@@ -1394,9 +1391,7 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
               };
             });
           }
-        } catch (error) {
-          console.error("Failed to sync custom lists from TMDB:", error);
-        }
+        } catch {}
       },
 
       syncCollectionIdsFromTmdb: async (force = false) => {
@@ -1500,9 +1495,7 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
               };
             });
           }
-        } catch (error) {
-          console.error("Failed to sync collection IDs from TMDB:", error);
-        }
+        } catch {}
       },
 
       syncAllFromTmdb: async (force = false) => {

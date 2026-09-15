@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Search, X, Star, Loader2 } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
-import { slugify } from "@/lib/utils";
 import type { MovieItem } from "@/types";
 
 export function SearchBox() {

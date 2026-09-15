@@ -18,7 +18,7 @@ export function NotFoundContent() {
 
   return (
     <div className="min-h-[calc(100vh-200px)] flex flex-col items-center justify-center px-4 py-16 text-center">
-      <span className="font-monda font-bold text-7xl sm:text-8xl md:text-9xl text-trails-red dark:text-blue1 mb-2 select-none tracking-tight">
+      <span className="font-akshar font-bold text-7xl sm:text-8xl md:text-9xl text-trails-red dark:text-blue1 mb-2 select-none tracking-tight">
         404
       </span>
 

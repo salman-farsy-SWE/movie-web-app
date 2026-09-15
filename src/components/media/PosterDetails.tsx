@@ -51,7 +51,6 @@ export function PosterDetails({
     const overviewRef = useRef<HTMLParagraphElement>(null);
     const btnRef = useRef<HTMLButtonElement>(null);
     const popupRef = useRef<HTMLDivElement>(null);
-    const open2Ref = useRef(open2);
     const dragStartRef = useRef<{ x: number; y: number } | null>(null);
     const dragThreshold = 5;
     const openRating = useUIStore((state) => state.openRating);

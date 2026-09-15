@@ -2,6 +2,17 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   compress: true,
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "react-icons",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-checkbox",
+      "@radix-ui/react-radio-group",
+      "@radix-ui/react-label",
+    ],
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],

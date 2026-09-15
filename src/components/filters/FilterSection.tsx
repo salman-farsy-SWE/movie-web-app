@@ -1,1 +1,0 @@
-export { FilterSection } from "@/components/shared/filters/FilterSection";

@@ -10,7 +10,6 @@ import {
   LogOut,
   Check,
   CircleAlert,
-  Info,
   AlertTriangle,
   X,
 } from "lucide-react";

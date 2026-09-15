@@ -341,7 +341,7 @@ export function ShareListModal({
               type="button"
               onClick={handleNativeShare}
               variant="outline"
-              className="mt-1 h-9 rounded-lg border-black/10 dark:border-white/15 text-xs font-inter text-black/85 dark:text-white/85 hover:bg-black/5 dark:hover:bg-white/10 flex items-center justify-center gap-2 cursor-pointer w-full"
+              className="mt-1 h-9 rounded-lg border-black/10 dark:border-white/15 text-xs font-inter text-black/85 dark:text-white/85 bg-transparent hover:bg-black/5 dark:hover:bg-white/10 flex items-center justify-center gap-2 cursor-pointer w-full"
             >
               <Share2 className="w-3.5 h-3.5" />
               <span>More sharing options</span>

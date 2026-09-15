@@ -1,1 +1,0 @@
-export { PublicFilterPanel as FilterPanel } from "@/components/media/filters/PublicFilterPanel";

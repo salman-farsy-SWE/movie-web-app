@@ -1,1 +1,0 @@
-export { PublicYearFilter as YearFilter } from "@/components/media/filters/PublicYearFilter";

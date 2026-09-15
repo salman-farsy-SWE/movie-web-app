@@ -17,7 +17,6 @@ import type { UserList } from "@/types";
 import { ListCardSkeleton } from "@/components/skeletons/ListGridSkeleton";
 
 interface ListProps {
-  basePath?: string;
   lists?: UserList[];
   emptyMessage?: string;
   isLoading?: boolean;
@@ -26,7 +25,7 @@ interface ListProps {
 
 const DEFAULT_BACKDROP = "/assets/movie-placeholder.jpg";
 
-export function List({ basePath, lists, emptyMessage, isLoading = false, onClear }: ListProps) {
+export function List({ lists, emptyMessage, isLoading = false, onClear }: ListProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [popupPos, setPopupPos] = useState<{ bottom: number; left: number } | null>(null);
   const [shareList, setShareList] = useState<UserList | null>(null);
@@ -34,7 +33,6 @@ export function List({ basePath, lists, emptyMessage, isLoading = false, onClear
 
   const popupRef = useRef<HTMLDivElement>(null);
   const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const openIndexRef = useRef(openIndex);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   const dragThreshold = 5;
 

@@ -15,7 +15,7 @@ import { ChevronLeft, Lock, Globe, Share2, Pencil, Trash2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { slugify } from "@/lib/utils";
-import { useUserCollectionsStore, type CollectionMediaItem } from "@/stores/useUserCollectionsStore";
+import { useUserCollectionsStore } from "@/stores/useUserCollectionsStore";
 import { getTmdbListDetailsAction } from "@/actions/collections";
 import type { TableItem, CustomList, CollectionType, FilterContextType, UserList } from "@/types";
 import { useHydrated } from "@/hooks/useHydrated";
@@ -688,7 +688,6 @@ export function UserCollectionPage({
 
       {type === "list" && !isListDetails ? (
         <List
-          basePath={param ? `/${param}/list` : (user?.id ? `/${user.id}/list` : "/list")}
           lists={paginatedLists}
           isLoading={isLoading || !isHydrated || isPending}
           emptyMessage={emptyMessage}

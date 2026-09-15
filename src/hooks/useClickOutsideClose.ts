@@ -19,9 +19,13 @@ export function useClickOutsideClose({
         const handleClick = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
 
-            const isInside = selectors.some((selector) =>
-                target.closest(selector)
-            );
+            const isInside =
+                selectors.some((selector) => target.closest(selector)) ||
+                Boolean(
+                    target.closest("[data-radix-popper-content-wrapper]") ||
+                    target.closest(".year-popover") ||
+                    target.closest("[data-radix-portal]")
+                );
 
             if (!isInside) {
                 onClose();

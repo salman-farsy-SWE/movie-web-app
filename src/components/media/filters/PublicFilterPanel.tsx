@@ -344,6 +344,7 @@ function PublicFilterPanelContent({
                 <PublicYearFilter
                   selectedYears={selectedYears}
                   onToggleYear={(y) => toggleItem(selectedYears, setSelectedYears, y)}
+                  onClearYears={() => setSelectedYears([])}
                 />
 
                 <FilterSection

@@ -8,9 +8,21 @@ import {
 } from "@/lib/tmdb";
 
 export const metadata: Metadata = {
-  title: "Explore TV Shows",
+  title: "Explore TV Shows | Popular Series & Top Rated Shows",
   description:
-    "Discover trending and top-rated TV shows, series, and miniseries. Filter by genre, release year, network, country, and rating.",
+    "Discover trending and top-rated TV shows, series, and miniseries. Filter by genre, release year, network, country, and rating on Movie Trails.",
+  keywords: [
+    "explore tv shows",
+    "popular tv series",
+    "top rated tv shows",
+    "trending series",
+    "watch tv trailers",
+    "tv show tracker",
+    "tv series database",
+  ],
+  alternates: {
+    canonical: "/tv-shows",
+  },
   openGraph: {
     title: "Explore TV Shows | Movie Trails",
     description:

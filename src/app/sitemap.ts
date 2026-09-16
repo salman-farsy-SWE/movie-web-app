@@ -1,16 +1,21 @@
 import type { MetadataRoute } from "next";
+import { getBaseUrl } from "@/lib/utils";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL || "https://movie-trails.vercel.app";
+  const baseUrl = getBaseUrl();
 
   const staticRoutes = [
     "",
     "/movies",
     "/tv-shows",
-    "/trending",
-    "/top-rated",
-    "/genres",
+    "/trending/today",
+    "/trending/this-week",
+    "/trending/movies",
+    "/trending/tv-shows",
+    "/trending/persons",
+    "/top-rated/movies",
+    "/top-rated/tv-shows",
+    "/top-rated/all",
     "/search",
   ];
 
@@ -52,4 +57,3 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return entries;
 }
-

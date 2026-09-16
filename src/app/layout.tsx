@@ -7,53 +7,70 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { getCurrentUser } from "@/actions/auth";
 import { RouteProgressBar } from "@/components/navigation/RouteProgressBar";
 import { ToastContainer } from "@/components/ui/ToastContainer";
+import { getBaseUrl } from "@/lib/utils";
 
-const getBaseUrl = (): string => {
-  if (process.env.NEXT_PUBLIC_APP_URL) {
-    const url = process.env.NEXT_PUBLIC_APP_URL.trim();
-    return url.startsWith("http") ? url : `https://${url}`;
-  }
-  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
-    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.trim()}`;
-  }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL.trim()}`;
-  }
-  return "https://movie-trails.vercel.app";
-};
+const siteUrl = getBaseUrl();
 
 export const metadata: Metadata = {
-  metadataBase: new URL(getBaseUrl()),
+  metadataBase: new URL(siteUrl),
   title: {
-    default: "Movie Trails | Watch, Discover & Track Movies",
+    default: "Movie Trails | Watch Trailers, Discover Movies & Track TV Shows",
     template: "%s | Movie Trails",
   },
   description:
-    "Discover watch movies, TV shows trailers. Explore genres, trending and top rated. build your custom collections and track your entertainment.",
+    "Discover trending movies, watch high-definition trailers, explore top-rated TV shows, create custom watchlists, and track your favorite cinema entertainment with Movie Trails.",
   keywords: [
     "movies",
     "tv shows",
-    "streaming",
-    "watchlist",
-    "trailers",
-    "reviews",
-    "tmdb",
+    "watch movie trailers",
+    "trending movies today",
+    "top rated movies",
+    "popular tv series",
+    "movie recommendations",
+    "track movies",
+    "custom movie watchlist",
+    "cinema reviews and ratings",
+    "tmdb movie database",
+    "stream trailers online",
+    "movie genres",
+    "actor filmography",
+    "entertainment tracker",
+    "best movies of all time",
+    "upcoming movie releases",
   ],
-  authors: [{ name: "Movie Trails" }],
+  authors: [{ name: "Movie Trails", url: siteUrl }],
+  creator: "Movie Trails",
+  publisher: "Movie Trails",
+  applicationName: "Movie Trails",
+  category: "entertainment",
+  alternates: {
+    canonical: "./",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "/",
     siteName: "Movie Trails",
-    title: "Movie Trails | Watch, Discover & Track Movies",
+    title: "Movie Trails | Watch Trailers, Discover Movies & Track TV Shows",
     description:
-      "Discover watch movies, TV shows trailers. Explore genres, trending and top rated. build your custom collections and track your entertainment.",
+      "Discover trending movies, watch high-definition trailers, explore top-rated TV shows, create custom watchlists, and track your entertainment.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Movie Trails | Watch, Discover & Track Movies",
+    title: "Movie Trails | Watch Trailers, Discover Movies & Track TV Shows",
     description:
-      "Discover watch movies, TV shows trailers. Explore genres, trending and top rated. build your custom collections and track your entertainment.",
+      "Discover trending movies, watch high-definition trailers, explore top-rated TV shows, create custom watchlists, and track your entertainment.",
   },
   icons: {
     icon: [
@@ -91,8 +108,32 @@ export default async function RootLayout({
 }>) {
   const user = await getCurrentUser();
 
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Movie Trails",
+    alternateName: ["MovieTrails", "Movie Trails App"],
+    url: siteUrl,
+    description:
+      "Discover trending movies, watch high-definition trailers, explore top-rated TV shows, create custom watchlists, and track your favorite cinema entertainment.",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${siteUrl}/search?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <html lang="en" suppressHydrationWarning={true}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
+      </head>
       <body
         className={`${poppins.variable} ${inter.variable} ${akshar.variable} flow-root overflow-hidden bg-white dark:bg-dark min-h-screen text-foreground antialiased`}
       >

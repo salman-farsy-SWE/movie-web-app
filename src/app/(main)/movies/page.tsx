@@ -7,9 +7,22 @@ import {
 } from "@/lib/tmdb";
 
 export const metadata: Metadata = {
-  title: "Explore Movies",
+  title: "Explore Movies | Popular, Top Rated & New Releases",
   description:
-    "Discover popular, top-rated, and newly released movies. Filter by genre, release year, rating, country, and duration.",
+    "Discover popular, top-rated, and newly released movies. Filter by genre, release year, rating, country, and duration on Movie Trails.",
+  keywords: [
+    "explore movies",
+    "popular movies",
+    "top rated movies",
+    "new movie releases",
+    "movie filters",
+    "watch movie trailers",
+    "find films",
+    "movie database",
+  ],
+  alternates: {
+    canonical: "/movies",
+  },
   openGraph: {
     title: "Explore Movies | Movie Trails",
     description:

@@ -23,9 +23,26 @@ export async function generateMetadata({
         const validImage =
             image && !image.startsWith("/assets/") ? image : undefined;
 
+        const keywords = [
+            data.title,
+            `${data.title} movie`,
+            `${data.title} trailer`,
+            `${data.title} cast`,
+            `${data.title} release date`,
+            `${data.title} review`,
+            `${data.title} watch online`,
+            ...(data.genres || []),
+            "watch movie trailers",
+            "movie trails",
+        ];
+
         return {
             title,
             description,
+            keywords,
+            alternates: {
+                canonical: `/movies/${posterId}`,
+            },
             openGraph: {
                 title: `${title} | Movie Trails`,
                 description,
@@ -104,17 +121,75 @@ export default async function PosterDetailsPage({
     }
     const formattedParam = data.title || decoded.replace(/-/g, " ");
 
+    const validImage =
+        data.posterImage && !data.posterImage.startsWith("/assets/")
+            ? data.posterImage
+            : data.backdropImage && !data.backdropImage.startsWith("/assets/")
+            ? data.backdropImage
+            : undefined;
+
+    const movieJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "Movie",
+        name: data.title,
+        description: data.overview,
+        image: validImage,
+        datePublished: data.releaseDate && data.releaseDate !== "N/A" ? data.releaseDate : undefined,
+        genre: data.genres,
+        ...(data.rating
+            ? {
+                  aggregateRating: {
+                      "@type": "AggregateRating",
+                      ratingValue: data.rating,
+                      bestRating: "10",
+                      worstRating: "1",
+                      ratingCount:
+                          Number(data.voteCount?.replace(/[^0-9]/g, "")) || 50,
+                  },
+              }
+            : {}),
+        ...(data.cast && data.cast.length > 0
+            ? {
+                  actor: data.cast.slice(0, 5).map((actor) => ({
+                      "@type": "Person",
+                      name: actor.name,
+                  })),
+              }
+            : {}),
+        ...(data.trailerKey
+            ? {
+                  trailer: {
+                      "@type": "VideoObject",
+                      name: `${data.title} Official Trailer`,
+                      embedUrl: `https://www.youtube.com/embed/${data.trailerKey}`,
+                      thumbnailUrl: validImage,
+                      uploadDate:
+                          data.releaseDate && data.releaseDate !== "N/A"
+                              ? data.releaseDate
+                              : undefined,
+                      description: `Watch official trailer for ${data.title}`,
+                  },
+              }
+            : {}),
+    };
+
     return (
-        <MediaPage
-            param={formattedParam}
-            type="movie"
-            showSearch
-            hidePagination
-            isMovie
-        >
-            <PosterDetails isMovie data={data} />
-            <PeopleYouMayKnow title="Cast" items={data.cast} />
-            <YouMayLike items={data.recommendations} />
-        </MediaPage>
+        <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(movieJsonLd) }}
+            />
+            <MediaPage
+                param={formattedParam}
+                type="movie"
+                showSearch
+                hidePagination
+                isMovie
+            >
+                <PosterDetails isMovie data={data} />
+                <PeopleYouMayKnow title="Cast" items={data.cast} />
+                <YouMayLike items={data.recommendations} />
+            </MediaPage>
+        </>
     );
 }

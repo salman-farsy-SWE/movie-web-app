@@ -44,3 +44,17 @@ export function extractReleaseYear(dateStr?: string | number | null): string {
 
   return "—";
 }
+
+export function getBaseUrl(): string {
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    const url = process.env.NEXT_PUBLIC_APP_URL.trim();
+    return url.startsWith("http") ? url : `https://${url}`;
+  }
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.trim()}`;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL.trim()}`;
+  }
+  return "https://movie-trails.vercel.app";
+}

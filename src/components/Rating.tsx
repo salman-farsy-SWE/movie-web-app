@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { IoIosStar } from "react-icons/io";
+import { Star } from "lucide-react";
 
 interface RatingProps {
     value: number | string;
@@ -20,7 +20,7 @@ export const Rating = ({ value, className, className1, className2 }: RatingProps
 
     return (
         <div className={cn("flex items-center justify-center align-baseline", className)}>
-            <IoIosStar className={cn("text-yellow-400 fill-yellow-400 md:w-[24px] md:h-[24px] sm:w-[20px] sm:h-[20px] h-[18px] w-[18px]", className1)} />
+            <Star className={cn("text-yellow-400 fill-yellow-400 md:w-[24px] md:h-[24px] sm:w-[20px] sm:h-[20px] h-[18px] w-[18px]", className1)} />
             <span className={cn("font-inter font-medium", className2)}>
                 {formattedValue}
             </span>

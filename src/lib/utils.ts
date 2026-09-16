@@ -18,3 +18,29 @@ export function slugify(value: string | number | null | undefined): string {
     .replace(/-+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
+
+export function extractReleaseYear(dateStr?: string | number | null): string {
+  if (!dateStr || dateStr === "N/A" || dateStr === "—" || dateStr === "null" || dateStr === "undefined") {
+    return "—";
+  }
+  const str = String(dateStr).trim();
+  if (!str) return "—";
+
+  // Match 4-digit year e.g. "2024", "2024-05-15", "7 Nov, 2014", "Nov 7, 2014", "1999"
+  const match = str.match(/\b(18\d{2}|19\d{2}|20\d{2}|21\d{2})\b/);
+  if (match) {
+    return match[1];
+  }
+
+  try {
+    const d = new Date(str);
+    if (!isNaN(d.getTime())) {
+      const fullYear = d.getFullYear();
+      if (fullYear >= 1800 && fullYear <= 2200) {
+        return fullYear.toString();
+      }
+    }
+  } catch {}
+
+  return "—";
+}

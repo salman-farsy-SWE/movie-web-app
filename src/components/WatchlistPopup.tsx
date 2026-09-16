@@ -3,8 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FaStar, FaRegStar } from "react-icons/fa6";
-import { Bookmark, Heart, Plus, Trash2, Edit3, Lock, Globe } from "lucide-react";
+import { Bookmark, Heart, Plus, Trash2, Edit3, Lock, Globe, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUserCollectionsStore, type CollectionMediaItem } from "@/stores/useUserCollectionsStore";
 import { useUIStore } from "@/stores/useUIStore";
@@ -238,7 +237,7 @@ export function WatchlistPopup({ media, currentListId, isOwner, pageType, onClos
                             onClick={handleOpenRating}
                             className="flex items-center gap-2 flex-1 min-w-0 text-left text-[11px] sm:text-[11.5px] lg:text-[12px] cursor-pointer"
                         >
-                            <FaStar className="h-3.5 w-3.5 text-fill-star shrink-0" />
+                            <Star className="h-3.5 w-3.5 fill-fill-star text-fill-star shrink-0" />
                             <span className="truncate font-medium text-white/90">
                                 Rated <span className="font-semibold text-fill-star">{formattedRating}★</span>
                             </span>
@@ -259,7 +258,7 @@ export function WatchlistPopup({ media, currentListId, isOwner, pageType, onClos
                         onClick={handleOpenRating}
                         className="flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 hover:bg-white/[0.08] transition-colors w-full text-left text-[11px] sm:text-[11.5px] lg:text-[12px] group cursor-pointer"
                     >
-                        <FaRegStar className="h-3.5 w-3.5 text-white/60 group-hover:text-fill-star transition-colors shrink-0" />
+                        <Star className="h-3.5 w-3.5 text-white/60 group-hover:text-fill-star transition-colors shrink-0" />
                         <span className="truncate font-medium text-white/85 group-hover:text-white">
                             Rate Title
                         </span>

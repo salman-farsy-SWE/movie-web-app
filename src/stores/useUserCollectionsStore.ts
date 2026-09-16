@@ -153,7 +153,9 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
       setFavoriteStatus: (item, favorite) => {
         set((state) => {
           const existing = state.favorites.find((f) => matchesMedia(f, item.id, item.title));
-          const fullItem = existing ? { ...existing, ...item } : item;
+          const fullItem = existing
+            ? { ...existing, ...item, releaseDate: item.releaseDate || existing.releaseDate }
+            : item;
           const exists = Boolean(existing);
           if (favorite && !exists) {
             return { favorites: [fullItem, ...state.favorites] };
@@ -169,7 +171,9 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
 
       toggleFavorite: async (item) => {
         const existing = get().favorites.find((f) => matchesMedia(f, item.id, item.title));
-        const fullItem = existing ? { ...existing, ...item } : item;
+        const fullItem = existing
+          ? { ...existing, ...item, releaseDate: item.releaseDate || existing.releaseDate }
+          : item;
         const currentlyFavorited = Boolean(existing);
         const newFavoriteState = !currentlyFavorited;
 
@@ -279,7 +283,7 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
                 tmdbMap.set(String(item.id), item);
               });
 
-              // Enrich with local metadata (e.g. genre) if available
+              // Enrich with local metadata (e.g. genre, releaseDate) if available
               state.favorites.forEach((localItem) => {
                 const idKey = String(localItem.id);
                 const tmdbItem = tmdbMap.get(idKey);
@@ -288,6 +292,7 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
                     ...localItem,
                     ...tmdbItem,
                     genre: localItem.genre || tmdbItem.genre,
+                    releaseDate: tmdbItem.releaseDate || localItem.releaseDate,
                     posterImage: tmdbItem.posterImage || localItem.posterImage,
                     backdropImage: tmdbItem.backdropImage || localItem.backdropImage,
                   });
@@ -330,7 +335,9 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
       setWatchlistStatus: (item, inWatchlist) => {
         set((state) => {
           const existing = state.watchlist.find((w) => matchesMedia(w, item.id, item.title));
-          const fullItem = existing ? { ...existing, ...item } : item;
+          const fullItem = existing
+            ? { ...existing, ...item, releaseDate: item.releaseDate || existing.releaseDate }
+            : item;
           const exists = Boolean(existing);
           if (inWatchlist && !exists) {
             return { watchlist: [fullItem, ...state.watchlist] };
@@ -346,7 +353,9 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
 
       toggleWatchlist: async (item) => {
         const existing = get().watchlist.find((w) => matchesMedia(w, item.id, item.title));
-        const fullItem = existing ? { ...existing, ...item } : item;
+        const fullItem = existing
+          ? { ...existing, ...item, releaseDate: item.releaseDate || existing.releaseDate }
+          : item;
         const currentlyInWatchlist = Boolean(existing);
         const newWatchlistState = !currentlyInWatchlist;
 
@@ -462,6 +471,7 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
                     ...localItem,
                     ...tmdbItem,
                     genre: localItem.genre || tmdbItem.genre,
+                    releaseDate: tmdbItem.releaseDate || localItem.releaseDate,
                     posterImage: tmdbItem.posterImage || localItem.posterImage,
                     backdropImage: tmdbItem.backdropImage || localItem.backdropImage,
                   });
@@ -517,6 +527,7 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
         const updatedItem: CollectionMediaItem = {
           ...(existingItem || {}),
           ...item,
+          releaseDate: item.releaseDate || existingItem?.releaseDate,
           userRating: rating,
         };
 
@@ -592,6 +603,7 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
         const updatedItem: CollectionMediaItem = {
           ...(existingItem || {}),
           ...item,
+          releaseDate: item.releaseDate || existingItem?.releaseDate,
           userRating: rating,
         };
 
@@ -703,6 +715,7 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
                     posterImage: val.item.posterImage || existing?.item?.posterImage,
                     backdropImage: val.item.backdropImage || existing?.item?.backdropImage,
                     genre: existing?.item?.genre || val.item.genre,
+                    releaseDate: val.item.releaseDate || existing?.item?.releaseDate,
                   },
                   ratedAt: val.ratedAt || existing?.ratedAt || new Date().toISOString(),
                 };
@@ -1045,7 +1058,11 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
             if (itemExists) {
               updatedItems = (l.items || []).filter((i) => !matchesMedia(i, item.id, item.title));
             } else {
-              updatedItems = [item, ...(l.items || [])];
+              const existingInList = (l.items || []).find((i) => matchesMedia(i, item.id, item.title));
+              const fullItem = existingInList
+                ? { ...existingInList, ...item, releaseDate: item.releaseDate || existingInList.releaseDate }
+                : item;
+              updatedItems = [fullItem, ...(l.items || [])];
             }
 
             const newPosters = updatedItems
@@ -1100,7 +1117,11 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
                     if (failedValue) {
                       updatedItems = (l.items || []).filter((i) => !matchesMedia(i, item.id, item.title));
                     } else {
-                      updatedItems = [item, ...(l.items || [])];
+                      const existingInList = (l.items || []).find((i) => matchesMedia(i, item.id, item.title));
+                      const fullItem = existingInList
+                        ? { ...existingInList, ...item, releaseDate: item.releaseDate || existingInList.releaseDate }
+                        : item;
+                      updatedItems = [fullItem, ...(l.items || [])];
                     }
                     const newPosters = updatedItems
                       .map((i) => i.posterImage)
@@ -1459,7 +1480,7 @@ export const useUserCollectionsStore = create<UserCollectionsState>()(
                     backdropImage: existing?.item?.backdropImage,
                     genre: existing?.item?.genre,
                     rating: existing?.item?.rating,
-                    releaseDate: existing?.item?.releaseDate,
+                    releaseDate: info.releaseDate || existing?.item?.releaseDate,
                     mediaType: info.mediaType || existing?.item?.mediaType || "movie",
                     isMovie: (info.mediaType || existing?.item?.mediaType) !== "tv",
                     userRating: info.rating,

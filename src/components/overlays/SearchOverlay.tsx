@@ -1,8 +1,13 @@
 "use client";
 
-import { useUIStore } from "@/stores/useUIStore";
-import { SearchBox } from "@/components/overlays/SearchBox";
 import { useEffect } from "react";
+import dynamic from "next/dynamic";
+import { useUIStore } from "@/stores/useUIStore";
+
+const SearchBox = dynamic(
+  () => import("@/components/overlays/SearchBox").then((mod) => mod.SearchBox),
+  { ssr: false }
+);
 
 export function SearchOverlay() {
   const open = useUIStore((state) => state.isSearchOpen);
@@ -46,7 +51,7 @@ export function SearchOverlay() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-8 sm:pt-12 md:pt-14 lg:pt-16 pb-6 px-3 sm:px-4 bg-black/70 dark:bg-black/80 backdrop-blur-md transition-all duration-200 animate-in fade-in"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-8 sm:pt-12 md:pt-14 lg:pt-16 pb-6 px-3 sm:px-4 bg-black/60 dark:bg-black/75 backdrop-blur-sm transition-all duration-200 animate-in fade-in"
       onClick={() => setSearchOpen(false)}
     >
       <div

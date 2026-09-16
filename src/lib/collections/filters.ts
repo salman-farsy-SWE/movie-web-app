@@ -24,8 +24,21 @@ export function filterCollectionItems(
 
   if (yearFilter.length > 0) {
     result = result.filter((item) => {
-      const itemYear = item.released ? item.released.trim() : "";
-      return yearFilter.some((y) => itemYear.includes(y) || itemYear === y);
+      const itemYearStr = item.released ? item.released.trim() : "";
+      if (!itemYearStr || itemYearStr === "—") return false;
+      const numYear = parseInt(itemYearStr, 10);
+
+      return yearFilter.some((y) => {
+        const cleanY = y.trim();
+        if (cleanY === "Before 1970" || cleanY === "before-1970") {
+          return !isNaN(numYear) && numYear < 1970;
+        }
+        if (cleanY.endsWith("s")) {
+          const decadeStart = parseInt(cleanY, 10);
+          return !isNaN(decadeStart) && !isNaN(numYear) && numYear >= decadeStart && numYear < decadeStart + 10;
+        }
+        return itemYearStr === cleanY || itemYearStr.includes(cleanY);
+      });
     });
   }
 

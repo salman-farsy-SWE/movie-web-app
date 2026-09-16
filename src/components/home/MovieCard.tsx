@@ -5,12 +5,17 @@ import Link from "next/link";
 import { memo, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { Volume2, VolumeX } from "lucide-react";
-import { WatchlistPopup } from "@/components/WatchlistPopup";
 import { AddButton } from "@/components/AddButton";
 import { slugify } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import type { CollectionMediaItem } from "@/stores/useUserCollectionsStore";
+
+const WatchlistPopup = dynamic(
+  () => import("@/components/WatchlistPopup").then((mod) => mod.WatchlistPopup),
+  { ssr: false }
+);
 
 const DEFAULT_MOVIE_IMAGE = "/assets/movie-placeholder.jpg";
 
@@ -24,6 +29,8 @@ interface MovieCardProps {
   mediaType?: "movie" | "tv";
   rating?: number | string;
   releaseDate?: string | number;
+  year?: string | number;
+  releaseYear?: string | number;
 }
 
 function formatTime(seconds: number) {
@@ -43,6 +50,8 @@ export const MovieCard = memo(function MovieCard({
   mediaType,
   rating,
   releaseDate,
+  year,
+  releaseYear,
 }: MovieCardProps) {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
@@ -52,7 +61,11 @@ export const MovieCard = memo(function MovieCard({
     mediaType || (basePath?.startsWith("/tv-shows") ? "tv" : "movie");
   const mediaId = id || title;
   const numericRating = typeof rating === "number" ? rating : (rating ? Number(rating) || undefined : undefined);
-  const releaseStr = releaseDate !== undefined ? String(releaseDate) : undefined;
+  const releaseStr = releaseDate !== undefined && String(releaseDate).trim() !== "" && String(releaseDate) !== "N/A"
+    ? String(releaseDate)
+    : (year !== undefined && String(year).trim() !== "" && String(year) !== "N/A"
+        ? String(year)
+        : (releaseYear !== undefined && String(releaseYear).trim() !== "" && String(releaseYear) !== "N/A" ? String(releaseYear) : undefined));
 
   const mediaItem: CollectionMediaItem = useMemo(() => ({
     id: mediaId,

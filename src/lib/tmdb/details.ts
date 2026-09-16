@@ -274,15 +274,22 @@ export async function getMediaDetails(
 
       const recommendations: MovieItem[] =
         rawRecs.length > 0
-          ? rawRecs.slice(0, 14).map((r: any) => ({
-              id: String(r.id),
-              title: r.title || r.name,
-              genre: isMovie ? "Movie" : "TV Show",
-              image: getTmdbImageUrl(r.poster_path || r.backdrop_path, "w500"),
-              trailerKey: null,
-              mediaType: isMovie ? "movie" : "tv",
-              rating: r.vote_average ? r.vote_average.toFixed(1) : "8.0",
-            }))
+          ? rawRecs.slice(0, 14).map((r: any) => {
+              const recRawDate = r.release_date || r.first_air_date;
+              const recYear = recRawDate ? new Date(recRawDate).getFullYear().toString() : undefined;
+              return {
+                id: String(r.id),
+                title: r.title || r.name,
+                genre: isMovie ? "Movie" : "TV Show",
+                image: getTmdbImageUrl(r.poster_path || r.backdrop_path, "w500"),
+                trailerKey: null,
+                mediaType: isMovie ? "movie" : "tv",
+                rating: r.vote_average ? r.vote_average.toFixed(1) : "8.0",
+                releaseDate: recRawDate || recYear,
+                year: recYear,
+                releaseYear: recYear,
+              };
+            })
           : [];
 
       return {
@@ -424,15 +431,22 @@ export async function getPersonDetails(
 
       const knownForCredits: MovieItem[] =
         rawCredits.length > 0
-          ? rawCredits.slice(0, 14).map((m: any) => ({
-              id: String(m.id),
-              title: m.title || m.name,
-              genre: m.media_type === "tv" ? "TV Show" : "Movie",
-              image: getTmdbImageUrl(m.poster_path || m.backdrop_path, "w500"),
-              rating: m.vote_average ? m.vote_average.toFixed(1) : "8.0",
-              mediaType: m.media_type === "tv" ? "tv" : "movie",
-              trailerKey: null,
-            }))
+          ? rawCredits.slice(0, 14).map((m: any) => {
+              const mRawDate = m.release_date || m.first_air_date;
+              const mYear = mRawDate ? new Date(mRawDate).getFullYear().toString() : undefined;
+              return {
+                id: String(m.id),
+                title: m.title || m.name,
+                genre: m.media_type === "tv" ? "TV Show" : "Movie",
+                image: getTmdbImageUrl(m.poster_path || m.backdrop_path, "w500"),
+                rating: m.vote_average ? m.vote_average.toFixed(1) : "8.0",
+                mediaType: m.media_type === "tv" ? "tv" : "movie",
+                trailerKey: null,
+                releaseDate: mRawDate || mYear,
+                year: mYear,
+                releaseYear: mYear,
+              };
+            })
           : [];
 
       // Fetch co-stars and crew collaborators from top 4 media items in parallel

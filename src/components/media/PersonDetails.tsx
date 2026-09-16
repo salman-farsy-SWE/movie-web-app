@@ -2,9 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { FcApproval } from "react-icons/fc";
-import { MdFavorite } from "react-icons/md";
-import { ExternalLink, Copy, Check } from "lucide-react";
+import { ExternalLink, Copy, Check, BadgeCheck, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import type { PersonDetailsData } from "@/lib/tmdb";
@@ -180,7 +178,7 @@ export function PersonDetails({
 
                             {/* Verified Talent Badge */}
                             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[11px] sm:text-[12px] font-medium select-none">
-                                <FcApproval className="w-3.5 h-3.5 flex-shrink-0" />
+                                <BadgeCheck className="w-3.5 h-3.5 flex-shrink-0 text-blue-500" />
                                 <span>Verified Artist</span>
                             </div>
 
@@ -280,7 +278,7 @@ export function PersonDetails({
                         <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-medium text-black/90 dark:text-white/90">Popularity:</span>
                             <span className="inline-flex items-center gap-1.5 text-light-person-details-data dark:text-genre-font font-normal">
-                                <MdFavorite className="w-4 h-4 text-trails-red" />
+                                <Heart className="w-4 h-4 text-trails-red fill-trails-red" />
                                 <span>{popularity}</span>
                             </span>
                         </div>

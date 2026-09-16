@@ -14,16 +14,24 @@ import { List } from "@/components/user-collection/List";
 import { ChevronLeft, Lock, Globe, Share2, Pencil, Trash2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Breadcrumb } from "@/components/Breadcrumb";
-import { slugify } from "@/lib/utils";
+import { slugify, extractReleaseYear } from "@/lib/utils";
 import { useUserCollectionsStore } from "@/stores/useUserCollectionsStore";
 import { getTmdbListDetailsAction } from "@/actions/collections";
 import type { TableItem, CustomList, CollectionType, FilterContextType, UserList } from "@/types";
 import { useHydrated } from "@/hooks/useHydrated";
 import { Button } from "@/components/ui/button";
-import { ShareListModal } from "@/components/user-collection/ShareListModal";
-import { DeleteListModal } from "@/components/user-collection/DeleteListModal";
+import dynamic from "next/dynamic";
 import { useUIStore } from "@/stores/useUIStore";
 import { useAuth } from "@/contexts/AuthContext";
+
+const ShareListModal = dynamic(
+  () => import("@/components/user-collection/ShareListModal").then((mod) => mod.ShareListModal),
+  { ssr: false }
+);
+const DeleteListModal = dynamic(
+  () => import("@/components/user-collection/DeleteListModal").then((mod) => mod.DeleteListModal),
+  { ssr: false }
+);
 import { parseFilterParamArray } from "@/lib/tmdb";
 import {
   sortCollectionItems,
@@ -316,7 +324,7 @@ export function UserCollectionPage({
         name: item.title,
         rating: typeof item.rating === "number" ? item.rating : 0,
         media: (item.mediaType === "tv" || item.isMovie === false) ? "TV Show" : "Movie",
-        released: item.releaseDate ? item.releaseDate.split("-")[0] : "—",
+        released: extractReleaseYear(item.releaseDate),
       }));
     }
 
@@ -327,7 +335,7 @@ export function UserCollectionPage({
         name: item.title,
         rating: typeof item.rating === "number" ? item.rating : 0,
         media: (item.mediaType === "tv" || item.isMovie === false) ? "TV Show" : "Movie",
-        released: item.releaseDate ? item.releaseDate.split("-")[0] : "—",
+        released: extractReleaseYear(item.releaseDate),
       }));
     }
 
@@ -339,7 +347,7 @@ export function UserCollectionPage({
         rating: typeof item.rating === "number" ? item.rating : 0,
         yourRating: rating,
         media: (item.mediaType === "tv" || item.isMovie === false) ? "TV Show" : "Movie",
-        released: item.releaseDate ? item.releaseDate.split("-")[0] : "—",
+        released: extractReleaseYear(item.releaseDate),
       }));
     }
 
@@ -351,7 +359,7 @@ export function UserCollectionPage({
         name: item.title,
         rating: typeof item.rating === "number" ? item.rating : 0,
         media: (item.mediaType === "tv" || item.isMovie === false) ? "TV Show" : "Movie",
-        released: item.releaseDate ? item.releaseDate.split("-")[0] : "—",
+        released: extractReleaseYear(item.releaseDate),
       }));
     }
 

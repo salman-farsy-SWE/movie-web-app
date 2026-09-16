@@ -3,14 +3,19 @@
 import Image from "next/image";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import dynamic from "next/dynamic";
 import { Heart } from "lucide-react";
-import { WatchlistPopup } from "@/components/WatchlistPopup";
 import { useUserCollectionsStore, type CollectionMediaItem } from "@/stores/useUserCollectionsStore";
 import { cn, slugify } from "@/lib/utils";
 import { AddButton } from "@/components/AddButton";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+
+const WatchlistPopup = dynamic(
+  () => import("@/components/WatchlistPopup").then((mod) => mod.WatchlistPopup),
+  { ssr: false }
+);
 
 const DEFAULT_POSTER_IMAGE = "/assets/movie-placeholder.jpg";
 
@@ -22,6 +27,8 @@ export const PosterCard = memo(function PosterCard({
     mediaType,
     rating,
     releaseDate,
+    year,
+    releaseYear,
     genre,
 }: {
     id?: string | number;
@@ -31,6 +38,8 @@ export const PosterCard = memo(function PosterCard({
     mediaType?: "movie" | "tv";
     rating?: number | string;
     releaseDate?: string | number;
+    year?: string | number;
+    releaseYear?: string | number;
     genre?: string;
 }) {
     const { isAuthenticated } = useAuth();
@@ -48,7 +57,11 @@ export const PosterCard = memo(function PosterCard({
     const [popupPos, setPopupPos] = useState<{ bottom: number; left: number } | null>(null);
 
     const numericRating = typeof rating === "number" ? rating : (rating ? Number(rating) || undefined : undefined);
-    const releaseStr = releaseDate !== undefined ? String(releaseDate) : undefined;
+    const releaseStr = releaseDate !== undefined && String(releaseDate).trim() !== "" && String(releaseDate) !== "N/A"
+        ? String(releaseDate)
+        : (year !== undefined && String(year).trim() !== "" && String(year) !== "N/A"
+            ? String(year)
+            : (releaseYear !== undefined && String(releaseYear).trim() !== "" && String(releaseYear) !== "N/A" ? String(releaseYear) : undefined));
 
     const mediaItem: CollectionMediaItem = useMemo(() => ({
         id: mediaId,

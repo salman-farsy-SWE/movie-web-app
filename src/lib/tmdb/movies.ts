@@ -677,6 +677,10 @@ export async function getDiscoverMovies(
           year: movie.release_date
             ? new Date(movie.release_date).getFullYear().toString()
             : undefined,
+          releaseYear: movie.release_date
+            ? new Date(movie.release_date).getFullYear().toString()
+            : undefined,
+          releaseDate: movie.release_date || undefined,
           rating: movie.vote_average
             ? movie.vote_average.toFixed(1)
             : undefined,
@@ -968,6 +972,8 @@ export async function getDiscoverTvShows(
         trailerKey: null,
         mediaType: "tv" as const,
         year: tv.first_air_date ? new Date(tv.first_air_date).getFullYear().toString() : undefined,
+        releaseYear: tv.first_air_date ? new Date(tv.first_air_date).getFullYear().toString() : undefined,
+        releaseDate: tv.first_air_date || undefined,
         rating: tv.vote_average ? tv.vote_average.toFixed(1) : undefined,
         voteCount: tv.vote_count,
         popularity: tv.popularity,

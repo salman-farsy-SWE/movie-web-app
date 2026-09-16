@@ -1,9 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ScrollToTop } from "@/components/ScrollToTop";
-import { SearchOverlay } from "@/components/overlays/SearchOverlay";
-import { RatingOverlay } from "@/components/overlays/RatingOverlay";
-import { ListOverlay } from "@/components/overlays/ListOverlay";
+import { GlobalOverlays } from "@/components/overlays/GlobalOverlays";
 import { NavigationTracker } from "@/components/navigation/NavigationTracker";
 import { SortFilterTransitionProvider } from "@/contexts/SortFilterTransitionContext";
 import { NotFoundContent } from "@/components/not-found/NotFoundContent";
@@ -17,9 +15,7 @@ export default function NotFound() {
       </main>
       <Footer />
       <ScrollToTop />
-      <SearchOverlay />
-      <RatingOverlay />
-      <ListOverlay />
+      <GlobalOverlays />
       <NavigationTracker />
     </SortFilterTransitionProvider>
   );

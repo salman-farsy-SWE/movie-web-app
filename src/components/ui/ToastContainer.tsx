@@ -11,9 +11,9 @@ import {
   Check,
   CircleAlert,
   AlertTriangle,
+  Star,
   X,
 } from "lucide-react";
-import { FaStar } from "react-icons/fa6";
 import { toast, type ToastItem, type ToastType } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -80,7 +80,7 @@ function ToastCard({ item }: { item: ToastItem }) {
           tag: "RATING",
           tagBg: "bg-yellow-500/10 text-yellow-700 border-yellow-500/25 dark:bg-fill-star/20 dark:text-fill-star dark:border-fill-star/35",
           borderLeft: "border-l-fill-star",
-          icon: <FaStar className="w-4.5 h-4.5 text-yellow-500 dark:text-fill-star" />,
+          icon: <Star className="w-4.5 h-4.5 fill-yellow-500 text-yellow-500 dark:fill-fill-star dark:text-fill-star" />,
           iconBg: "bg-yellow-500/10 border-yellow-500/20 dark:bg-fill-star/15 dark:border-fill-star/30",
           progressBar: "bg-yellow-500 dark:bg-fill-star",
         };

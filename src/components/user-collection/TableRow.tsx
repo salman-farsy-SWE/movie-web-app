@@ -4,12 +4,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import dynamic from "next/dynamic";
 import { TableItem } from "@/types/items";
 import { Rating } from "@/components/Rating";
 import { MoreOptionsButton } from "@/components/MoreOptionsButton";
-import { WatchlistPopup, type CollectionPageType } from "@/components/WatchlistPopup";
+import { type CollectionPageType } from "@/components/WatchlistPopup";
 import { cn, slugify } from "@/lib/utils";
 import type { CollectionMediaItem } from "@/stores/useUserCollectionsStore";
+
+const WatchlistPopup = dynamic(
+  () => import("@/components/WatchlistPopup").then((mod) => mod.WatchlistPopup),
+  { ssr: false }
+);
 
 interface TableRowProps {
   item: TableItem;

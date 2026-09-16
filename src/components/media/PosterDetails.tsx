@@ -2,15 +2,10 @@
 
 import Image from "next/image";
 import { GenreBadge } from "@/components/GenreBadge";
-import { IoTriangleSharp } from "react-icons/io5";
 import { Button } from "@/components/ui/button";
-
-import { IoMdStarOutline } from "react-icons/io";
-import { FcApproval } from "react-icons/fc";
-import { MdFavorite } from "react-icons/md";
-import { Heart } from "lucide-react";
+import { BadgeCheck, Heart, Play, Star } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { WatchlistPopup } from "@/components/WatchlistPopup";
+import dynamic from "next/dynamic";
 import { AddButton } from "@/components/AddButton";
 import { Rating } from "@/components/Rating";
 import { TrailerDialog } from "@/components/home/TrailerDialog";
@@ -21,6 +16,11 @@ import { useUserCollectionsStore, type CollectionMediaItem } from "@/stores/useU
 import { getTmdbAccountStateAction } from "@/actions/collections";
 import { cn } from "@/lib/utils";
 import type { MediaDetailsData } from "@/lib/tmdb";
+
+const WatchlistPopup = dynamic(
+  () => import("@/components/WatchlistPopup").then((mod) => mod.WatchlistPopup),
+  { ssr: false }
+);
 
 export function PosterDetails({
     data,
@@ -369,7 +369,7 @@ export function PosterDetails({
                                     }}
                                     className="bg-white/15 hover:bg-white/25 border border-white/20 text-white hover:text-white flex items-center gap-1.5 h-8 px-2.5 rounded-[4px] transition-colors cursor-pointer shadow-md backdrop-blur-sm"
                                 >
-                                    <IoMdStarOutline className={cn("w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 drop-shadow-[0_0_6px_rgba(250,204,21,0.4)]", userRating !== undefined && "fill-yellow-400")} />
+                                    <Star className={cn("w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 drop-shadow-[0_0_6px_rgba(250,204,21,0.4)]", userRating !== undefined && "fill-yellow-400")} />
                                     <span className="font-inter text-[13px] sm:text-[14px] font-medium text-white">
                                         {userRating !== undefined ? `${userRating}/10` : "Rate"}
                                     </span>
@@ -391,7 +391,7 @@ export function PosterDetails({
                             <div className="flex flex-col items-start gap-1">
                                 <p className="tracking-wider text-white/70 text-[11px] sm:text-[12px] uppercase font-semibold">VOTES</p>
                                 <div className="flex items-center gap-1.5 h-8 text-white2 xl:text-[18px] lg:text-[17px] text-[15px] font-medium">
-                                    <FcApproval className="w-5 h-5 [filter:hue-rotate(500deg)_saturate(5)_brightness(0.9)]" />
+                                    <BadgeCheck className="w-5 h-5 text-blue-400" />
                                     <span>{voteCount}</span>
                                 </div>
                             </div>
@@ -400,7 +400,7 @@ export function PosterDetails({
                             <div className="flex flex-col items-start gap-1">
                                 <p className="tracking-wider text-white/70 text-[11px] sm:text-[12px] uppercase font-semibold">POPULARITY</p>
                                 <div className="flex items-center gap-1.5 h-8 text-white2 xl:text-[18px] lg:text-[17px] text-[15px] font-medium">
-                                    <MdFavorite className="w-5 h-5 text-trails-red" />
+                                    <Heart className="w-5 h-5 text-trails-red fill-trails-red" />
                                     <span>{popularity}</span>
                                 </div>
                             </div>
@@ -431,7 +431,7 @@ export function PosterDetails({
                                     className="group/btn absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer z-10"
                                 >
                                     <div className="xl:w-[110px] xl:h-[110px] lg:w-[100px] lg:h-[100px] md:w-[92px] md:h-[92px] w-[80px] h-[80px] bg-play rounded-full flex items-center justify-center transition-all duration-300 ease-out transform group-hover:scale-100 group-hover/btn:scale-110 active:scale-95 shadow-lg">
-                                        <IoTriangleSharp className="text-white xl:w-[70px] xl:h-[70px] lg:w-[64px] lg:h-[64px] md:w-[58px] md:h-[58px] w-[50px] h-[50px] -rotate-90 xl:mr-[14px] md:mr-[12px] mr-[11px]" />
+                                        <Play className="text-white fill-white xl:w-[50px] xl:h-[50px] lg:w-[45px] lg:h-[45px] md:w-[40px] md:h-[40px] w-[35px] h-[35px] ml-1" />
                                     </div>
                                 </button>
                             </div>

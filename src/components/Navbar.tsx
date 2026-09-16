@@ -12,10 +12,15 @@ import { useUIStore } from "@/stores/useUIStore";
 import { ThemeToggle } from "@/components/navbar/ThemeToggle";
 import { SearchTrigger } from "@/components/navbar/SearchTrigger";
 import { useState, useEffect, useRef, useSyncExternalStore } from "react";
+import dynamic from "next/dynamic";
 import { ProfileDropdown } from "@/components/navbar/ProfileDropdown";
-import { MobileNavSheet } from "@/components/navbar/MobileNavSheet";
 import { UserAvatar } from "@/components/navbar/UserAvatar";
 import { useAuth } from "@/contexts/AuthContext";
+
+const MobileNavSheet = dynamic(
+  () => import("@/components/navbar/MobileNavSheet").then((mod) => mod.MobileNavSheet),
+  { ssr: false }
+);
 import { getTmdbAvatarUrl } from "@/lib/tmdb/auth";
 
 const navLinks = [

@@ -1,11 +1,11 @@
 import Image from "next/image";
 import { cookies } from "next/headers";
 import {
-  MdOutlineFavorite,
-  MdStars,
-} from "react-icons/md";
-import { BsPinAngleFill } from "react-icons/bs";
-import { IoIosListBox } from "react-icons/io";
+  Heart,
+  Bookmark,
+  Star,
+  ListPlus,
+} from "lucide-react";
 import {
   getAccountDetails,
   getAccountSummaryCounts,
@@ -99,7 +99,7 @@ export async function ProfileSection({ param }: ProfileSectionProps) {
                 Favorites Count
               </p>
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <MdOutlineFavorite className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8 text-red-500 shrink-0" />
+                <Heart className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8 text-red-500 fill-red-500 shrink-0" />
                 <span className="font-semibold text-lg sm:text-xl md:text-2xl lg:text-3xl text-black dark:text-white">
                   {stats.favorites}
                 </span>
@@ -112,7 +112,7 @@ export async function ProfileSection({ param }: ProfileSectionProps) {
                 Watchlist Count
               </p>
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <BsPinAngleFill className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8 text-black dark:text-white shrink-0" />
+                <Bookmark className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8 text-black dark:text-white fill-black dark:fill-white shrink-0" />
                 <span className="font-semibold text-lg sm:text-xl md:text-2xl lg:text-3xl text-black dark:text-white">
                   {stats.watchlist}
                 </span>
@@ -125,7 +125,7 @@ export async function ProfileSection({ param }: ProfileSectionProps) {
                 Ratings Count
               </p>
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <MdStars className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8 text-black dark:text-yellow-300 shrink-0" />
+                <Star className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8 text-black dark:text-yellow-300 fill-black dark:fill-yellow-300 shrink-0" />
                 <span className="font-semibold text-lg sm:text-xl md:text-2xl lg:text-3xl text-black dark:text-white">
                   {stats.ratings}
                 </span>
@@ -138,7 +138,7 @@ export async function ProfileSection({ param }: ProfileSectionProps) {
                 Lists Count
               </p>
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <IoIosListBox className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8 text-blue-500 shrink-0" />
+                <ListPlus className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8 text-blue-500 shrink-0" />
                 <span className="font-semibold text-lg sm:text-xl md:text-2xl lg:text-3xl text-black dark:text-white">
                   {stats.lists}
                 </span>

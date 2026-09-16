@@ -275,6 +275,7 @@ export function mapTmdbToMovieItem(
     mediaStatus,
     year: releaseYear,
     releaseYear,
+    releaseDate: rawDate || releaseYear,
     rating: item.vote_average ? item.vote_average.toFixed(1) : undefined,
     voteCount: item.vote_count,
     popularity: item.popularity,

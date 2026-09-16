@@ -48,7 +48,7 @@ function mapTmdbResultToCollectionItem(
     backdropImage: getTmdbImageUrl(m.backdrop_path, "original"),
     rating: m.vote_average ?? 0,
     userRating: m.rating,
-    releaseDate: isMovie ? (m.release_date || "") : (m.first_air_date || ""),
+    releaseDate: isMovie ? (m.release_date || m.first_air_date || "") : (m.first_air_date || m.release_date || ""),
     isMovie,
     mediaType: isMovie ? "movie" : "tv",
   };
@@ -1089,7 +1089,7 @@ export async function syncTmdbCollectionIdsAction(): Promise<{
   success: boolean;
   favoriteIds: (number | string)[];
   watchlistIds: (number | string)[];
-  ratedMap: Record<string, { rating: number; mediaType?: "movie" | "tv"; title?: string }>;
+  ratedMap: Record<string, { rating: number; mediaType?: "movie" | "tv"; title?: string; releaseDate?: string; posterImage?: string; backdropImage?: string }>;
   error?: string;
 }> {
   try {
@@ -1123,13 +1123,16 @@ export async function syncTmdbCollectionIdsAction(): Promise<{
       ...wlTv.map((t) => t.id),
     ];
 
-    const ratedMap: Record<string, { rating: number; mediaType?: "movie" | "tv"; title?: string }> = {};
+    const ratedMap: Record<string, { rating: number; mediaType?: "movie" | "tv"; title?: string; releaseDate?: string; posterImage?: string; backdropImage?: string }> = {};
     rateMovies.forEach((m) => {
       if (m.id) {
         ratedMap[String(m.id)] = {
           rating: m.rating ?? m.vote_average ?? 0,
           mediaType: "movie",
           title: m.title || m.original_title,
+          releaseDate: m.release_date || m.first_air_date || "",
+          posterImage: getTmdbImageUrl(m.poster_path, "w500"),
+          backdropImage: getTmdbImageUrl(m.backdrop_path, "original"),
         };
       }
     });
@@ -1139,6 +1142,9 @@ export async function syncTmdbCollectionIdsAction(): Promise<{
           rating: t.rating ?? t.vote_average ?? 0,
           mediaType: "tv",
           title: t.name || t.original_name,
+          releaseDate: t.first_air_date || t.release_date || "",
+          posterImage: getTmdbImageUrl(t.poster_path, "w500"),
+          backdropImage: getTmdbImageUrl(t.backdrop_path, "original"),
         };
       }
     });

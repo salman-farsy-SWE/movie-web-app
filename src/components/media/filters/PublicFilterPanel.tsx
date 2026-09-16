@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { FilterSection } from "@/components/shared/filters/FilterSection";
 import { PublicYearFilter } from "@/components/media/filters/PublicYearFilter";
 import { CheckboxItem } from "@/components/shared/filters/CheckboxItem";
-import { IoIosStar } from "react-icons/io";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { RadioItem } from "@/components/shared/filters/RadioItem";
 import {
@@ -27,7 +26,7 @@ import {
   isFilterActive,
 } from "@/lib/tmdb";
 import type { FilterContextType } from "@/types";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Star } from "lucide-react";
 import { useSortFilterTransition } from "@/contexts/SortFilterTransitionContext";
 
 interface PublicFilterPanelProps {
@@ -357,7 +356,7 @@ function PublicFilterPanelContent({
                       checked={selectedRatings.includes(item)}
                       onCheckedChange={() => toggleItem(selectedRatings, setSelectedRatings, item)}
                     >
-                      <IoIosStar className="w-4 h-4 text-fill-star inline-block shrink-0" />
+                      <Star className="w-4 h-4 text-fill-star fill-fill-star inline-block shrink-0" />
                       <span>{item}+</span>
                     </CheckboxItem>
                   )}

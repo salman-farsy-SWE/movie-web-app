@@ -5,11 +5,19 @@ import Link from "next/link";
 import { Plus, Lock, Globe } from "lucide-react";
 import { MoreOptionsButton } from "@/components/MoreOptionsButton";
 import { ListOptionsPopup } from "@/components/user-collection/ListOptionsPopup";
-import { ShareListModal } from "@/components/user-collection/ShareListModal";
-import { DeleteListModal } from "@/components/user-collection/DeleteListModal";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
+
+const ShareListModal = dynamic(
+  () => import("@/components/user-collection/ShareListModal").then((mod) => mod.ShareListModal),
+  { ssr: false }
+);
+const DeleteListModal = dynamic(
+  () => import("@/components/user-collection/DeleteListModal").then((mod) => mod.DeleteListModal),
+  { ssr: false }
+);
 import { useUIStore } from "@/stores/useUIStore";
 import { useUserCollectionsStore } from "@/stores/useUserCollectionsStore";
 import { useAuth } from "@/contexts/AuthContext";

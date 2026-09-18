@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { HeroSection } from "@/components/home/HeroSection";
 import { HomeSection } from "@/components/home/HomeSection";
 import {
@@ -7,6 +8,38 @@ import {
   getPopularMovies,
   getTrendingTvShows,
 } from "@/lib/tmdb";
+
+export const metadata: Metadata = {
+  title: "Movie Trails | Watch Trailers, Discover Movies & Track TV Shows",
+  description:
+    "Discover trending movies, watch trailers, explore top-rated TV shows, create custom watchlists, and track your favorite cinema entertainment with Movie Trails.",
+  keywords: [
+    "watch movie trailers",
+    "movie trailers",
+    "discover movies",
+    "trending movies",
+    "top rated tv shows",
+    "popular tv series",
+    "custom movie watchlist",
+    "movie ratings and reviews",
+    "latest cinema trailers",
+    "latest tv show trailers",
+    "stream trailers online",
+    "movie recommendations",
+    "film trailers",
+    "free movie trailers",
+  ],
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Movie Trails | Watch Trailers, Discover Movies & Track TV Shows",
+    description:
+      "Discover trending movies, watch trailers, explore top-rated TV shows, create custom watchlists, and track your favorite cinema entertainment with Movie Trails.",
+    type: "website",
+    url: "/",
+  },
+};
 
 export default async function Home() {
   const [

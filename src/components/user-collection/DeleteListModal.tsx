@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { X, Trash2, AlertTriangle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useUIStore } from "@/stores/useUIStore";
 
 interface DeleteListModalProps {
   open: boolean;
@@ -19,6 +20,14 @@ export function DeleteListModal({
   listTitle,
   isDeleting = false,
 }: DeleteListModalProps) {
+  const isSearchOpen = useUIStore((state) => state.isSearchOpen);
+
+  // Close modal if search overlay is opened
+  useEffect(() => {
+    if (isSearchOpen && open && !isDeleting) {
+      onClose();
+    }
+  }, [isSearchOpen, open, isDeleting, onClose]);
   // Lock body scroll on open
   useEffect(() => {
     if (!open) return;

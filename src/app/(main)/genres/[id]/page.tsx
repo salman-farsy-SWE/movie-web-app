@@ -22,14 +22,32 @@ export async function generateMetadata({
 
   const title = `${capitalized} Movies & TV Shows`;
   const description = `Explore top-rated, popular, and trending ${capitalized} movies and TV series on Movie Trails.`;
+  const genreLower = capitalized.toLowerCase();
 
   return {
     title,
     description,
+    keywords: [
+      `${genreLower} movies`,
+      `${genreLower} tv shows`,
+      `${genreLower} films`,
+      `best ${genreLower} movies`,
+      `top ${genreLower} tv shows`,
+      `trending ${genreLower} movies`,
+      `watch ${genreLower} trailers`,
+      `${genreLower} genre`,
+      "movie genres",
+      "tv genres",
+      "movie discovery by genre",
+    ],
+    alternates: {
+      canonical: `/genres/${id}`,
+    },
     openGraph: {
       title: `${title} | Movie Trails`,
       description,
       type: "website",
+      url: `/genres/${id}`,
       images: [
         {
           url: "/opengraph-image",

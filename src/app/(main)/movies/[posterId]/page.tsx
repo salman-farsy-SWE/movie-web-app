@@ -29,7 +29,7 @@ export async function generateMetadata({
             `${data.title} trailer`,
             `${data.title} cast`,
             `${data.title} release date`,
-            `${data.title} review`,
+            `${data.title} rating`,
             `${data.title} watch online`,
             ...(data.genres || []),
             "watch movie trailers",

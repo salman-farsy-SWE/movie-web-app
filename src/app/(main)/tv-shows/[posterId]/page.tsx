@@ -29,9 +29,9 @@ export async function generateMetadata({
       `${data.title} cast`,
       `${data.title} seasons`,
       `${data.title} episodes`,
-      `${data.title} reviews`,
+      `${data.title} ratings`,
       ...(data.genres || []),
-      "watch tv series",
+      "tv shows trailer",
       "movie trails",
     ];
 

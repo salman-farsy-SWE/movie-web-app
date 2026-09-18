@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
+import { useUIStore } from "@/stores/useUIStore";
 
 export interface ShareListModalProps {
   open: boolean;
@@ -51,6 +52,14 @@ export function ShareListModal({
   const [copied, setCopied] = useState(false);
   const [hasImageError, setHasImageError] = useState(false);
   const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isSearchOpen = useUIStore((state) => state.isSearchOpen);
+
+  // Close modal if search overlay is opened
+  useEffect(() => {
+    if (isSearchOpen && open) {
+      onClose();
+    }
+  }, [isSearchOpen, open, onClose]);
 
   const mounted = useSyncExternalStore(
     emptySubscribe,
@@ -186,7 +195,7 @@ export function ShareListModal({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/65 dark:bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 dark:bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={onClose}
       role="dialog"
       aria-modal="true"

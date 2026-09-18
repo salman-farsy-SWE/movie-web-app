@@ -37,6 +37,14 @@ export function WatchlistPopup({ media, currentListId, isOwner, pageType, onClos
 
     const openRating = useUIStore((state) => state.openRating);
     const openCreate = useUIStore((state) => state.openCreateList);
+    const isSearchOpen = useUIStore((state) => state.isSearchOpen);
+
+    // Close popup if searchbox is opened
+    useEffect(() => {
+        if (isSearchOpen && onClose) {
+            onClose();
+        }
+    }, [isSearchOpen, onClose]);
 
     const mediaId = media?.id;
     const mediaTitle = media?.title;

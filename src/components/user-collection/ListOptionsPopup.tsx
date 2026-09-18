@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
 import { Pencil, Share2, Trash2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUIStore } from "@/stores/useUIStore";
 
 interface ListOptionsPopupProps {
   onEdit?: () => void;
@@ -20,6 +22,14 @@ export function ListOptionsPopup({
   isPrivate = false,
   className,
 }: ListOptionsPopupProps) {
+  const isSearchOpen = useUIStore((state) => state.isSearchOpen);
+
+  // Close popup if searchbox is opened
+  useEffect(() => {
+    if (isSearchOpen && onClose) {
+      onClose();
+    }
+  }, [isSearchOpen, onClose]);
   return (
     <div
       className={cn(
